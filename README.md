@@ -13,11 +13,11 @@ Grand Ambitions. Maybe there are some inconsistencies.
 - [ ] Well Documented
 - [ ] Great developer experience with VSCode extension
 - [ ] Multiparadigm (Functional, Object-Oriented, Procedural)
-- [ ] Typed. And powerful type inference
+- [ ] Typed. And powerful type inference like TypeScript/Rust
 - [ ] Seamless use of standard C++ Libraries
 - [ ] Can use Clojure-like syntax (), [], {}, etc...
 - [ ] Numpy-like array slice ([2:-1, -3:] array2d)
-- [ ] Standard with numpy, matplotlib, pandas, and scipy functionality
+- [ ] Standard with IPython, numpy, matplotlib, pandas, and scipy functionality
 - [ ] Signal Processing, Time Series Analysis included as standard
 - [ ] Supports exception handling
 
@@ -28,3 +28,7 @@ Grand Ambitions. Maybe there are some inconsistencies.
 - Get domain knowledge of signal processing and time series analysis
 - Improve development experience by developing VSCode extensions
 - Participation in OSS activities on GitHub
+
+## Philosophy
+
+Let's use Lisp easily without thinking too hard.
