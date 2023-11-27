@@ -29,6 +29,27 @@ Grand Ambitions. Maybe there are some inconsistencies.
 - Improve development experience by developing VSCode extensions
 - Participation in OSS activities on GitHub
 
+## Influenced by
+
+- Common Lisp
+- Clojure
+- Python
+- Hy
+- C++
+- R
+- TypeScript
+- Rust
+- SQL
+
 ## Philosophy
 
 Let's use Lisp easily without thinking too hard.
+
+## What we want to focus on
+
+- Readability
+- Rich REPL
+- High Performance
+- Code Simplicity
+- Allow for loop
+- Minimum Keywords
