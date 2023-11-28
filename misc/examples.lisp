@@ -309,7 +309,8 @@ os[K]        ; Ordered HashSet #{"a", "b", "c"}:os[str]
 (dog1.walk 2)
 => "walk 2km, HP: 30"
 (dog1.bow)
-=> "bow!"
+=> nil
+"bow"
 
 ;; Macro
 (macro if-valid
