@@ -8,6 +8,7 @@ Grand Ambitions. Maybe there are some inconsistencies.
 
 - [ ] S-expression
 - [ ] REPL
+- [ ] Run as script
 - [ ] Compile to single binary
 - [ ] Easy installation (Cross Platform)
 - [ ] Well Documented

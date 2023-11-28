@@ -1,12 +1,10 @@
 #include <string>
 #include <iostream>
 #include "core.cpp"
-#include "run.cpp"
 
 using namespace std;
 
 void repl() {
-  core();
   string input;
   string result;
 

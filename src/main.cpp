@@ -1,7 +1,6 @@
 #include <vector>
 #include "core/compile.cpp"
 #include "core/repl.cpp"
-#include "core/run.cpp"
 
 int main(int argc, const char **argv) {
   std::vector<string> args;
@@ -11,7 +10,7 @@ int main(int argc, const char **argv) {
 
   if (argc == 1) {
     repl();
-  } else if (argc == 2) {
+  } else if (argc == 2 && args[1] != "-c") {
     run(args[1], true);
   } else if (argc == 3 && args[1] == "-c") {
     compile(args[2]);
