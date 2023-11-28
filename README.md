@@ -68,3 +68,4 @@ scilisp -c xxx.lisp  # compile code
 ## To Me
 
 - Small Start!
+- Maker interpreter first.

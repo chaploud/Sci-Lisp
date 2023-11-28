@@ -9,18 +9,14 @@ int main(int argc, const char **argv) {
     args.push_back(argv[i]);
   }
 
-  try {
-    if (argc == 1) {
-      repl();
-    } else if (argc == 2) {
-      run(args[1]);
-    } else if (argc == 3 && args[1] == "-c") {
-      compile(args[2]);
-    } else {
-      std::cerr << "invalid arguments" << std::endl;
-    }
-  } catch (std::runtime_error &e) {
-    std::cerr << e.what() << std::endl;
+  if (argc == 1) {
+    repl();
+  } else if (argc == 2) {
+    run(args[1], true);
+  } else if (argc == 3 && args[1] == "-c") {
+    compile(args[2]);
+  } else {
+    std::cerr << "invalid arguments" << std::endl;
   }
 
   return 0;
