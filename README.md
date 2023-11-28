@@ -34,12 +34,13 @@ Grand Ambitions. Maybe there are some inconsistencies.
 - Common Lisp
 - Clojure
 - Python
-- Hy
+- Hy(https://github.com/hylang/hy)
 - C++
 - R
 - TypeScript
 - Rust
 - SQL
+- wisp(https://github.com/adam-mcdaniel/wisp)
 
 ## Philosophy
 
