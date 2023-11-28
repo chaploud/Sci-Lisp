@@ -1591,9 +1591,9 @@ void repl(Environment &env) {
   Value tmp;
   std::vector<Value> parsed;
   while (std::cin) {
-    std::cout << ">>> ";
+    std::cout << "λ > ";
     std::getline(std::cin, input);
-    if (input == "!quit" || input == "!q")
+    if (input == "quit" || input == "q" || input == "exit")
       break;
     else if (input == "!env" || input == "!e")
       std::cout << env << std::endl;
@@ -1608,7 +1608,7 @@ void repl(Environment &env) {
     } else if (input != "") {
       try {
         tmp = run(input, env);
-        std::cout << " => " << tmp.debug() << std::endl;
+        std::cout << "=> " << tmp.debug() << std::endl;
         code += input + "\n";
       } catch (Error &e) {
         std::cerr << e.description() << std::endl;
