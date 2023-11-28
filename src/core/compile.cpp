@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void repl() {
+void compile(string path) {
   core();
-  cout << "repl" << endl;
+  cout << "compile: " << path << endl;
 }

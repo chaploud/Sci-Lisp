@@ -1,6 +1,6 @@
 # (Sci-Lisp)
 
-A Lisp for Scientific Computing written in C++.
+A Lisp for Scientific Computing written in C++. (Now in progress).
 
 ## Features(Plan)
 
@@ -54,3 +54,17 @@ Let's use Lisp easily without thinking too hard.
 - Code Simplicity
 - Allow for loop
 - Minimum Keywords
+
+## Command
+
+```bash
+scilisp  # launch REPL
+scilisp xxx.lisp  # run as script
+scilisp -c xxx.lisp  # compile code
+```
+
+## Code reading roadmap
+
+## To Me
+
+- Small Start!
