@@ -1,3 +1,4 @@
+#include <string>
 #include <vector>
 #include "core/core.cpp"
 #include "core/compile.cpp"
@@ -6,9 +7,9 @@
 
 int main(int argc, const char **argv) {
   Environment env;
-  std::vector<string> args;
+  std::vector<Value> args;
   for (int i = 0; i < argc; i++) {
-    args.push_back(argv[i]);
+    args.push_back(Value::string(argv[i]));
   }
   env.set("cmd-args", Value(args));
 
@@ -19,10 +20,10 @@ int main(int argc, const char **argv) {
       repl(env);
     } else if (argc == 2) {
       run(read_file_contents(argv[1]), env);
-    } else if (argc == 3 && args[1] == "-c") {
-      compile(args[2], env);
-    } else if (argc == 3 && args[1] == "-l") {
-      lint(args[2], env);
+    } else if (argc == 3 && std::string(argv[1]) == "-c") {
+      compile(argv[2], env);
+    } else if (argc == 3 && std::string(argv[1]) == "-l") {
+      lint(argv[2], env);
     } else {
       std::cerr << "invalid arguments" << std::endl;
     }
