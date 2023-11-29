@@ -1,0 +1,25 @@
+{
+  "name": "sci-lisp",
+  "displayName": "Sci-Lisp",
+  "description": "Sci-Lisp extension",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.84.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "lisp",
+      "aliases": ["Sci-Lisp", "lisp"],
+      "extensions": [".lisp"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "lisp",
+      "scopeName": "source.lisp",
+      "path": "./syntaxes/lisp.tmLanguage.json"
+    }]
+  }
+}
