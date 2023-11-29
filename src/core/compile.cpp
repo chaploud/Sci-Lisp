@@ -2,8 +2,7 @@
 #include <iostream>
 #include "core.cpp"
 
-using namespace std;
-
-void compile(string path) {
-  cout << "compile: " << path << endl;
+void compile(std::string path, Environment &env) {
+  std::cout << "compile: " << path << std::endl;
+  std::cout << env << std::endl;
 }

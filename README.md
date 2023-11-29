@@ -62,6 +62,7 @@ Let's use Lisp easily without thinking too hard.
 scilisp  # launch REPL
 scilisp xxx.lisp  # run as script
 scilisp -c xxx.lisp  # compile code
+scllisp -l xxx.lisp  #lint code
 ```
 
 ## Code reading roadmap
@@ -69,4 +70,4 @@ scilisp -c xxx.lisp  # compile code
 ## To Me
 
 - Small Start!
-- Maker interpreter first.
+- Make interpreter first.
