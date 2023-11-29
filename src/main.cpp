@@ -1,9 +1,9 @@
 #include <string>
 #include <vector>
 #include "core/core.cpp"
-#include "core/compile.cpp"
+#include "core/compiler.cpp"
 #include "core/repl.cpp"
-#include "core/lint.cpp"
+#include "core/linter.cpp"
 
 int main(int argc, const char **argv) {
   Environment env;

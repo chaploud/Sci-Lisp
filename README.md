@@ -34,10 +34,12 @@ Grand Ambitions. Maybe there are some inconsistencies.
 
 - Common Lisp
 - Clojure
-- Python
 - Hy(https://github.com/hylang/hy)
-- C++
+- Python
 - R
+- MatLab
+- SciLab
+- C++
 - TypeScript
 - Rust
 - SQL
