@@ -372,23 +372,6 @@ class Value {
 
   bool operator!=(Value other) const { return !(*this == other); }
 
-  // bool operator<(Value other) const {
-  //     if (other.type != FLOAT && other.type != INT)
-  //         throw Error(*this, Environment(), INVALID_BIN_OP);
-
-  //     switch (type) {
-  //     case FLOAT:
-  //         return stack_data.f < other.cast_to_float().stack_data.f;
-  //     case INT:
-  //         if (other.type == FLOAT)
-  //             return cast_to_float().stack_data.f < other.stack_data.f;
-  //         else return stack_data.i < other.stack_data.i;
-  //     default:
-  //         throw Error(*this, Environment(), INVALID_ORDER);
-  //     }
-  // }
-
-
   // ===== Ordering Operators
 
   bool operator>=(Value other) const { return !(*this < other); }
