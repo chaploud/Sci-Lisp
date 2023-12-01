@@ -160,7 +160,7 @@ enum
 private
 protected
 public
-defmacto
+defmacro
 `
 ~
 ~@
