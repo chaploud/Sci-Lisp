@@ -171,7 +171,6 @@ hset ;; coerce
 hmap
 vector
 list
-array
 
 ;; Want
 async
@@ -187,7 +186,6 @@ switch, case
 
 ;; Functions
 vector
-array
 list
 string
 
@@ -226,7 +224,6 @@ str          ; string  "lisp"
 regex        ; Regular Expression #"[0-9]+"
 list         ; linked list '(1, 2, 3) allow any type combination
 v[T][i,j,k]  ; vector [2.0, 3.0, 4.0]:v[f64][3]
-a[T][i,j,k]  ; array [[1, 2], [3, 4], [5, 6]]:a[i32][2,3]
 m[K,V]       ; HashMap {:a 1, :b 2, :c 3}:m[sym,i32]
 s[K]         ; HashSet #{"a", "b", "c"}:s[str]
 om[K,V]      ; Ordered HashMap {:a 1, :b 2, :c 3}:om[sym,i32]
