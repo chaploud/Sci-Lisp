@@ -6,6 +6,7 @@
 []               ; vector
 {}               ; hash map
 #{}              ; hash set
+#()              ; lambda function
 ""               ; string
 "\n"             ; escape sequence
 #"[0-9]+"        ; regular expression
@@ -494,9 +495,9 @@ om[K,V]      ; Ordered HashMap {:a 1, :b 2, :c 3}:om[sym,i32]
 os[K]        ; Ordered HashSet #{"a", "b", "c"}:os[str]
 
 ;; === Syntax
-(def a :bool true) ;; (def a true) is OK (Type inference)
-(def a :sym :blur) ;; TODO: lexical analysis
-(def a :i32 36)    ;; (def a 36) => a:i64 selected
+(def a :bool true)  ;; (def a true) is OK (Type inference)
+(def a :sym :blur)  ;; TODO: lexical analysis
+(def a :i32 36)     ;; (def a 36) => a:i64 selected
 (def a :f64 3.1415) ;; (def a 3.14) => a:f64 selcted
 (def a :ibig 36N)
 (def a :fbig 3.14M)
@@ -504,9 +505,9 @@ os[K]        ; Ordered HashSet #{"a", "b", "c"}:os[str]
 (def a :regex #"[0-9]+")
 (def a :list '(:a, 1, {:a 2}, [[1, 2], [3, 4]], ("a" "b" :a))) ; difficult
 (def a :v[i32][3] [1, 2, 3])
-(def a :a[f64][2, 2] [[1, 2], [3, 4]])
 (def a :m[sym,str] {:a "a", :b "b"})
 (def a :s[sym] #{:a, :b, :c})
+(def a :fn (fn [x :i32] -> :i32 (* x x)))
 
 ;; Index slicing
 ; TODO: nested generics is hard to read
@@ -531,7 +532,7 @@ os[K]        ; Ordered HashSet #{"a", "b", "c"}:os[str]
 ;; Default argument
 (defn sample [arg1 :i64 inf,
               arg2 :v<f64> [-inf, 2.0, nan]]
-              -> str
+              -> :str
       (format "{0}, {1:?}", arg1, arg2))
 
 (sample 64 [1, 2, 3])
@@ -552,13 +553,13 @@ os[K]        ; Ordered HashSet #{"a", "b", "c"}:os[str]
   "Animal Class"
   (defn Animal [hp :i32,
                 weight :i32]
-                -> nil
+                -> :nil
     "constructor of Animal"
     (= this.hp hp)
     (= this.weight weight))
   (def hp :i32)
   (def weight :i32 32) ;; can set default value
-  (defn walk [dist :i32] -> str
+  (defn walk [dist :i32] -> :str
     (-= this.hp dist))
     (format "walk {0}km, HP: {1}", dist, this.hp))
 
@@ -587,3 +588,6 @@ os[K]        ; Ordered HashSet #{"a", "b", "c"}:os[str]
 
 (match #"hello, (.*)" "hello, world")
 => ["hello, world", "world"]
+
+;; chain
+(-> )
