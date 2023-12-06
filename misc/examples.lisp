@@ -6,7 +6,6 @@
 []               ; vector
 {}               ; hash map
 #{}              ; hash set
-#()              ; lambda function
 ""               ; string
 "\n"             ; escape sequence
 #"[0-9]+"        ; regular expression
@@ -531,7 +530,7 @@ os[K]        ; Ordered HashSet #{"a", "b", "c"}:os[str]
 ;; Funciton
 ;; Default argument
 (defn sample [arg1 :i64 inf,
-              arg2 :v<f64> [-inf, 2.0, nan]]
+              arg2 :v[f64] [-inf, 2.0, nan]]
               -> :str
       (format "{0}, {1:?}", arg1, arg2))
 
@@ -555,12 +554,12 @@ os[K]        ; Ordered HashSet #{"a", "b", "c"}:os[str]
                 weight :i32]
                 -> :nil
     "constructor of Animal"
-    (= this.hp hp)
-    (= this.weight weight))
+    (set! this.hp hp)
+    (set! this.weight weight))
   (def hp :i32)
   (def weight :i32 32) ;; can set default value
   (defn walk [dist :i32] -> :str
-    (-= this.hp dist))
+    (set! this.hp (- this.hp dist)))
     (format "walk {0}km, HP: {1}", dist, this.hp))
 
 (class Dog [Animal]  ; inherit from Animal class
