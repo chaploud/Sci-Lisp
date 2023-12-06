@@ -2,7 +2,7 @@
 
 ;; Literal
 '()              ; list
-`()              ; quoted List
+`()              ; quoted List (TODO:)
 []               ; vector
 {}               ; hash map
 #{}              ; hash set
@@ -11,12 +11,11 @@
 #"[0-9]+"        ; regular expression
 false            ; false
 true             ; true
-nil              ; nil (means null/None)
-0x1a             ; hexadecimal
-0o17             ; octal
-0b0101           ; binary
--4/3             ; fraction (TODO: not need?)
-1+2j             ; complex number
+nil              ; nil (means null/None) (TODO:)
+0x1a             ; hexadecimal (TODO:)
+0o17             ; octal (TODO:)
+0b0101           ; binary (TODO:)
+1+2j             ; complex number (TODO:)
 -3.14e15         ; float
 -999             ; int
 nan              ; Not A Number
@@ -26,8 +25,8 @@ inf              ; positive infinity
 :symbol          ; symbol
 
 ;; Keywords
-(ns)
-(import)
+(ns) ; (TODO:)
+(import) ; (TODO:)
 (let)
 (const)
 (def)
