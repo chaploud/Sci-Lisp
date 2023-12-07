@@ -2,7 +2,7 @@
 
 ;; Literal
 '()              ; list
-`()              ; quoted List (TODO:)
+`()              ; quoted List TODO:
 []               ; vector
 {}               ; hash map
 #{}              ; hash set
@@ -11,11 +11,11 @@
 #"[0-9]+"        ; regular expression
 false            ; false
 true             ; true
-nil              ; nil (means null/None) (TODO:)
-0x1a             ; hexadecimal (TODO:)
-0o17             ; octal (TODO:)
-0b0101           ; binary (TODO:)
-1+2j             ; complex number (TODO:)
+nil              ; nil (means null/None) TODO:
+0x1a             ; hexadecimal TODO:
+0o17             ; octal TODO:
+0b0101           ; binary TODO:
+1+2j             ; complex number TODO:
 -3.14e15         ; float
 -999             ; int
 nan              ; Not A Number
@@ -25,8 +25,8 @@ inf              ; positive infinity
 :symbol          ; symbol
 
 ;; Keywords
-(ns) ; (TODO:)
-(import) ; (TODO:)
+(ns) ; TODO:
+(import) ; TODO:
 (let)
 (const)
 (def)
@@ -34,7 +34,7 @@ inf              ; positive infinity
 (fn)
 (set!)
 (return)
-(yield)
+(yield) ; TODO:
 (if)
 (when)
 (cond)
@@ -49,9 +49,11 @@ inf              ; positive infinity
 (class)
 (this)
 (macro)
-(throw)
-(try)
-(catch)
+(throw) ; TODO:
+(try)   ; TODO:
+(catch) ; TODO:
+
+;; TODO: named arguments
 
 ;; Built-ins
 
