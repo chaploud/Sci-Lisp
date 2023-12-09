@@ -1,6 +1,9 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <regex>
+#include <string>
+#include <iomanip>
 
 #define STR "str"
 #define REGEX "regex"
@@ -11,10 +14,10 @@
 #define SYM "sym"
 #define LIST "list"
 
+// base class
 template <typename T>
 class Object {
  public:
-  Object() {}
   friend std::ostream& operator<<(std::ostream& os, const Object& v) { return os << v.display(); }
   friend std::string type(const Object& v) { return v.m_type; }
 
@@ -25,82 +28,148 @@ class Object {
   std::string type() const { return m_type; }
 };
 
+// str
 class str : public Object<std::string> {
  public:
   str(const char* value) {
     m_value = std::string(value);
     m_type = STR;
   }
+  str& operator=(const str& x) {
+    m_value = x.m_value;
+    return *this;
+  }
+  str& operator=(const std::string& x) {
+    m_value = x;
+    return *this;
+  }
  private:
    std::string display() const override {
-    return m_value;
+    return "\"" + m_value + "\"";
    }
 };
 
+// regex
+class regex : public Object<std::regex> {
+ public:
+  regex(const char* value) {
+    m_string = std::string(value);
+    m_value = std::regex(m_string);
+    m_type = REGEX;
+  }
+ private:
+  std::string m_string;
+  std::string display() const override {
+    return "regex(\"" + m_string + "\")";
+  }
+};
+
+// bool
+// needs call function init() to display bool
+
+// nil
+struct nil_t {}; // TODO: compare
+
+class nil : public Object<nil_t> {
+ public:
+  nil() {
+    m_value = {};
+    m_type = NIL;
+  }
+ private:
+  std::string display() const override {
+    return "nil";
+  }
+};
+
+// i64
+using i64 = long long;
+
+// f64
+using f64 = double;
+
+// symbol
+struct sym_t {};
+
+// sym
+class sym : public Object<sym_t> {
+ public:
+  sym(const char* value) {
+    m_string = std::string(value);
+    m_value = {}; // TODO: compare
+    m_type = SYM;
+  }
+ private:
+  std::string m_string;
+  std::string display() const override {
+    return m_string;
+  }
+};
+
 template <class T>
-void type(const Object<T>& obj) {
+std::string type(const Object<T>& obj) {
   return obj.type();
 }
 
-
-using str_t = std::string;    // str
-using i64_t = long long;      // i64
-using f64_t = double;         // f64
-using bool_t = bool;          // bool
-
-// nil
-struct nil_t {};
-constexpr nil_t nil;
+// for bool
+std::string type(bool obj) {
+  return BOOL;
+}
+// for i64
+std::string type(i64 obj) {
+  return I64;
+}
+// for f64
+std::string type(f64 obj) {
+  return F64;
+}
 
 // nan
-constexpr f64_t NaN = std::numeric_limits<f64_t>::quiet_NaN();
+const f64 NaN = std::numeric_limits<f64>::quiet_NaN();
 // inf
-constexpr f64_t inf = std::numeric_limits<f64_t>::infinity();
+const f64 inf = std::numeric_limits<f64>::infinity();
 // -inf
-constexpr f64_t ninf = -inf;
+const f64 ninf = -inf;
 
-// symbol
-struct sym_t {
-  str_t name;
-};
-
-std::ostream& operator<<(std::ostream& os, const nil_t& x) {
-  os << "nil";
-  return os;
+void init(void) {
+  std::cout << std::boolalpha;
+  std::cout << std::scientific << std::setprecision(5);
 }
-
-std::ostream& operator<<(std::ostream& os, const f64_t& x) {
-  if (x == NaN) {
-    os << "nan";
-  } else if (x == inf) {
-    os << "inf";
-  } else if (x == ninf) {
-    os << "-inf";
-  } else if (x == 0) {
-    if (std::signbit(x)) {
-      os << "0.0";
-    } else {
-      os << "-0.0";
-    }
-  }
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const sym_t& x) {
-  os << ":" << x.name.c_str();
-  return os;
-}
-
-void init(void) { std::cout << std::boolalpha; }
 
 int main(void) {
   init();
 
   str s = "hoge";
-  std::cout << s << std::endl;
-  std::cout << type(s) << std::endl;
+  std::cout << s << " " << type(s) << std::endl;
 
+  regex re = R"([0-9]+\.\d*)";
+  std::cout << re << " " << type(re) << std::endl;
 
+  bool tr = true;
+  bool fa = false;
+  std::cout << tr << " " << fa << " " << type(tr) << std::endl;
+
+  nil ni;
+  std::cout << ni << " " << type(ni) << std::endl;
+
+  i64 i = -999;
+  std::cout << i << " " << type(i) << std::endl;
+
+  f64 f = -3.141592;
+  std::cout << f << " " << type(f) << std::endl;
+
+  f64 fe = -3.14e15;
+  std::cout << fe << " " << type(fe) << std::endl;
+
+  f64 na = NaN;
+  f64 posinf = inf;
+  f64 neginf = ninf;
+  std::cout << na << " ";
+  std::cout << posinf << " ";
+  std::cout << neginf << std::endl;
+
+  sym sy = sym(":hoge");
+  std::cout << sy << " " << type(sy) << std::endl;
 
   return 0;
 }
