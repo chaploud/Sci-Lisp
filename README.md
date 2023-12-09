@@ -66,8 +66,8 @@ Let's use Lisp easily without thinking too hard.
 
 ### Linux
 
-- g++
-- CMake
+- g++ (-std=c++20)
+- CMake (>= 3.13)
 
 ### Windows
 
