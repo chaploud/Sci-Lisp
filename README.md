@@ -63,15 +63,15 @@ cargo build --release  # => target/release/sci-lisp
 
 #### Windows
 
-Not distibuted yet.
+Not distributed yet.
 
 #### Mac
 
-Not distibuted yet.
+Not distributed yet.
 
 #### Linux
 
-Not distibuted yet.
+Not distributed yet.
 
 ## Command line options
 
