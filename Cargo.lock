@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "Sci-Lisp"
+name = "sci-lisp"
 version = "0.1.0"
