@@ -11,6 +11,8 @@ description = "A Lisp for Scientific Computation written in Rust"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 linefeed = {version = "0.6.0"}
+pest = "2.1"
+pest_derive = "2.1"
 
 [[bin]]
 name = "scilisp"
