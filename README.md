@@ -54,10 +54,10 @@ git clone https://github.com/chaploud/sci-lisp.git
 
 # build scilisp binary using cargo build
 cd sci-lisp
-cargo build --release  # => target/release/sci-lisp
+cargo build --release  # => target/release/scilisp
 ```
 
-- You can execute `sci-lisp` binary
+- You can execute `scilisp` binary
 
 ### Get prebuild binary
 
