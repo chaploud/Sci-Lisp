@@ -1,6 +1,6 @@
-use crate::env::*;
-use crate::object::*;
-use crate::parser::*;
+use crate::core::env::*;
+use crate::core::object::*;
+use crate::core::parser::*;
 use std::cell::RefCell;
 use std::cmp::Ordering;
 use std::rc::Rc;

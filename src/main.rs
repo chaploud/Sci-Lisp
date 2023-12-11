@@ -1,11 +1,8 @@
-mod env;
-mod eval;
-mod lexer;
-mod object;
-mod parser;
+mod core;
 
 use linefeed::{Interface, ReadResult};
-use object::Object;
+use core::object::Object;
+use core::env;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -21,7 +18,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if input.eq("exit") {
             break;
         }
-        let val = eval::eval(input.as_ref(), &mut env)?;
+        let val = core::eval::eval(input.as_ref(), &mut env)?;
         match val {
             Object::Void => {}
             Object::Integer(n) => println!("{}", n),

@@ -1,5 +1,5 @@
-use crate::lexer::*;
-use crate::object::*;
+use crate::core::lexer::*;
+use crate::core::object::*;
 use std::error::Error;
 use std::fmt;
 use std::rc::Rc;

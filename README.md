@@ -224,15 +224,15 @@ inf                 ; positive infinity
                 weight :i32]
                 -> nil
     "constructor of Animal"
-    (set! this.hp hp)
-    (set! this.weight weight))
+    (set! self.hp hp)
+    (set! self.weight weight))
 
   ;; member
   (def hp :i32)
   (def weight :i32 32)
   (defn walk [dist :i32] -> str
-    (set! this.hp (- this.hp dist)))
-    (format "walk {0}km, HP: {1}", dist, this.hp))
+    (set! self.hp (- self.hp dist)))
+    (format "walk {0}km, HP: {1}", dist, self.hp))
 
 (class Dog [Animal]     ; inherit from Animal class
   (defn bow []
