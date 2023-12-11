@@ -37,3 +37,15 @@
 ## メモ
 
 - RustDocについて学ぶ
+- まずはインタプリタを実装し終える
+- その後、コンパイラ作成に取り組む
+- Lexerは自前で作りこんだ後、いずれはpest (https://pest.rs/) に移行する
+
+## cargo
+
+```bash
+cargo check  # ソースコードのチェック
+cargo build  # デバッグビルド
+cargo build --relase  # リリースビルド
+cargo test   # テストの実行
+```
