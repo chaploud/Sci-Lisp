@@ -1,6 +1,12 @@
 # Sci-Lisp
 
+<div style="text-align: center">
+<img src="assets/images/scilisp.png" width="140">
+<p style="margin-top: 24px">
 A Lisp for Scientific Computing written in Rust. (Now in progress).
+</p>
+</div>
+
 
 ## Features (Plan)
 
