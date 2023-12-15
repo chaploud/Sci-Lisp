@@ -1,9 +1,15 @@
 <h1 align="center">Sci-Lisp</h1>
+
 <p align="center">
 <img src="assets/images/scilisp.png" width="140">
 </p>
-<p align="center" style="margin-top: 24px">
-A Lisp for Scientific Computing written in Rust. (Now in progress).
+
+<h4 align="center" style="margin-top: 24px">
+A Lisp for Scientific Computing written in Rust
+</h4>
+
+<p align="center">
+![build status](https://github.com/chaploud/sci-lisp/actions/workflows/rust.yml/badge.svg?branch=main?event=push)
 </p>
 
 
