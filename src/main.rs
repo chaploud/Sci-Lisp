@@ -1,8 +1,8 @@
 mod core;
 
-use linefeed::{Interface, ReadResult};
-use core::object::Object;
 use core::env;
+use core::object::Object;
+use linefeed::{Interface, ReadResult};
 use std::cell::RefCell;
 use std::rc::Rc;
 
