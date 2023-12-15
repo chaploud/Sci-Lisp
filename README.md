@@ -9,7 +9,7 @@ A Lisp for Scientific Computing written in Rust
 </h4>
 
 <p align="center">
-<a href="https://github.com/chaploud/sci-lisp/actions/workflows/rust.yml/badge.svg?branch=main?event=push" alt="build status"></a>
+<a href="https://github.com/chaploud/sci-lisp/actions/workflows/rust.yml"><img src="https://github.com/chaploud/sci-lisp/actions/workflows/rust.yml/badge.svg?branch=main" alt="rust status"/></a>
 </p>
 
 
