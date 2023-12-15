@@ -1,10 +1,11 @@
-# Miscellaneous
+# Idea
 
 My developer notes. I'm Japanese, so notes are written in Japanese.
 
 
 ```bash
 ./README.md     # this markdown
-./misc_ja.md    # notes/memo
-./misc_ja.lisp  # code examples
+./idea_ja.md    # notes/memo
+./idea_ja.lisp  # code examples
+./ClojureRS/    # for source reading
 ```
