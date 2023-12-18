@@ -1,16 +1,18 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+use std::process::exit;
+use std::fs::File;
 
-pub fn is_file_exist(file: &Option<PathBuf>) -> bool {
+pub fn is_file_exist(file: &Option<PathBuf>) {
     let path_string = match file {
         Some(p) => format!("{}", p.to_string_lossy().into_owned()),
         None => String::from(""),
     };
 
-    let is_existed = Path::new(&path_string).exists();
-    if !is_existed {
-        println!("file '{}' does not exist!", path_string);
-        return false;
-    } else {
-        return true;
-    }
+    match File::open(&path_string) {
+        Err(why) => {
+            println!("couldn't open '{}': {}", path_string, why);
+            exit(1);
+        },
+        Ok(_) => (),
+    };
 }

@@ -6,8 +6,6 @@ pub fn repl() {
 }
 
 pub fn execute(file: Option<PathBuf>) {
-    println!("Executing {}...", file.clone().unwrap().to_string_lossy());
-    if !is_file_exist(&file) {
-        return;
-    }
+    println!("Executing '{}' ...", file.clone().unwrap().to_string_lossy());
+    is_file_exist(&file);
 }
