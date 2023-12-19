@@ -1,0 +1,56 @@
+COMMENT = _{ ";" ~ (!NEWLINE ~ ANY)* ~ NEWLINE }
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" | "," }
+
+prefix-char = _{ "#" | "'" | "`" | "~" | "~@" | ":" | "@" | "\\" }
+special-char = _{ "!" | "$" | "%" | "&" | "-" | "=" | "^" | "|" | "+" | "*" | "<" | ">" | "?" | "_"}
+separation-char = _{"/" | "."}
+
+identifier = _{ ( ASCII_ALPHA | special-char) ~ (ASCII_ALPHANUMERIC | special-char)* }
+
+nil = @{ "nil" }
+bool = @{ "true" | "false" }
+i64 = @{ ("-" | "+")? ~ ASCII_DIGIT+ }
+f64 = @{ (("-" | "+")? ~ ((ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT*)?) | ("." ~ ASCII_DIGIT+)) ~ (("e" | "E") ~ ("-" | "+")? ~ ASCII_DIGIT+)?) | nan | inf }
+  nan = _{ "nan" }
+  inf = _{ ("-" | "+")? ~ "inf" }
+symbol = @{ identifier }
+keyword = @{ ":" ~ identifier}
+regex = { "#\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+string = { "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+
+list = { "(" ~ expr* ~ ")" }
+vector = { "[" ~ expr* ~ "]" }
+hashmap = { "{" ~ (expr ~ expr)* ~ "}" }
+hashset = { "#{" ~ expr* ~ "}" }
+
+expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string | list | vector | hashmap | hashset }
+
+sci-lisp = { SOI ~ expr ~ EOI}
+
+// TODO:
+// (')quote
+// (`)backquote
+// (~)unquote
+// (~@)unquote-splicing
+// (@)apply(expand)
+// (.)dot
+// def
+// const
+// ([0:2])([-1])slice
+// let
+// set!
+// defn(def + fn)
+// fn
+// if
+// do
+// when(if + do) // not needed?
+// cond
+// switch
+// for
+// while
+// break
+// continue
+// class
+// struct
+// enum
+// macro
