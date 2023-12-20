@@ -9,17 +9,18 @@ identifier = _{ ( ASCII_ALPHA | special_char) ~ (ASCII_ALPHANUMERIC | special_ch
 
 nil = @{ "nil" }
 bool = @{ "true" | "false" }
-f64 = @{ pm? ~ "." ~ digit ~ (digit | "_")* ~ exp? |  // -.0_0e5
-         i64 ~ "." ~ i64? ~ exp? |                    // +0_2.0_2e-2, 2.
-         i64 ~ exp |                                  // -0_2e+02
-         nan |
-         inf }
+f64 = @{int ~ "." ~ int? ~ exp? |                    // +0_2.0_2e-2, 2.
+        int ~ exp |                                  // -0_2e+02
+        pm? ~ "." ~ digit ~ (digit | "_")* ~ exp? |  // -.0_0e5
+        nan |
+        inf }
+i64 = @{ int ~ !"." }
+  int = _{ pm? ~ digit ~ (digit | "_")* }
   digit = _{ ASCII_DIGIT }
   pm = _{ ("-" | "+") }
   exp = _{ ^"e" ~ i64 }
   nan = _{ "nan" }
   inf = _{ pm? ~ "inf" }
-i64 = @{ pm? ~ digit ~ (digit | "_")* }
 symbol = @{ identifier }
 keyword = @{ ":" ~ identifier}
 regex = { "#\"" ~ (!"\"" ~ ANY)* ~ "\"" }
