@@ -25,7 +25,7 @@ hashset = { "#{" ~ expr* ~ "}" }
 
 expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string | list | vector | hashmap | hashset }
 
-sci-lisp = { SOI ~ expr ~ EOI}
+sci-lisp = { SOI ~ expr* ~ EOI}
 
 // TODO:
 // (')quote

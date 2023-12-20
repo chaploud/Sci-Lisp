@@ -1,4 +1,6 @@
-use crate::core::common::is_file_exist;
+/* linter.rs */
+
+use crate::core::utility::is_file_exist;
 use std::path::PathBuf;
 
 pub fn lint(file: Option<PathBuf>) {

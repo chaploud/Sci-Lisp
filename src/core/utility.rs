@@ -1,3 +1,5 @@
+/* utility.rs */
+
 use std::path::PathBuf;
 use std::process::exit;
 use std::fs::File;
