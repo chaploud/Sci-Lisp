@@ -2,19 +2,19 @@
 
 use std::path::PathBuf;
 use std::process::exit;
-use std::fs::File;
+use std::fs;
 
-pub fn is_file_exist(file: &Option<PathBuf>) {
+pub fn try_read_file(file: &Option<PathBuf>) -> String {
     let path_string = match file {
         Some(p) => format!("{}", p.to_string_lossy().into_owned()),
         None => String::from(""),
     };
 
-    match File::open(&path_string) {
+    match fs::read_to_string(path_string.clone()) {
         Err(why) => {
-            println!("couldn't open '{}': {}", path_string, why);
+            eprintln!("cannot read '{}': {}", path_string, why);
             exit(1);
         },
-        Ok(_) => (),
-    };
+        Ok(content) => content,
+    }
 }

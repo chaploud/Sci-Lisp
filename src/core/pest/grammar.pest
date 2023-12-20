@@ -1,18 +1,25 @@
 COMMENT = _{ ";" ~ (!NEWLINE ~ ANY)* ~ NEWLINE }
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" | "," }
 
-prefix-char = _{ "#" | "'" | "`" | "~" | "~@" | ":" | "@" | "\\" }
-special-char = _{ "!" | "$" | "%" | "&" | "-" | "=" | "^" | "|" | "+" | "*" | "<" | ">" | "?" | "_"}
-separation-char = _{"/" | "."}
+prefix_char = _{ "#" | "'" | "`" | "~" | "~@" | ":" | "@" | "\\" }
+special_char = _{ "!" | "$" | "%" | "&" | "-" | "=" | "^" | "|" | "+" | "*" | "<" | ">" | "?" | "_"}
+separation_char = _{"/" | "."}
 
-identifier = _{ ( ASCII_ALPHA | special-char) ~ (ASCII_ALPHANUMERIC | special-char)* }
+identifier = _{ ( ASCII_ALPHA | special_char) ~ (ASCII_ALPHANUMERIC | special_char)* }
 
 nil = @{ "nil" }
 bool = @{ "true" | "false" }
-i64 = @{ ("-" | "+")? ~ ASCII_DIGIT+ }
-f64 = @{ (("-" | "+")? ~ ((ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT*)?) | ("." ~ ASCII_DIGIT+)) ~ (("e" | "E") ~ ("-" | "+")? ~ ASCII_DIGIT+)?) | nan | inf }
+f64 = @{ pm? ~ "." ~ digit ~ (digit | "_")* ~ exp? |  // -.0_0e5
+         i64 ~ "." ~ i64? ~ exp? |                    // +0_2.0_2e-2, 2.
+         i64 ~ exp |                                  // -0_2e+02
+         nan |
+         inf }
+  digit = _{ ASCII_DIGIT }
+  pm = _{ ("-" | "+") }
+  exp = _{ ^"e" ~ i64 }
   nan = _{ "nan" }
-  inf = _{ ("-" | "+")? ~ "inf" }
+  inf = _{ pm? ~ "inf" }
+i64 = @{ pm? ~ digit ~ (digit | "_")* }
 symbol = @{ identifier }
 keyword = @{ ":" ~ identifier}
 regex = { "#\"" ~ (!"\"" ~ ANY)* ~ "\"" }
@@ -25,7 +32,7 @@ hashset = { "#{" ~ expr* ~ "}" }
 
 expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string | list | vector | hashmap | hashset }
 
-sci-lisp = { SOI ~ expr* ~ EOI}
+scilisp = { SOI ~ expr* ~ EOI}
 
 // TODO:
 // (')quote

@@ -9,6 +9,7 @@ pub mod set;
 pub mod type_name;
 pub mod value;
 pub mod utility;
+pub mod parser;
 pub mod compiler;
 pub mod linter;
 pub mod repl;
