@@ -1,10 +1,11 @@
 /* core.rs */
 pub mod symbol;
 pub mod keyword;
-pub mod regex;
+pub mod function;
+pub mod list;
+pub mod vector;
 pub mod map;
 pub mod set;
-pub mod function;
 pub mod type_name;
 pub mod value;
 pub mod utility;

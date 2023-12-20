@@ -1,17 +1,10 @@
 /* symbol.rs */
 
 use std::fmt;
-use std::hash::{Hash, Hasher};
 
-#[derive(Eq, Clone, Debug)]
+#[derive(Eq, Clone, Debug, Hash)]
 pub struct Symbol {
     pub value: std::string::String,
-}
-
-impl Hash for Symbol {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.value.hash(state);
-    }
 }
 
 impl PartialEq for Symbol {

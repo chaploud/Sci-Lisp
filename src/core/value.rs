@@ -2,13 +2,14 @@
 
 use crate::core::symbol::Symbol;
 use crate::core::keyword::Keyword;
+use crate::core::list::List;
+use crate::core::vector::Vector;
 use crate::core::map::Map;
 use crate::core::set::Set;
 use crate::core::function::Function;
 use crate::core::type_name::TypeName;
 
-use std::hash::{Hash, Hasher};
-
+use std::hash::Hash;
 
 #[derive(Debug, Clone)]
 pub enum Value {
@@ -20,8 +21,8 @@ pub enum Value {
     Keyword(Keyword),
     Regex(regex::Regex),
     String(std::string::String),
-    List(std::collections::LinkedList<Value>),
-    Vector(std::vec::Vec<Value>),
+    List(List),
+    Vector(Vector),
     Map(Map),
     Set(Set),
     Function(Function),
@@ -48,8 +49,9 @@ impl PartialEq for Value {
     }
 }
 
+impl Eq for Value {}
 impl Hash for Value {
-    fn hash<H: Hasher>(&self, state: &mut H) {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         match self {
             Value::Nil => 0.hash(state),
             Value::Bool(b) => b.hash(state),
@@ -67,7 +69,6 @@ impl Hash for Value {
         }
     }
 }
-
 
 impl Value {
     pub fn type_name(&self) -> TypeName {
