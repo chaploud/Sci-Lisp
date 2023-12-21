@@ -3,7 +3,8 @@
 use crate::core::utility::try_read_file;
 use std::path::PathBuf;
 
-pub fn lint(file: Option<PathBuf>) {
+pub fn lint(file: Option<PathBuf>) -> Result<(), String>{
     println!("Linting '{}' ...", file.clone().unwrap().to_string_lossy());
-    let _content = try_read_file(&file);
+    let _content = try_read_file(&file)?;
+    Ok(())
 }

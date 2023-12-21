@@ -1,5 +1,8 @@
 /* value.rs */
 
+use pest::iterators::Pair;
+
+use crate::core::parse::Rule;
 use crate::core::symbol::Symbol;
 use crate::core::keyword::Keyword;
 use crate::core::list::List;
@@ -8,7 +11,9 @@ use crate::core::map::Map;
 use crate::core::set::Set;
 use crate::core::function::Function;
 use crate::core::type_name::TypeName;
+use crate::core::error::Error;
 
+use std::fmt;
 use std::hash::Hash;
 
 #[derive(Debug, Clone)]
@@ -70,22 +75,100 @@ impl Hash for Value {
     }
 }
 
+
 impl Value {
-    pub fn type_name(&self) -> TypeName {
+    pub fn as_nil() -> Result<Value, String> {
+        Ok(Value::Nil)
+    }
+    pub fn as_bool(pair: Pair<Rule>) -> Result<Value, String> {
+        let result = pair.as_str().parse::<bool>();
+        match result {
+            Ok(value) => Ok(Value::Bool(value)),
+            Err(err) => Err(err.to_string()),
+        }
+    }
+    pub fn as_i64(pair: Pair<Rule>) -> Result<Value, String> {
+        let result = pair.as_str().parse::<i64>();
+        match result {
+            Ok(value) => Ok(Value::I64(value)),
+            Err(err) => Err(err.to_string()),
+        }
+    }
+    pub fn as_f64(pair: Pair<Rule>) -> Result<Value, String> {
+        // TODO: convert some case that Rust can't parse
+        let result = pair.as_str().parse::<f64>();
+        match result {
+            Ok(value) => Ok(Value::F64(value)),
+            Err(err) => Err(err.to_string()),
+        }
+    }
+    pub fn as_symbol(pair: Pair<Rule>) -> Result<Value, String> {
+        let result = pair.as_str().to_string();
+        Ok(Value::Symbol(Symbol { value: result }))
+    }
+    pub fn as_keyword(pair: Pair<Rule>) -> Result<Value, String> {
+        let result = pair.as_str().to_string();
+        Ok(Value::Keyword(Keyword { value: Symbol { value: result } }))
+    }
+    pub fn as_regex(pair: Pair<Rule>) -> Result<Value, String> {
+        let result = pair.into_inner().as_str();
+        let regex = regex::Regex::new(&result);
+        match regex {
+            Ok(value) => Ok(Value::Regex(value)),
+            Err(err) => Err(err.to_string()),
+        }
+    }
+    pub fn as_string(pair: Pair<Rule>) -> Result<Value, String> {
+        let result = pair.into_inner().as_str();
+        Ok(Value::String(result.to_string()))
+    }
+    pub fn as_list(environment: &mut Environment, pair: Pair<Rule>) -> Result<Value, String> {
+        let mut list = List::new();
+        for pair in pair.into_inner() {
+            let value = read(environment, pair)?;
+            list.push(value);
+        }
+        Ok(Value::List(list))
+    }
+}
+
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use Value::*;
         match self {
-            Value::Nil => TypeName::Nil,
-            Value::Bool(_) => TypeName::Bool,
-            Value::I64(_) => TypeName::I64,
-            Value::F64(_) => TypeName::F64,
-            Value::Symbol(_) => TypeName::Symbol,
-            Value::Keyword(_) => TypeName::Keyword,
-            Value::Regex(_) => TypeName::Regex,
-            Value::String(_) => TypeName::String,
-            Value::List(_) => TypeName::List,
-            Value::Vector(_) => TypeName::Vector,
-            Value::Map(_) => TypeName::Map,
-            Value::Set(_) => TypeName::Set,
-            Value::Function(_) => TypeName::Function,
+            Nil => write!(f, "nil"),
+            Bool(b) => write!(f, "{}", b),
+            I64(i) => write!(f, "{}", i),
+            F64(fl) => write!(f, "{}", fl),
+            Symbol(s) => write!(f, "{}", s),
+            Keyword(k) => write!(f, "{}", k),
+            Regex(r) => write!(f, "{}", r),
+            String(s) => write!(f, "{}", s),
+            List(l) => write!(f, "{}", l),
+            Vector(v) => write!(f, "{}", v),
+            Map(m) => write!(f, "{}", m),
+            Set(s) => write!(f, "{}", s),
+            Function(_) => write!(f, "fn"), // TODO:
+        }
+    }
+}
+
+impl Value {
+    pub fn type_name(&self) -> String {
+        match self {
+            Value::Nil => TypeName::Nil.to_string(),
+            Value::Bool(_) => TypeName::Bool.to_string(),
+            Value::I64(_) => TypeName::I64.to_string(),
+            Value::F64(_) => TypeName::F64.to_string(),
+            Value::Symbol(_) => TypeName::Symbol.to_string(),
+            Value::Keyword(_) => TypeName::Keyword.to_string(),
+            Value::Regex(_) => TypeName::Regex.to_string(),
+            Value::String(_) => TypeName::String.to_string(),
+            Value::List(_) => TypeName::List.to_string(),
+            Value::Vector(_) => TypeName::Vector.to_string(),
+            Value::Map(_) => TypeName::Map.to_string(),
+            Value::Set(_) => TypeName::Set.to_string(),
+            Value::Function(_) => TypeName::Function.to_string(),
         }
     }
 }

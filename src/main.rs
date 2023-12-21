@@ -4,9 +4,16 @@
 // scilisp -c xxx.lisp  # compile code
 // scilisp -l xxx.lisp  # lint code
 
+
+use std::process::exit;
+
 use clap::Parser;
 use std::path::PathBuf;
 mod core;
+
+use core::repl::{repl, execute};
+use core::compiler::compile;
+use core::linter::lint;
 
 #[derive(Parser)]
 #[command(
@@ -52,18 +59,15 @@ fn main() {
         Action::Repl
     };
 
-    match action {
-        Action::Repl => {
-            core::repl::repl();
-        }
-        Action::Execute(file) => {
-            core::repl::execute(file);
-        }
-        Action::Compile(file) => {
-            core::compiler::compile(file);
-        }
-        Action::Lint(file) => {
-            core::linter::lint(file);
-        }
+    let result: Result<(), String> = match action {
+        Action::Repl => repl(),
+        Action::Execute(file) => execute(file),
+        Action::Compile(file) => compile(file),
+        Action::Lint(file) => lint(file),
+    };
+
+    if let Err(err) = result {
+        eprintln!("{}", err);
+        exit(1);
     }
 }

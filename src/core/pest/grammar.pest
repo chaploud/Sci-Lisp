@@ -23,15 +23,23 @@ i64 = @{ int ~ !"." }
   inf = _{ pm? ~ "inf" }
 symbol = @{ identifier }
 keyword = @{ ":" ~ identifier}
-regex = { "#\"" ~ (!"\"" ~ ANY)* ~ "\"" }
-string = { "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+regex = ${ "#\"" ~ regex_inner ~ "\"" }
+  regex_inner = @{ (!"\"" ~ ANY)* }
+string = ${ "\"" ~ string_inner ~ "\"" }
+  string_inner = @{ (!"\"" ~ ANY)* }
 
-list = { "(" ~ expr* ~ ")" }
-vector = { "[" ~ expr* ~ "]" }
-hashmap = { "{" ~ (expr ~ expr)* ~ "}" }
-hashset = { "#{" ~ expr* ~ "}" }
+// TODO: handle \" correctly
 
-expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string | list | vector | hashmap | hashset }
+list = ${ "(" ~ list_inner ~ ")" }
+  list_inner = @{ expr* }
+vector = ${ "[" ~ vector_inner ~ "]" }
+  vector_inner = @{ expr* }
+map = ${ "{" ~ map_inner ~ "}" }
+  map_inner = { (expr ~ expr)* }
+set = ${ "#{" ~ set_inner ~ "}" }
+  set_inner = @{ expr* }
+
+expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string | list | vector | map | set }
 
 scilisp = { SOI ~ expr* ~ EOI}
 
