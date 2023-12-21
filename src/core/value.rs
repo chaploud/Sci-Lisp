@@ -122,14 +122,14 @@ impl Value {
         let result = pair.into_inner().as_str();
         Ok(Value::String(result.to_string()))
     }
-    pub fn as_list(environment: &mut Environment, pair: Pair<Rule>) -> Result<Value, String> {
-        let mut list = List::new();
-        for pair in pair.into_inner() {
-            let value = read(environment, pair)?;
-            list.push(value);
-        }
-        Ok(Value::List(list))
-    }
+    // pub fn as_list(environment: &mut Environment, pair: Pair<Rule>) -> Result<Value, String> {
+    //     let mut list = List::new();
+    //     for pair in pair.into_inner() {
+    //         let value = read(environment, pair)?;
+    //         list.push(value);
+    //     }
+    //     Ok(Value::List(list))
+    // }
 }
 
 impl fmt::Display for Value {

@@ -52,7 +52,7 @@ pub fn repl() -> Result<(), String> {
                     }
                 };
 
-                rl.add_history_entry(&buffer)?;
+                rl.add_history_entry(&buffer);
 
                 if buffer == "exit" {
                     break
@@ -73,7 +73,7 @@ pub fn repl() -> Result<(), String> {
         }
     }
 
-    rl.save_history(HISTORY_FILE)?;
+    rl.save_history(HISTORY_FILE);
     println!("(Bye!)");
     Ok(())
 }
