@@ -4,16 +4,15 @@
 // scilisp -c xxx.lisp  # compile code
 // scilisp -l xxx.lisp  # lint code
 
-
 use std::process::exit;
 
 use clap::Parser;
 use std::path::PathBuf;
 mod core;
 
-use core::repl::{repl, execute};
 use core::compiler::compile;
 use core::linter::lint;
+use core::repl::{execute, repl};
 
 #[derive(Parser)]
 #[command(

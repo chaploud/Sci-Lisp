@@ -2,16 +2,16 @@
 
 use pest::iterators::Pair;
 
-use crate::core::parse::Rule;
-use crate::core::symbol::Symbol;
+use crate::core::error::Error;
+use crate::core::function::Function;
 use crate::core::keyword::Keyword;
 use crate::core::list::List;
-use crate::core::vector::Vector;
 use crate::core::map::Map;
+use crate::core::parse::Rule;
 use crate::core::set::Set;
-use crate::core::function::Function;
+use crate::core::symbol::Symbol;
 use crate::core::type_name::TypeName;
-use crate::core::error::Error;
+use crate::core::vector::Vector;
 
 use std::fmt;
 use std::hash::Hash;
@@ -35,20 +35,20 @@ pub enum Value {
 
 impl PartialEq for Value {
     fn eq(&self, other: &Value) -> bool {
-        match(self, other) {
+        match (self, other) {
             (Value::Nil, Value::Nil) => true,
-            (Value::Bool(b1), Value::Bool(b2))  => b1 == b2,
-            (Value::I64(i1), Value::I64(i2))  => i1 == i2,
-            (Value::F64(f1), Value::F64(f2))  => f1 == f2,
-            (Value::Symbol(s1), Value::Symbol(s2))  => s1 == s2,
-            (Value::Keyword(k1), Value::Keyword(k2))  => k1 == k2,
-            (Value::Regex(r1), Value::Regex(r2))  => r1.as_str() == r2.as_str(),
-            (Value::String(s1), Value::String(s2))  => s1 == s2,
-            (Value::List(l1), Value::List(l2))  => l1 == l2,
-            (Value::Vector(v1), Value::Vector(v2))  => v1 == v2,
-            (Value::Map(h1), Value::Map(h2))  => h1 == h2,
-            (Value::Set(s1), Value::Set(s2))  => s1 == s2,
-            (Value::Function(_), Value::Function(_))  => false, // TODO:
+            (Value::Bool(b1), Value::Bool(b2)) => b1 == b2,
+            (Value::I64(i1), Value::I64(i2)) => i1 == i2,
+            (Value::F64(f1), Value::F64(f2)) => f1 == f2,
+            (Value::Symbol(s1), Value::Symbol(s2)) => s1 == s2,
+            (Value::Keyword(k1), Value::Keyword(k2)) => k1 == k2,
+            (Value::Regex(r1), Value::Regex(r2)) => r1.as_str() == r2.as_str(),
+            (Value::String(s1), Value::String(s2)) => s1 == s2,
+            (Value::List(l1), Value::List(l2)) => l1 == l2,
+            (Value::Vector(v1), Value::Vector(v2)) => v1 == v2,
+            (Value::Map(h1), Value::Map(h2)) => h1 == h2,
+            (Value::Set(s1), Value::Set(s2)) => s1 == s2,
+            (Value::Function(_), Value::Function(_)) => false, // TODO:
             _ => false,
         }
     }
@@ -74,7 +74,6 @@ impl Hash for Value {
         }
     }
 }
-
 
 impl Value {
     pub fn as_nil() -> Result<Value, String> {
@@ -110,7 +109,9 @@ impl Value {
     }
     pub fn as_keyword(pair: Pair<Rule>) -> Result<Value, String> {
         let result = pair.as_str().to_string();
-        Ok(Value::Keyword(Keyword { value: Symbol { value: result } }))
+        Ok(Value::Keyword(Keyword {
+            value: Symbol { value: result },
+        }))
     }
     pub fn as_regex(pair: Pair<Rule>) -> Result<Value, String> {
         let result = pair.into_inner().next().unwrap().as_str();

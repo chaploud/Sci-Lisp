@@ -1,7 +1,7 @@
 /* utility.rs */
 
-use std::path::PathBuf;
 use std::fs;
+use std::path::PathBuf;
 
 pub fn try_read_file(file: &Option<PathBuf>) -> Result<String, String> {
     let path_string = match file {

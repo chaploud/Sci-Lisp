@@ -4,11 +4,11 @@ use std::path::PathBuf;
 
 use rustyline::{error::ReadlineError, DefaultEditor};
 
-use crate::core::utility::try_read_file;
 use crate::core::environment::Environment;
+use crate::core::eval::eval;
 use crate::core::parse::parse;
 use crate::core::read::read;
-use crate::core::eval::eval;
+use crate::core::utility::try_read_file;
 use crate::core::value::Value;
 
 const HISTORY_FILE: &str = "./.scilisp-history.txt";
@@ -39,7 +39,7 @@ pub fn repl() -> Result<(), String> {
                         let value = eval(&mut environment, &mut ast)?;
                         println!("{}", value);
                         buffer.clear();
-                    },
+                    }
                     Err(err) => {
                         // incomplete "", (), [], {}
                         eprintln!("Error: {:?}", err);
@@ -49,27 +49,27 @@ pub fn repl() -> Result<(), String> {
 
                 if let Err(err) = rl.add_history_entry(&line) {
                     eprintln!("Error: {:?}", err);
-                    break
+                    break;
                 }
 
                 if buffer == "exit" {
                     println!("(Bye!)");
-                    break
+                    break;
                 }
-            },
+            }
             Err(ReadlineError::Interrupted) => {
                 println!("Ctrl-C");
                 println!("(Bye!)");
-                break
-            },
+                break;
+            }
             Err(ReadlineError::Eof) => {
                 println!("Ctrl-D");
                 println!("(Bye!)");
-                break
-            },
+                break;
+            }
             Err(err) => {
                 println!("Error: {:?}", err);
-                break
+                break;
             }
         }
     }
@@ -81,7 +81,10 @@ pub fn repl() -> Result<(), String> {
 }
 
 pub fn execute(file: Option<PathBuf>) -> Result<(), String> {
-    println!("Executing '{}' ...", file.clone().unwrap().to_string_lossy());
+    println!(
+        "Executing '{}' ...",
+        file.clone().unwrap().to_string_lossy()
+    );
 
     // Read
     let content = try_read_file(&file)?;

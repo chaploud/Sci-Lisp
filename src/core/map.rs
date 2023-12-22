@@ -1,7 +1,7 @@
 /* map.rs */
 
-use std::hash::{Hash, Hasher};
 use core::fmt;
+use std::hash::{Hash, Hasher};
 
 use crate::core::value::Value;
 

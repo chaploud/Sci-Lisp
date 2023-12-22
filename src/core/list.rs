@@ -12,7 +12,7 @@ pub struct List {
 impl fmt::Display for List {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut result = format!("{:?}", self.value);
-        result = result[1..result.len()-1].to_string();
+        result = result[1..result.len() - 1].to_string();
         result = format!("({})", result);
         write!(f, "{}", result)
     }

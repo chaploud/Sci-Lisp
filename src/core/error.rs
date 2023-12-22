@@ -1,4 +1,4 @@
-use std:: {
+use std::{
     cmp::Ord,
     fmt::{self, Debug},
     hash::Hash,
@@ -18,7 +18,9 @@ impl fmt::Display for Error {
         use Error::*;
         match self {
             Parse(msg) => write!(f, "Parse Error: {}", msg),
-            Type(expected, actual) => write!(f, "Type Error: expected {}, got {}", expected, actual),
+            Type(expected, actual) => {
+                write!(f, "Type Error: expected {}, got {}", expected, actual)
+            }
             Name(msg) => write!(f, "Name Error: '{}' is not defined", msg),
         }
     }

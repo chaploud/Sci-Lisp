@@ -6,7 +6,6 @@ use crate::core::parse::Rule;
 use crate::core::value::Value;
 
 pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value, String> {
-
     let value = match pair.as_rule() {
         Rule::scilisp => read(ast, pair.into_inner().next().unwrap()),
         Rule::nil => Value::as_nil(),
@@ -24,8 +23,7 @@ pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value, String> {
         Ok(value) => {
             ast.push(value.clone());
             Ok(value)
-        },
+        }
         Err(err) => Err(err),
     }
 }
-

@@ -26,9 +26,15 @@ mod tests {
 
         #[test]
         fn test_symbol() {
-            let s1 = Symbol { value: "abc".to_string() };
-            let s2 = Symbol { value: "abc".to_string() };
-            let s3 = Symbol { value: "def".to_string() };
+            let s1 = Symbol {
+                value: "abc".to_string(),
+            };
+            let s2 = Symbol {
+                value: "abc".to_string(),
+            };
+            let s3 = Symbol {
+                value: "def".to_string(),
+            };
             assert_eq!(s1, s2);
             assert_ne!(s1, s3);
         }
