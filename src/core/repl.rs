@@ -2,23 +2,16 @@
 
 use std::path::PathBuf;
 
-use pest::iterators::Pair;
 use rustyline::{error::ReadlineError, DefaultEditor};
 
 use crate::core::utility::try_read_file;
 use crate::core::environment::Environment;
-use crate::core::parse::{parse, Rule};
+use crate::core::parse::parse;
 use crate::core::read::read;
 use crate::core::eval::eval;
+use crate::core::value::Value;
 
 const HISTORY_FILE: &str = "./.scilisp-history.txt";
-
-fn read_eval_print(environment: &mut Environment, program: Pair<'_, Rule>) -> Result<(), String> {
-    let value = read(environment, program)?;
-    let result = eval(environment, value)?;
-    println!("{}", result);
-    Ok(())
-}
 
 pub fn repl() -> Result<(), String> {
     println!("Sci-Lisp v{}", env!("CARGO_PKG_VERSION"));
@@ -40,30 +33,37 @@ pub fn repl() -> Result<(), String> {
 
                 let parsed = parse(&buffer);
                 match parsed {
-                    Ok(pair) => {
-                        read_eval_print(&mut environment, pair);
+                    Ok(parsed) => {
+                        let mut ast = Vec::<Value>::new();
+                        read(&mut ast, parsed)?;
+                        let value = eval(&mut environment, &mut ast)?;
+                        println!("{}", value);
                         buffer.clear();
                     },
                     Err(err) => {
                         // incomplete "", (), [], {}
-                        if err.to_string().contains("incomplete") {
-                            continue
-                        }
+                        eprintln!("Error: {:?}", err);
                     }
                 };
 
-                rl.add_history_entry(&buffer);
+                if let Err(err) = rl.add_history_entry(&line) {
+                    eprintln!("Error: {:?}", err);
+                    break
+                }
 
                 if buffer == "exit" {
+                    println!("(Bye!)");
                     break
                 }
             },
             Err(ReadlineError::Interrupted) => {
                 println!("Ctrl-C");
+                println!("(Bye!)");
                 break
             },
             Err(ReadlineError::Eof) => {
                 println!("Ctrl-D");
+                println!("(Bye!)");
                 break
             },
             Err(err) => {
@@ -73,16 +73,24 @@ pub fn repl() -> Result<(), String> {
         }
     }
 
-    rl.save_history(HISTORY_FILE);
-    println!("(Bye!)");
+    if let Err(err) = rl.save_history(HISTORY_FILE) {
+        eprintln!("Error: {:?}", err);
+    }
     Ok(())
 }
 
 pub fn execute(file: Option<PathBuf>) -> Result<(), String> {
     println!("Executing '{}' ...", file.clone().unwrap().to_string_lossy());
+
+    // Read
     let content = try_read_file(&file)?;
     let parsed = parse(&content)?;
+    let mut ast = Vec::<Value>::new();
+    read(&mut ast, parsed)?;
+
+    // Eval
     let mut environment = Environment::new(None, None);
-    read_eval_print(&mut environment, parsed);
+    eval(&mut environment, &mut ast)?;
+
     Ok(())
 }
