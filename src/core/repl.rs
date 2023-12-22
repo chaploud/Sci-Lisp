@@ -43,6 +43,7 @@ pub fn repl() -> Result<(), String> {
                     Err(err) => {
                         // incomplete "", (), [], {}
                         eprintln!("Error: {:?}", err);
+                        buffer.clear(); // TODO: remove this line
                     }
                 };
 

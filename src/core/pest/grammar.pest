@@ -23,8 +23,9 @@ i64 = @{ int ~ !"." }
   inf = _{ pm? ~ "inf" }
 symbol = @{ identifier }
 keyword = @{ ":" ~ identifier}
-regex = { "#\"" ~ (!"\"" ~ ANY)* ~ "\"" }
-string = { "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+regex = { "#\"" ~ string_inner* ~ "\"" }
+string = { "\"" ~ string_inner* ~ "\"" }
+  string_inner = @{ (!"\"" ~ ANY) }
 
 // TODO: handle \" correctly
 

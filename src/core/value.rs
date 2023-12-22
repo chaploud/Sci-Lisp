@@ -88,7 +88,9 @@ impl Value {
         }
     }
     pub fn as_i64(pair: Pair<Rule>) -> Result<Value, String> {
-        let result = pair.as_str().parse::<i64>();
+        let mut s = pair.as_str().to_string();
+        s.retain(|c| c != '_');
+        let result = s.parse::<i64>();
         match result {
             Ok(value) => Ok(Value::I64(value)),
             Err(err) => Err(err.to_string()),
@@ -111,7 +113,7 @@ impl Value {
         Ok(Value::Keyword(Keyword { value: Symbol { value: result } }))
     }
     pub fn as_regex(pair: Pair<Rule>) -> Result<Value, String> {
-        let result = pair.into_inner().as_str();
+        let result = pair.into_inner().next().unwrap().as_str();
         let regex = regex::Regex::new(&result);
         match regex {
             Ok(value) => Ok(Value::Regex(value)),
@@ -119,7 +121,7 @@ impl Value {
         }
     }
     pub fn as_string(pair: Pair<Rule>) -> Result<Value, String> {
-        let result = pair.into_inner().as_str();
+        let result = pair.into_inner().next().unwrap().as_str();
         Ok(Value::String(result.to_string()))
     }
     // pub fn as_list(environment: &mut Environment, pair: Pair<Rule>) -> Result<Value, String> {
@@ -142,8 +144,8 @@ impl fmt::Display for Value {
             F64(fl) => write!(f, "{}", fl),
             Symbol(s) => write!(f, "{}", s),
             Keyword(k) => write!(f, "{}", k),
-            Regex(r) => write!(f, "{}", r),
-            String(s) => write!(f, "{}", s),
+            Regex(r) => write!(f, "#\"{}\"", r),
+            String(s) => write!(f, "\"{}\"", s),
             List(l) => write!(f, "{}", l),
             Vector(v) => write!(f, "{}", v),
             Map(m) => write!(f, "{}", m),

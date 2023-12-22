@@ -22,8 +22,8 @@ pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value, String> {
 
     match value {
         Ok(value) => {
-            ast.push(value);
-            Ok(Value::Nil)
+            ast.push(value.clone());
+            Ok(value)
         },
         Err(err) => Err(err),
     }
