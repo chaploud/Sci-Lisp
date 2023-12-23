@@ -1,9 +1,5 @@
 /* repl.rs */
 
-use std::path::PathBuf;
-
-use rustyline::{error::ReadlineError, DefaultEditor};
-
 use crate::core::environment::Environment;
 use crate::core::eval::eval;
 use crate::core::parse::parse;
@@ -11,39 +7,69 @@ use crate::core::read::read;
 use crate::core::utility::try_read_file;
 use crate::core::value::Value;
 
+use rustyline::error::ReadlineError;
+use rustyline::highlight::MatchingBracketHighlighter;
+use rustyline::validate::MatchingBracketValidator;
+use rustyline::{Editor, Config, CompletionType, EditMode};
+use colored::*;
+use rustyline_derive::{Helper, Validator, Hinter, Completer, Highlighter};
+
+use std::path::PathBuf;
+
 const HISTORY_FILE: &str = "./.scilisp-history.txt";
+
+#[derive(Helper, Hinter, Validator, Highlighter, Completer)]
+struct RLHelper {
+    #[rustyline(Validator)]
+    validator: MatchingBracketValidator,
+
+    #[rustyline(Highlighter)]
+    highlighter: MatchingBracketHighlighter,
+
+}
+
+fn say_goodbye() {
+    println!("{}", "(Bye!)".purple().bold());
+}
 
 pub fn repl() -> Result<(), String> {
     println!("Sci-Lisp v{}", env!("CARGO_PKG_VERSION"));
 
-    let mut rl = DefaultEditor::new().unwrap();
+    let config = Config::builder()
+        .history_ignore_space(true)
+        .completion_type(CompletionType::List)
+        .edit_mode(EditMode::Emacs)
+        .build();
+
+    let helper = RLHelper {
+        highlighter: MatchingBracketHighlighter::new(),
+        validator: MatchingBracketValidator::new(),
+    };
+
+    let mut rl = Editor::with_config(config).unwrap();
+    rl.set_helper(Some(helper));
+
     if rl.load_history(HISTORY_FILE).is_err() {
         println!("No previous history.");
     }
 
     let mut environment = Environment::new(None, None);
+    // TODO: show completion list from environment (with tab key)
 
-    let mut buffer = String::new();
     loop {
-        let readline = rl.readline("λ > ");
+        let readline = rl.readline("λ > ".purple().bold().to_string().as_str());
         match readline {
             Ok(line) => {
-                buffer.push_str(&line);
-                buffer.push('\n');
-
-                let parsed = parse(&buffer);
+                let parsed = parse(&line);
                 match parsed {
                     Ok(parsed) => {
                         let mut ast = Vec::<Value>::new();
                         read(&mut ast, parsed)?;
                         let value = eval(&mut environment, &mut ast)?;
                         println!("{}", value);
-                        buffer.clear();
                     }
                     Err(err) => {
-                        // incomplete "", (), [], {}
-                        eprintln!("Error: {:?}", err);
-                        buffer.clear(); // TODO: remove this line
+                        eprintln!("{:?}", err);
                     }
                 };
 
@@ -52,23 +78,23 @@ pub fn repl() -> Result<(), String> {
                     break;
                 }
 
-                if buffer == "exit" {
-                    println!("(Bye!)");
+                if line == "exit" {
+                    say_goodbye();
                     break;
                 }
             }
             Err(ReadlineError::Interrupted) => {
                 println!("Ctrl-C");
-                println!("(Bye!)");
+                say_goodbye();
                 break;
             }
             Err(ReadlineError::Eof) => {
                 println!("Ctrl-D");
-                println!("(Bye!)");
+                say_goodbye();
                 break;
             }
             Err(err) => {
-                println!("Error: {:?}", err);
+                eprintln!("Error: {:?}", err);
                 break;
             }
         }

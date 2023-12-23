@@ -26,7 +26,9 @@ impl Set {
     }
 
     pub fn from(vector: Vec<Value>) -> Self {
-        Set { value: vector.into_iter().collect() }
+        Set {
+            value: vector.into_iter().collect(),
+        }
     }
 }
 

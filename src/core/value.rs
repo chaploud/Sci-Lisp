@@ -1,5 +1,9 @@
 /* value.rs */
 
+
+use std::fmt;
+use std::hash::Hash;
+
 use pest::iterators::Pair;
 
 use crate::core::error::Error;
@@ -12,11 +16,9 @@ use crate::core::set::Set;
 use crate::core::symbol::Symbol;
 use crate::core::type_name::TypeName;
 use crate::core::vector::Vector;
+use crate::core::read;
 
-use std::fmt;
-use std::hash::Hash;
 
-use super::read;
 
 #[derive(Clone)]
 pub enum Value {
@@ -135,6 +137,10 @@ impl Value {
         let vector = Vector::from(values);
         Ok(Value::Vector(vector))
     }
+    pub fn as_map(values: Vec<(Value, Value)>) -> Result<Value, String> {
+        let map = Map::from(values);
+        Ok(Value::Map(map))
+    }
     pub fn as_set(values: Vec<Value>) -> Result<Value, String> {
         let set = Set::from(values);
         Ok(Value::Set(set))
@@ -144,7 +150,7 @@ impl Value {
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use Value::*;
-        match self {
+            match self {
             Nil => write!(f, "nil"),
             Bool(b) => write!(f, "{}", b),
             I64(i) => write!(f, "{}", i),

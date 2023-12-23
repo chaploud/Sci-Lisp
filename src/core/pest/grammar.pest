@@ -31,7 +31,9 @@ string = { "\"" ~ string_inner ~ "\"" }
 
 list = { "(" ~ expr* ~ ")" }
 vector = { "[" ~ expr* ~ "]" }
-map = { "{" ~ (expr ~ expr)* ~ "}" }
+map = { "{" ~ (map_key ~ map_val)* ~ "}" }
+  map_key = @{ expr }
+  map_val = @{ expr }
 set = { "#{" ~ expr* ~ "}" }
 
 expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string | list | vector | map | set }
