@@ -5,6 +5,10 @@ use pest::iterators::Pair;
 use crate::core::parse::Rule;
 use crate::core::value::Value;
 
+fn inner_collect(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Vec<Value>, String> {
+    pair.into_inner().map(|expr| read(ast, expr)).collect()
+}
+
 pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value, String> {
     let value = match pair.as_rule() {
         Rule::scilisp => read(ast, pair.into_inner().next().unwrap()),
@@ -16,13 +20,9 @@ pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value, String> {
         Rule::keyword => Value::as_keyword(pair),
         Rule::regex => Value::as_regex(pair),
         Rule::string => Value::as_string(pair),
-        Rule::list => {
-            let inner_values: Result<Vec<Value>, String> = pair
-                .into_inner()
-                .map(|expr| read(ast, expr))
-                .collect();
-            Value::as_list(inner_values?)
-        }
+        Rule::list => Value::as_list(inner_collect(ast, pair)?),
+        Rule::vector => Value::as_vector(inner_collect(ast, pair)?),
+        Rule::set => Value::as_set(inner_collect(ast, pair)?),
         _ => unreachable!(), // COMMENT, WHITESPACE, etc...
     };
 

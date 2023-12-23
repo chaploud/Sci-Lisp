@@ -1,15 +1,15 @@
 use crate::core::environment::Environment;
 use crate::core::value::Value;
-
-fn ast_pop(ast: &mut Vec<Value>) -> Value {
-    match ast.pop() {
-        Some(val) => val,
-        None => Value::Nil,
-    }
-}
+use crate::core::list::List;
+use crate::core::vector::Vector;
+use crate::core::map::Map;
+use crate::core::set::Set;
 
 pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value, String> {
-    let val = ast_pop(ast);
+    let val = match ast.pop() {
+        Some(val) => val,
+        None => Value::Nil,
+    };
 
     match val {
         Value::Nil => Ok(val),
@@ -26,16 +26,27 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
         // },
         // Value::Keyword(_) => Ok(value),
         Value::List(list) => {
-            let mut result = list.clone();
-            list.value.into_iter().enumerate().for_each(|(n, v)| {
+            let result: Vec<Value> = list.value.into_iter().map(|v| {
                 ast.push(v);
-                result.value[n] = eval(environment, ast).unwrap();
-            });
-            Ok(Value::List(result))
+                eval(environment, ast).unwrap()
+            }).collect();
+            Ok(Value::List(List::from(result)))
         }
-        // Value::Vector(_) => Ok(value),
+        Value::Vector(vector) => {
+            let result: Vec<Value> = vector.value.into_iter().map(|v| {
+                ast.push(v);
+                eval(environment, ast).unwrap()
+            }).collect();
+            Ok(Value::Vector(Vector::from(result)))
+        }
         // Value::Map(_) => Ok(value),
-        // Value::Set(_) => Ok(value),
+        Value::Set(set) => {
+            let result: Vec<Value> = set.value.into_iter().map(|v| {
+                ast.push(v);
+                eval(environment, ast).unwrap()
+            }).collect();
+            Ok(Value::Set(Set::from(result)))
+        }
         // Value::Function(_) => Ok(value),
         _ => unreachable!(),
     }

@@ -1,7 +1,8 @@
 /* set.rs */
-
 use core::fmt;
 use std::hash::{Hash, Hasher};
+
+use indexmap::IndexSet;
 
 use crate::core::value::Value;
 
@@ -14,6 +15,18 @@ impl Hash for Set {
     fn hash<H: Hasher>(&self, state: &mut H) {
         let keys: Vec<_> = self.value.iter().collect();
         Hash::hash(&keys, state);
+    }
+}
+
+impl Set {
+    pub fn new() -> Self {
+        Set {
+            value: IndexSet::<Value>::new(),
+        }
+    }
+
+    pub fn from(vector: Vec<Value>) -> Self {
+        Set { value: vector.into_iter().collect() }
     }
 }
 

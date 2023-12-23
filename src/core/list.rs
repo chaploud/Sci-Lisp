@@ -16,8 +16,8 @@ impl List {
         }
     }
 
-    pub fn from(value: Vec<Value>) -> Self {
-        List { value }
+    pub fn from(vector: Vec<Value>) -> Self {
+        List { value: vector }
     }
 }
 

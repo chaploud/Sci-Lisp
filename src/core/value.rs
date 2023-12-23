@@ -18,7 +18,7 @@ use std::hash::Hash;
 
 use super::read;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum Value {
     Nil,
     Bool(bool),
@@ -131,6 +131,14 @@ impl Value {
         let list = List::from(values);
         Ok(Value::List(list))
     }
+    pub fn as_vector(values: Vec<Value>) -> Result<Value, String> {
+        let vector = Vector::from(values);
+        Ok(Value::Vector(vector))
+    }
+    pub fn as_set(values: Vec<Value>) -> Result<Value, String> {
+        let set = Set::from(values);
+        Ok(Value::Set(set))
+    }
 }
 
 impl fmt::Display for Value {
@@ -151,6 +159,12 @@ impl fmt::Display for Value {
             Set(s) => write!(f, "{}", s),
             Function(_) => write!(f, "fn"), // TODO:
         }
+    }
+}
+
+impl fmt::Debug for Value {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self)
     }
 }
 
