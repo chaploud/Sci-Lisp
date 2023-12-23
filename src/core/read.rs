@@ -23,9 +23,8 @@ pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value, String> {
         Rule::list => Value::as_list(inner_collect(ast, pair)?),
         Rule::vector => Value::as_vector(inner_collect(ast, pair)?),
         Rule::map => Value::as_map({
-            let result = pair.into_inner().for_each(|pair| {
-                println!("pair: {:?}", pair);
-            });
+            let result = vec![pair.into_inner()];
+            println!("result: {:?}", result);
             [(Value::Nil, Value::Nil)].to_vec()
         }),
         Rule::set => Value::as_set(inner_collect(ast, pair)?),

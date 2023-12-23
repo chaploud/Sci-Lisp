@@ -7,29 +7,44 @@ use crate::core::read::read;
 use crate::core::utility::try_read_file;
 use crate::core::value::Value;
 
-use rustyline::error::ReadlineError;
-use rustyline::highlight::MatchingBracketHighlighter;
-use rustyline::validate::MatchingBracketValidator;
-use rustyline::{Editor, Config, CompletionType, EditMode};
 use colored::*;
-use rustyline_derive::{Helper, Validator, Hinter, Completer, Highlighter};
+use rustyline::error::ReadlineError;
+use rustyline::highlight::{Highlighter, MatchingBracketHighlighter};
+use rustyline::validate::MatchingBracketValidator;
+use rustyline::{CompletionType, Config, EditMode, Editor};
+use rustyline_derive::{Completer, Helper, Hinter, Validator};
 
+use std::borrow::Cow;
 use std::path::PathBuf;
 
 const HISTORY_FILE: &str = "./.scilisp-history.txt";
 
-#[derive(Helper, Hinter, Validator, Highlighter, Completer)]
+#[derive(Helper, Hinter, Validator, Completer)]
 struct RLHelper {
     #[rustyline(Validator)]
     validator: MatchingBracketValidator,
 
     #[rustyline(Highlighter)]
     highlighter: MatchingBracketHighlighter,
+}
 
+impl Highlighter for RLHelper {
+    fn highlight<'l>(&self, line: &'l str, pos: usize) -> Cow<'l, str> {
+        let highlighted = self.highlighter.highlight(line, pos);
+
+        // HACK:
+        let colored = highlighted.replace("\x1b[1;34m", "\x1b[35;47m");
+
+        Cow::Owned(colored)
+    }
+
+    fn highlight_char(&self, line: &str, pos: usize, forced: bool) -> bool {
+        self.highlighter.highlight_char(line, pos, forced)
+    }
 }
 
 fn say_goodbye() {
-    println!("{}", "(Bye!)".purple().bold());
+    println!("{}", "[Bye!]".bold().purple());
 }
 
 pub fn repl() -> Result<(), String> {
@@ -57,7 +72,7 @@ pub fn repl() -> Result<(), String> {
     // TODO: show completion list from environment (with tab key)
 
     loop {
-        let readline = rl.readline("λ > ".purple().bold().to_string().as_str());
+        let readline = rl.readline("λ > ".bold().purple().to_string().as_str());
         match readline {
             Ok(line) => {
                 let parsed = parse(&line);

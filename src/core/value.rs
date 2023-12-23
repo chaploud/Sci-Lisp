@@ -1,6 +1,5 @@
 /* value.rs */
 
-
 use std::fmt;
 use std::hash::Hash;
 
@@ -12,13 +11,11 @@ use crate::core::keyword::Keyword;
 use crate::core::list::List;
 use crate::core::map::Map;
 use crate::core::parse::Rule;
+use crate::core::read;
 use crate::core::set::Set;
 use crate::core::symbol::Symbol;
 use crate::core::type_name::TypeName;
 use crate::core::vector::Vector;
-use crate::core::read;
-
-
 
 #[derive(Clone)]
 pub enum Value {
@@ -150,7 +147,7 @@ impl Value {
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use Value::*;
-            match self {
+        match self {
             Nil => write!(f, "nil"),
             Bool(b) => write!(f, "{}", b),
             I64(i) => write!(f, "{}", i),
