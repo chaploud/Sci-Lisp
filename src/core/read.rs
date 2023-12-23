@@ -30,6 +30,7 @@ pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value, String> {
             result
         }),
         Rule::set => Value::as_set(inner_collect(ast, pair)?),
+        Rule::special_form => Value::as_special_form(pair),
         _ => unreachable!(), // COMMENT, WHITESPACE, etc...
     };
 

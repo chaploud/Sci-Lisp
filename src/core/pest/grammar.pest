@@ -21,13 +21,12 @@ i64 = @{ int ~ !"." }
   exp = _{ ^"e" ~ i64 }
   nan = _{ "nan" }
   inf = _{ pm? ~ "inf" }
-symbol = @{ identifier }
+symbol = @{ !special_form ~ identifier }
 keyword = @{ ":" ~ identifier}
 regex = { "#\"" ~ string_inner ~ "\"" }
-string = { "\"" ~ string_inner ~ "\"" }
-  string_inner = @{ (!"\"" ~ ANY)* }
-
-// TODO: handle \" correctly
+string = ${ "\"" ~ string_inner ~ "\"" }
+  string_inner = @{ char* }
+  char = { !("\"" | "\\") ~ ANY | "\\" ~ ANY }
 
 list = { "(" ~ expr* ~ ")" }
 vector = { "[" ~ expr* ~ "]" }
@@ -35,7 +34,12 @@ map = { "{" ~ map_inner ~ "}" }
   map_inner = { expr* ~ expr* }
 set = { "#{" ~ expr* ~ "}" }
 
-expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string | list | vector | map | set }
+special_form = @{ "def" |"const" | "let" | "set!" | "fn" |
+                  "if" | "do" |"switch" |
+                  "for" | "while" | "break" | "continue" |
+                  "class" | "struct" | "enum" | "macro" }
+
+expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string | list | vector | map | set | special_form }
 
 scilisp = { SOI ~ expr* ~ EOI}
 
@@ -46,23 +50,4 @@ scilisp = { SOI ~ expr* ~ EOI}
 // (~@)unquote-splicing
 // (@)apply(expand)
 // (.)dot
-// def
-// const
 // ([0:2])([-1])slice
-// let
-// set!
-// defn(def + fn)
-// fn
-// if
-// do
-// when(if + do) // not needed?
-// cond
-// switch
-// for
-// while
-// break
-// continue
-// class
-// struct
-// enum
-// macro

@@ -35,6 +35,14 @@ impl Map {
 
 impl fmt::Display for Map {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self.value)
+        // write the map as a list of key-value pairs
+        let mut result = String::new();
+        for (n, (key, val)) in self.value.iter().enumerate() {
+            if n > 0 {
+                result += ", ";
+            }
+            result += format!("{} {}", key, val).as_str();
+        }
+        write!(f, "{{{}}}", result)
     }
 }

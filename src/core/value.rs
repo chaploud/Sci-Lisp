@@ -5,17 +5,16 @@ use std::hash::Hash;
 
 use pest::iterators::Pair;
 
-use crate::core::error::Error;
 use crate::core::function::Function;
 use crate::core::keyword::Keyword;
 use crate::core::list::List;
 use crate::core::map::Map;
 use crate::core::parse::Rule;
-use crate::core::read;
 use crate::core::set::Set;
 use crate::core::symbol::Symbol;
 use crate::core::type_name::TypeName;
 use crate::core::vector::Vector;
+use crate::core::special_form::SpecialForm;
 
 #[derive(Clone)]
 pub enum Value {
@@ -32,6 +31,7 @@ pub enum Value {
     Map(Map),
     Set(Set),
     Function(Function),
+    SpecialForm(SpecialForm),
 }
 
 impl PartialEq for Value {
@@ -50,6 +50,7 @@ impl PartialEq for Value {
             (Value::Map(h1), Value::Map(h2)) => h1 == h2,
             (Value::Set(s1), Value::Set(s2)) => s1 == s2,
             (Value::Function(_), Value::Function(_)) => false, // TODO:
+            (Value::SpecialForm(s1), Value::SpecialForm(s2)) => s1 == s2,
             _ => false,
         }
     }
@@ -59,7 +60,7 @@ impl Eq for Value {}
 impl Hash for Value {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         match self {
-            Value::Nil => 0.hash(state),
+            Value::Nil => Value::Nil.hash(state),
             Value::Bool(b) => b.hash(state),
             Value::I64(i) => i.hash(state),
             Value::F64(f) => f.to_bits().hash(state),
@@ -72,6 +73,7 @@ impl Hash for Value {
             Value::Map(h) => h.hash(state),
             Value::Set(s) => s.hash(state),
             Value::Function(_) => 0.hash(state), // TODO:
+            Value::SpecialForm(s) => s.hash(state),
         }
     }
 }
@@ -97,7 +99,6 @@ impl Value {
         }
     }
     pub fn as_f64(pair: Pair<Rule>) -> Result<Value, String> {
-        // TODO: convert some case that Rust can't parse
         let result = pair.as_str().parse::<f64>();
         match result {
             Ok(value) => Ok(Value::F64(value)),
@@ -142,6 +143,10 @@ impl Value {
         let set = Set::from(values);
         Ok(Value::Set(set))
     }
+    pub fn as_special_form(pair: Pair<Rule>) -> Result<Value, String> {
+        let result = pair.as_str().to_string();
+        Ok(Value::SpecialForm(SpecialForm::from(&result)))
+    }
 }
 
 impl fmt::Display for Value {
@@ -161,6 +166,7 @@ impl fmt::Display for Value {
             Map(m) => write!(f, "{}", m),
             Set(s) => write!(f, "{}", s),
             Function(_) => write!(f, "fn"), // TODO:
+            SpecialForm(s) => write!(f, "{}", s),
         }
     }
 }
@@ -187,6 +193,7 @@ impl Value {
             Value::Map(_) => TypeName::Map.to_string(),
             Value::Set(_) => TypeName::Set.to_string(),
             Value::Function(_) => TypeName::Function.to_string(),
+            Value::SpecialForm(_) => TypeName::SpecialForm.to_string(),
         }
     }
 }

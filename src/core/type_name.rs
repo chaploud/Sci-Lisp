@@ -17,6 +17,7 @@ pub enum TypeName {
     Map,
     Set,
     Function,
+    SpecialForm,
 }
 
 use TypeName::*;
@@ -36,6 +37,7 @@ impl fmt::Display for TypeName {
             Map => "m[K,V]".to_string(),
             Set => "s[T]".to_string(),
             Function => "fn".to_string(),
+            SpecialForm => "special form".to_string(),
         };
         write!(f, "{}", str)
     }
