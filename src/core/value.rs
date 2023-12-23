@@ -16,6 +16,8 @@ use crate::core::vector::Vector;
 use std::fmt;
 use std::hash::Hash;
 
+use super::read;
+
 #[derive(Debug, Clone)]
 pub enum Value {
     Nil,
@@ -125,14 +127,10 @@ impl Value {
         let result = pair.into_inner().next().unwrap().as_str();
         Ok(Value::String(result.to_string()))
     }
-    // pub fn as_list(environment: &mut Environment, pair: Pair<Rule>) -> Result<Value, String> {
-    //     let mut list = List::new();
-    //     for pair in pair.into_inner() {
-    //         let value = read(environment, pair)?;
-    //         list.push(value);
-    //     }
-    //     Ok(Value::List(list))
-    // }
+    pub fn as_list(values: Vec<Value>) -> Result<Value, String> {
+        let list = List::from(values);
+        Ok(Value::List(list))
+    }
 }
 
 impl fmt::Display for Value {

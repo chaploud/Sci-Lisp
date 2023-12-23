@@ -16,6 +16,13 @@ pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value, String> {
         Rule::keyword => Value::as_keyword(pair),
         Rule::regex => Value::as_regex(pair),
         Rule::string => Value::as_string(pair),
+        Rule::list => {
+            let inner_values: Result<Vec<Value>, String> = pair
+                .into_inner()
+                .map(|expr| read(ast, expr))
+                .collect();
+            Value::as_list(inner_values?)
+        }
         _ => unreachable!(), // COMMENT, WHITESPACE, etc...
     };
 

@@ -14,10 +14,10 @@ inf                 ; positive infinity
 :keyword            ; keyword symbol
 symbol              ; symbol
 
-; (1, "a", :b)        ; list (can contain any type)
-; [1.0, 2.0, 3.0]     ; vector
-; {:a "a", :b "a"}    ; hashmap
-; #{:a, :b, :c}       ; hashset
+(1, "a", :b)        ; list (can contain any type)
+[1.0, 2.0, 3.0]     ; vector
+{:a "a", :b "a"}    ; hashmap
+#{:a, :b, :c}       ; hashset
 
 ; (type [1, 2, 3])             ; show type
 ; (time (+ 1 2))               ; measure processing time

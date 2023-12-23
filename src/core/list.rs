@@ -6,7 +6,19 @@ use crate::core::value::Value;
 
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub struct List {
-    pub value: std::collections::LinkedList<Value>,
+    pub value: Vec<Value>,
+}
+
+impl List {
+    pub fn new() -> Self {
+        List {
+            value: Vec::<Value>::new(),
+        }
+    }
+
+    pub fn from(value: Vec<Value>) -> Self {
+        List { value }
+    }
 }
 
 impl fmt::Display for List {

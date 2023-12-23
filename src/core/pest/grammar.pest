@@ -23,16 +23,16 @@ i64 = @{ int ~ !"." }
   inf = _{ pm? ~ "inf" }
 symbol = @{ identifier }
 keyword = @{ ":" ~ identifier}
-regex = { "#\"" ~ string_inner* ~ "\"" }
-string = { "\"" ~ string_inner* ~ "\"" }
-  string_inner = @{ (!"\"" ~ ANY) }
+regex = { "#\"" ~ string_inner ~ "\"" }
+string = { "\"" ~ string_inner ~ "\"" }
+  string_inner = @{ (!"\"" ~ ANY)* }
 
 // TODO: handle \" correctly
 
-list = ${ "(" ~ expr* ~ ")" }
-vector = ${ "[" ~ expr* ~ "]" }
-map = ${ "{" ~ (expr ~ expr)* ~ "}" }
-set = ${ "#{" ~ expr* ~ "}" }
+list = { "(" ~ expr* ~ ")" }
+vector = { "[" ~ expr* ~ "]" }
+map = { "{" ~ (expr ~ expr)* ~ "}" }
+set = { "#{" ~ expr* ~ "}" }
 
 expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string | list | vector | map | set }
 
