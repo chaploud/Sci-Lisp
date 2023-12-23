@@ -11,10 +11,10 @@ use crate::core::list::List;
 use crate::core::map::Map;
 use crate::core::parse::Rule;
 use crate::core::set::Set;
+use crate::core::special_form::SpecialForm;
 use crate::core::symbol::Symbol;
 use crate::core::type_name::TypeName;
 use crate::core::vector::Vector;
-use crate::core::special_form::SpecialForm;
 
 #[derive(Clone)]
 pub enum Value {

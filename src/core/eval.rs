@@ -19,11 +19,9 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
         Value::F64(_) => Ok(val),
         Value::Regex(_) => Ok(val),
         Value::String(_) => Ok(val),
-        Value::Symbol(symbol) => {
-            match environment.get(&symbol.value) {
-                Ok(value) => Ok(*value),
-                Err(err) => Err(err.to_string()),
-            }
+        Value::Symbol(symbol) => match environment.get(&symbol.value) {
+            Ok(value) => Ok(*value),
+            Err(err) => Err(err.to_string()),
         },
         Value::Keyword(_) => Ok(val),
         Value::List(list) => {
