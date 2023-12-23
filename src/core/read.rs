@@ -23,9 +23,11 @@ pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value, String> {
         Rule::list => Value::as_list(inner_collect(ast, pair)?),
         Rule::vector => Value::as_vector(inner_collect(ast, pair)?),
         Rule::map => Value::as_map({
-            let result = vec![pair.into_inner()];
-            println!("result: {:?}", result);
-            [(Value::Nil, Value::Nil)].to_vec()
+            let pairs = pair.into_inner().next().unwrap().into_inner().collect::<Vec<_>>();
+            let result = pairs.chunks_exact(2).map(|p| {
+                (read(ast, p[0].clone()).unwrap(), read(ast, p[1].clone()).unwrap())
+            }).collect();
+            result
         }),
         Rule::set => Value::as_set(inner_collect(ast, pair)?),
         _ => unreachable!(), // COMMENT, WHITESPACE, etc...

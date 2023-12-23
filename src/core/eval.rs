@@ -54,11 +54,11 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
                 .map(|(k, v)| {
                     (
                         {
-                            ast.push(v);
+                            ast.push(k);
                             eval(environment, ast).unwrap()
                         },
                         {
-                            ast.push(k);
+                            ast.push(v);
                             eval(environment, ast).unwrap()
                         },
                     )

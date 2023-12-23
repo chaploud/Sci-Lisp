@@ -44,7 +44,7 @@ impl Highlighter for RLHelper {
 }
 
 fn say_goodbye() {
-    println!("{}", "[Bye!]".bold().purple());
+    println!("{}", "[Bye!]".purple());
 }
 
 pub fn repl() -> Result<(), String> {
