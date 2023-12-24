@@ -1,4 +1,4 @@
-/* symbol.rs */
+/* core/types/symbol.rs */
 
 use std::fmt;
 
@@ -22,7 +22,7 @@ impl fmt::Display for Symbol {
 #[cfg(test)]
 mod tests {
     mod symbol_tests {
-        use crate::core::symbol::Symbol;
+        use crate::core::types::symbol::Symbol;
 
         #[test]
         fn test_symbol() {

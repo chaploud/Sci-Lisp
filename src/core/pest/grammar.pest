@@ -21,7 +21,7 @@ i64 = @{ int ~ !"." }
   exp = _{ ^"e" ~ i64 }
   nan = _{ "nan" }
   inf = _{ pm? ~ "inf" }
-symbol = @{ !special_form ~ identifier }
+symbol = @{ identifier }
 keyword = @{ ":" ~ identifier}
 regex = { "#\"" ~ string_inner ~ "\"" }
 string = ${ "\"" ~ string_inner ~ "\"" }
@@ -34,12 +34,7 @@ map = { "{" ~ map_inner ~ "}" }
   map_inner = { expr* ~ expr* }
 set = { "#{" ~ expr* ~ "}" }
 
-special_form = @{ "def" |"const" | "let" | "set!" | "fn" |
-                  "if" | "do" |"switch" |
-                  "for" | "while" | "break" | "continue" |
-                  "class" | "struct" | "enum" | "macro" }
-
-expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string | list | vector | map | set | special_form }
+expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string | list | vector | map | set }
 
 scilisp = { SOI ~ expr* ~ EOI}
 

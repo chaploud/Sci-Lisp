@@ -1,19 +1,19 @@
 /* main.rs */
+
 // scilisp  # launch REPL
 // scilisp xxx.lisp  # run as script
 // scilisp -c xxx.lisp  # compile code
 // scilisp -l xxx.lisp  # lint code
 
 use std::process::exit;
+use std::path::PathBuf;
 
 use clap::Parser;
 
-use std::path::PathBuf;
 mod core;
-
-use core::compiler::compile;
-use core::linter::lint;
-use core::repl::{execute, repl};
+use core::ui::compiler::compile;
+use core::ui::linter::lint;
+use core::ui::repl::{execute, repl};
 
 #[derive(Parser)]
 #[command(

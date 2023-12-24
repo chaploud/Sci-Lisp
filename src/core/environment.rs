@@ -1,8 +1,8 @@
-/* environment.rs */
+/* core/environment.rs */
 
 use std::collections::HashMap;
 
-use crate::core::error::Error;
+use crate::core::types::error::Error;
 use crate::core::value::Value;
 
 pub type EnvLookup = HashMap<String, Box<Value>>;

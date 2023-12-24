@@ -1,3 +1,5 @@
+/* core/types/error.rs */
+
 use std::{
     cmp::Ord,
     fmt::{self, Debug},

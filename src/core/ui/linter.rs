@@ -1,7 +1,8 @@
-/* linter.rs */
+/* core/ui/linter.rs */
 
-use crate::core::utility::try_read_file;
 use std::path::PathBuf;
+
+use crate::core::utility::utility::try_read_file;
 
 pub fn lint(file: Option<PathBuf>) -> Result<(), String> {
     print!("Linting '{}' ...", file.clone().unwrap().to_string_lossy());

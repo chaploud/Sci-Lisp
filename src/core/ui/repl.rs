@@ -1,11 +1,7 @@
-/* repl.rs */
+/* core/ui/repl.rs */
 
-use crate::core::environment::Environment;
-use crate::core::eval::eval;
-use crate::core::parse::parse;
-use crate::core::read::read;
-use crate::core::utility::try_read_file;
-use crate::core::value::Value;
+use std::borrow::Cow;
+use std::path::PathBuf;
 
 use colored::*;
 use rustyline::error::ReadlineError;
@@ -14,8 +10,12 @@ use rustyline::validate::MatchingBracketValidator;
 use rustyline::{CompletionType, Config, EditMode, Editor};
 use rustyline_derive::{Completer, Helper, Hinter, Validator};
 
-use std::borrow::Cow;
-use std::path::PathBuf;
+use crate::core::environment::Environment;
+use crate::core::eval::eval;
+use crate::core::parse::parse;
+use crate::core::read::read;
+use crate::core::utility::utility::try_read_file;
+use crate::core::value::Value;
 
 const HISTORY_FILE: &str = "./.scilisp-history.txt";
 

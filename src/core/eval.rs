@@ -1,9 +1,11 @@
+/* core/eval.rs */
+
 use crate::core::environment::Environment;
-use crate::core::list::List;
-use crate::core::map::Map;
-use crate::core::set::Set;
 use crate::core::value::Value;
-use crate::core::vector::Vector;
+use crate::core::types::list::List;
+use crate::core::types::map::Map;
+use crate::core::types::set::Set;
+use crate::core::types::vector::Vector;
 
 pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value, String> {
     let val = match ast.pop() {
@@ -76,7 +78,8 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
                 .collect();
             Ok(Value::Set(Set::from(result)))
         }
-        // Value::Function(_) => Ok(value),
+        // Value::Function(_) => Ok(val),
+        Value::SpecialFor(_) => Ok(val),
         _ => unreachable!(),
     }
 }

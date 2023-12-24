@@ -1,4 +1,4 @@
-/* map.rs */
+/* core/types/map.rs */
 
 use core::fmt;
 use std::hash::{Hash, Hasher};

@@ -1,26 +1,12 @@
 /* core.rs */
 
-// Values
-pub mod function;
-pub mod keyword;
-pub mod list;
-pub mod map;
-pub mod set;
-pub mod special_form;
-pub mod symbol;
-pub mod type_name;
-pub mod value;
-pub mod vector;
+pub mod utility;
+pub mod ui;
+pub mod types;
+pub mod functions;
 
-// Parse-Read-Eval
 pub mod environment;
-pub mod error;
-pub mod eval;
+pub mod value;
 pub mod parse;
 pub mod read;
-
-// User Interface
-pub mod compiler;
-pub mod linter;
-pub mod repl;
-pub mod utility;
+pub mod eval;

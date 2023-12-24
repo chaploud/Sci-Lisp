@@ -1,4 +1,4 @@
-/* type_name.rs */
+/* core/types/type_name.rs */
 
 use std::fmt;
 
@@ -17,7 +17,7 @@ pub enum TypeName {
     Map,
     Set,
     Function,
-    SpecialForm,
+    Macro,
 }
 
 use TypeName::*;
@@ -28,16 +28,16 @@ impl fmt::Display for TypeName {
             Bool => "bool".to_string(),
             I64 => "i64".to_string(),
             F64 => "f64".to_string(),
-            Symbol => "sym".to_string(),
-            Keyword => "key".to_string(),
+            Symbol => "symbol".to_string(),
+            Keyword => "keyword".to_string(),
             Regex => "regex".to_string(),
-            String => "str".to_string(),
+            String => "string".to_string(),
             List => "list".to_string(),
-            Vector => "v[T]".to_string(),
-            Map => "m[K,V]".to_string(),
-            Set => "s[T]".to_string(),
-            Function => "fn".to_string(),
-            SpecialForm => "special form".to_string(),
+            Vector => "vector".to_string(),
+            Map => "map".to_string(),
+            Set => "set".to_string(),
+            Function => "function".to_string(),
+            Macro => "macro".to_string(),
         };
         write!(f, "{}", str)
     }

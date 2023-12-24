@@ -1,32 +1,46 @@
-/* special_form.rs */
+/* core/types/macro.rs */
 
 use std::fmt;
 
+use crate::core::value::Value;
+
+trait Callable {
+    fn call(&self, arg: Value) -> Value;
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum SpecialForm {
-    Def,
-    Const,
-    Let,
-    Setv,
-    Fn,
-    If,
-    Do,
-    Switch,
-    For,
-    While,
-    Break,
-    Continue,
-    Class,
-    Struct,
-    Enum,
-    Macro,
+pub struct Macro<F: Fn(Value) -> Value>(F);
+
+impl<F: Fn(Value) -> Value> Callable for SpecialForm<F> {
+    fn call(&self, arg: Value) -> Value {
+        (self.0)(arg)
+    }
+}
+
+pub enum SpecialForm<F: Fn(Value) -> Value> {
+    Def(F),
+    Const(F),
+    Let(F),
+    Setv(F),
+    Fn(F),
+    If(F),
+    Do(F),
+    Switch(F),
+    For(F),
+    While(F),
+    Break(F),
+    Continue(F),
+    Class(F),
+    Struct(F),
+    Enum(F),
+    Macro(F),
 }
 
 fn suffix(s: &str) -> String {
     format!("{} (special form)", s)
 }
 
-impl fmt::Display for SpecialForm {
+impl fmt::Display for SpecialForm<Value> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             SpecialForm::Def => write!(f, "{}", suffix("def")),
@@ -49,7 +63,7 @@ impl fmt::Display for SpecialForm {
     }
 }
 
-impl SpecialForm {
+impl SpecialForm<Value> {
     pub fn from(s: &str) -> Self {
         match s {
             "def" => SpecialForm::Def,

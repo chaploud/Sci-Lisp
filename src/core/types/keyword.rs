@@ -1,12 +1,11 @@
-/* keyword.rs */
+/* core/types/keyword.rs */
 
-use crate::core::symbol::Symbol;
 use std::fmt;
 use std::hash::Hash;
 
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
 pub struct Keyword {
-    pub value: Symbol,
+    pub value: std::string::String,
 }
 
 impl fmt::Display for Keyword {
@@ -18,8 +17,8 @@ impl fmt::Display for Keyword {
 #[cfg(test)]
 mod tests {
     mod keyword_tests {
-        use crate::core::keyword::Keyword;
-        use crate::core::symbol::Symbol;
+        use crate::core::types::keyword::Keyword;
+        use crate::core::types::symbol::Symbol;
 
         #[test]
         fn test_keyword() {

@@ -1,20 +1,20 @@
-/* value.rs */
+/* core/value.rs */
 
 use std::fmt;
 use std::hash::Hash;
 
 use pest::iterators::Pair;
 
-use crate::core::function::Function;
-use crate::core::keyword::Keyword;
-use crate::core::list::List;
-use crate::core::map::Map;
 use crate::core::parse::Rule;
-use crate::core::set::Set;
-use crate::core::special_form::SpecialForm;
-use crate::core::symbol::Symbol;
-use crate::core::type_name::TypeName;
-use crate::core::vector::Vector;
+use crate::core::types::symbol::Symbol;
+use crate::core::types::keyword::Keyword;
+use crate::core::types::list::List;
+use crate::core::types::vector::Vector;
+use crate::core::types::map::Map;
+use crate::core::types::set::Set;
+use crate::core::types::function::Function;
+use crate::core::types::r#macro::Macro;
+use crate::core::types::type_name::TypeName;
 
 #[derive(Clone)]
 pub enum Value {
@@ -30,8 +30,8 @@ pub enum Value {
     Vector(Vector),
     Map(Map),
     Set(Set),
-    Function(Function),
-    SpecialForm(SpecialForm),
+    Function(Function<Value>),
+    Macro(Macro<Value>)
 }
 
 impl PartialEq for Value {
@@ -49,8 +49,8 @@ impl PartialEq for Value {
             (Value::Vector(v1), Value::Vector(v2)) => v1 == v2,
             (Value::Map(h1), Value::Map(h2)) => h1 == h2,
             (Value::Set(s1), Value::Set(s2)) => s1 == s2,
-            (Value::Function(_), Value::Function(_)) => false, // TODO:
-            (Value::SpecialForm(s1), Value::SpecialForm(s2)) => s1 == s2,
+            (Value::Function(f1), Value::Function(f2)) => f1 == f2,
+            (Value::Macro(m1),)
             _ => false,
         }
     }
@@ -72,7 +72,7 @@ impl Hash for Value {
             Value::Vector(v) => v.hash(state),
             Value::Map(h) => h.hash(state),
             Value::Set(s) => s.hash(state),
-            Value::Function(_) => 0.hash(state), // TODO:
+            Value::Function(f) => f.hash(state), // TODO:
             Value::SpecialForm(s) => s.hash(state),
         }
     }
@@ -165,7 +165,7 @@ impl fmt::Display for Value {
             Vector(v) => write!(f, "{}", v),
             Map(m) => write!(f, "{}", m),
             Set(s) => write!(f, "{}", s),
-            Function(_) => write!(f, "fn"), // TODO:
+            Function(func) => write!(f, "{}", func), // TODO:
             SpecialForm(s) => write!(f, "{}", s),
         }
     }
@@ -194,6 +194,13 @@ impl Value {
             Value::Set(_) => TypeName::Set.to_string(),
             Value::Function(_) => TypeName::Function.to_string(),
             Value::SpecialForm(_) => TypeName::SpecialForm.to_string(),
+        }
+    }
+    pub fn call_as_sexpr(&self, args: Vec<Value>) -> Result<Value, String> {
+        match self {
+            Value::Function(func) => func.call(args),
+            Value::SpecialForm(special_form) => special_form.call(args),
+            _ => Err(format!("{} is not callable", self)),
         }
     }
 }

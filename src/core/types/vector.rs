@@ -1,31 +1,28 @@
-/* list.rs */
+/* core/types/vector.rs */
 
 use core::fmt;
 
 use crate::core::value::Value;
 
 #[derive(Debug, Clone, PartialEq, Hash)]
-pub struct List {
+pub struct Vector {
     pub value: Vec<Value>,
 }
 
-impl List {
+impl Vector {
     pub fn new() -> Self {
-        List {
+        Vector {
             value: Vec::<Value>::new(),
         }
     }
 
     pub fn from(vector: Vec<Value>) -> Self {
-        List { value: vector }
+        Vector { value: vector }
     }
 }
 
-impl fmt::Display for List {
+impl fmt::Display for Vector {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut result = format!("{:?}", self.value);
-        result = result[1..result.len() - 1].to_string();
-        result = format!("({})", result);
-        write!(f, "{}", result)
+        write!(f, "{:?}", self.value)
     }
 }
