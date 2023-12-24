@@ -1,4 +1,4 @@
-/* core/ui/compiler.rs */
+/* core/cli/compiler.rs */
 
 use std::path::PathBuf;
 

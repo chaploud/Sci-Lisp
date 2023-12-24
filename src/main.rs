@@ -11,9 +11,9 @@ use std::process::exit;
 use clap::Parser;
 
 mod core;
-use crate::core::ui::compiler::compile;
-use crate::core::ui::linter::lint;
-use crate::core::ui::repl::{execute, repl};
+use crate::core::cli::compiler::compile;
+use crate::core::cli::linter::lint;
+use crate::core::cli::repl::{execute, repl};
 
 #[derive(Parser)]
 #[command(

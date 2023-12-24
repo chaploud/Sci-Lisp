@@ -1,4 +1,4 @@
-/* core/ui/linter.rs */
+/* core/cli/linter.rs */
 
 use std::path::PathBuf;
 

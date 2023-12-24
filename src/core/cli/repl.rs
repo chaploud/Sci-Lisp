@@ -1,4 +1,4 @@
-/* core/ui/repl.rs */
+/* core/cli/repl.rs */
 
 use std::borrow::Cow;
 use std::path::PathBuf;

@@ -1,12 +1,12 @@
 /* core.rs */
 
-pub mod functions;
-pub mod types;
-pub mod ui;
 pub mod utility;
+pub mod cli;
+pub mod types;
+pub mod functions;
 
 pub mod environment;
-pub mod eval;
+pub mod value;
 pub mod parse;
 pub mod read;
-pub mod value;
+pub mod eval;

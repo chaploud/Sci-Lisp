@@ -1,4 +1,4 @@
-/* core/ui.rs */
+/* core/cli.rs */
 
 pub mod compiler;
 pub mod linter;
