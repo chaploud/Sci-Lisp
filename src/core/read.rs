@@ -3,13 +3,14 @@
 use pest::iterators::Pair;
 
 use crate::core::parse::Rule;
+use crate::core::types::error::Result;
 use crate::core::value::Value;
 
-fn inner_collect(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Vec<Value>, String> {
+fn inner_collect(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Vec<Value>> {
     pair.into_inner().map(|expr| read(ast, expr)).collect()
 }
 
-pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value, String> {
+pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
     let value = match pair.as_rule() {
         Rule::scilisp => read(ast, pair.into_inner().next().unwrap()),
         Rule::nil => Value::as_nil(),
@@ -41,7 +42,7 @@ pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value, String> {
             result
         }),
         Rule::set => Value::as_set(inner_collect(ast, pair)?),
-        Rule::special_form => Value::as_special_form(pair),
+        // TODO: function, macro, error
         _ => unreachable!(), // COMMENT, WHITESPACE, etc...
     };
 

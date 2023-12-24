@@ -5,15 +5,15 @@
 // scilisp -c xxx.lisp  # compile code
 // scilisp -l xxx.lisp  # lint code
 
-use std::process::exit;
 use std::path::PathBuf;
+use std::process::exit;
 
 use clap::Parser;
 
 mod core;
-use core::ui::compiler::compile;
-use core::ui::linter::lint;
-use core::ui::repl::{execute, repl};
+use crate::core::ui::compiler::compile;
+use crate::core::ui::linter::lint;
+use crate::core::ui::repl::{execute, repl};
 
 #[derive(Parser)]
 #[command(
@@ -59,7 +59,7 @@ fn main() {
         Action::Repl
     };
 
-    let result: Result<(), String> = match action {
+    let result = match action {
         Action::Repl => repl(),
         Action::Execute(file) => execute(file),
         Action::Compile(file) => compile(file),

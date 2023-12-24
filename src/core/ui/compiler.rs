@@ -2,9 +2,10 @@
 
 use std::path::PathBuf;
 
+use crate::core::types::error::Result;
 use crate::core::utility::utility::try_read_file;
 
-pub fn compile(file: Option<PathBuf>) -> Result<(), String> {
+pub fn compile(file: Option<PathBuf>) -> Result<()> {
     print!(
         "Compiling '{}' ... ",
         file.clone().unwrap().to_string_lossy()

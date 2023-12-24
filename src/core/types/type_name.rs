@@ -18,6 +18,7 @@ pub enum TypeName {
     Set,
     Function,
     Macro,
+    Error,
 }
 
 use TypeName::*;
@@ -38,6 +39,7 @@ impl fmt::Display for TypeName {
             Set => "set".to_string(),
             Function => "function".to_string(),
             Macro => "macro".to_string(),
+            Error => "error".to_string(),
         };
         write!(f, "{}", str)
     }

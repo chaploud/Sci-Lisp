@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 
 use crate::core::types::error::Error;
+use crate::core::types::error::Result;
 use crate::core::value::Value;
 
 pub type EnvLookup = HashMap<String, Box<Value>>;
@@ -25,7 +26,7 @@ impl<'a> Environment<'a> {
         ret
     }
 
-    pub fn get(&self, key: &str) -> Result<Box<Value>, Error> {
+    pub fn get(&self, key: &str) -> Result<Box<Value>> {
         match self.lookup.get(key) {
             Some(value) => Ok(value.clone()),
             None => match &self.parent {
@@ -35,10 +36,11 @@ impl<'a> Environment<'a> {
         }
     }
 
-    pub fn put(&mut self, key: String, value: Box<Value>) {
+    pub fn put(&mut self, key: String, value: Box<Value>) -> Result<()> {
         let current = self.lookup.entry(key).or_insert_with(|| value.clone());
         if *value != **current {
             *current = value;
         }
+        Ok(())
     }
 }

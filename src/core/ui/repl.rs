@@ -14,6 +14,7 @@ use crate::core::environment::Environment;
 use crate::core::eval::eval;
 use crate::core::parse::parse;
 use crate::core::read::read;
+use crate::core::types::error::Result;
 use crate::core::utility::utility::try_read_file;
 use crate::core::value::Value;
 
@@ -47,7 +48,7 @@ fn say_goodbye() {
     println!("{}", "[Bye!]".purple());
 }
 
-pub fn repl() -> Result<(), String> {
+pub fn repl() -> Result<()> {
     println!("Sci-Lisp v{}", env!("CARGO_PKG_VERSION"));
 
     let config = Config::builder()
@@ -79,9 +80,17 @@ pub fn repl() -> Result<(), String> {
                 match parsed {
                     Ok(parsed) => {
                         let mut ast = Vec::<Value>::new();
-                        read(&mut ast, parsed)?;
-                        let value = eval(&mut environment, &mut ast)?;
-                        println!("{}", value);
+                        let result = read(&mut ast, parsed);
+                        if let Err(err) = result {
+                            eprintln!("{:#?}", err);
+                            continue;
+                        }
+                        let value = eval(&mut environment, &mut ast);
+                        if let Err(err) = value {
+                            eprintln!("{:#?}", err);
+                            continue;
+                        }
+                        println!("{}", value.unwrap());
                     }
                     Err(err) => {
                         eprintln!("{:?}", err);
@@ -121,7 +130,7 @@ pub fn repl() -> Result<(), String> {
     Ok(())
 }
 
-pub fn execute(file: Option<PathBuf>) -> Result<(), String> {
+pub fn execute(file: Option<PathBuf>) -> Result<()> {
     println!(
         "Executing '{}' ...",
         file.clone().unwrap().to_string_lossy()

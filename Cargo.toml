@@ -12,6 +12,7 @@ description = "A Lisp for Scientific Computation written in Rust"
 [dependencies]
 clap = { version = "4.4.11", features = ["derive"] }
 colored = "2.1.0"
+dyn-clone = "1.0.16"
 indexmap = "2.1.0"
 pest = "2.7.5"
 pest_derive = "2.7.5"

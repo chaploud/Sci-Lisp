@@ -1,20 +1,20 @@
 /* core/eval.rs */
 
 use crate::core::environment::Environment;
-use crate::core::value::Value;
+use crate::core::types::error::Result;
 use crate::core::types::list::List;
 use crate::core::types::map::Map;
 use crate::core::types::set::Set;
 use crate::core::types::vector::Vector;
+use crate::core::value::Value;
 
-pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value, String> {
+pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value> {
     let val = match ast.pop() {
         Some(val) => val,
         None => Value::Nil,
     };
 
     match val {
-        Value::SpecialForm(_) => Ok(val),
         Value::Nil => Ok(val),
         Value::Bool(_) => Ok(val),
         Value::I64(_) => Ok(val),
@@ -23,7 +23,7 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
         Value::String(_) => Ok(val),
         Value::Symbol(symbol) => match environment.get(&symbol.value) {
             Ok(value) => Ok(*value),
-            Err(err) => Err(err.to_string()),
+            Err(err) => Err(err),
         },
         Value::Keyword(_) => Ok(val),
         Value::List(list) => {
@@ -78,8 +78,7 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
                 .collect();
             Ok(Value::Set(Set::from(result)))
         }
-        // Value::Function(_) => Ok(val),
-        Value::SpecialFor(_) => Ok(val),
+        // TODO: function, macro, error
         _ => unreachable!(),
     }
 }
