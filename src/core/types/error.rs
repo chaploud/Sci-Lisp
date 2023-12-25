@@ -2,13 +2,7 @@
 
 use std::num::{ParseFloatError, ParseIntError};
 use std::str::ParseBoolError;
-use std::{
-    cmp::Ord,
-    fmt::{self, Debug},
-    hash::Hash,
-    marker::Copy,
-    string::ToString,
-};
+use std::fmt::{self, Debug};
 
 use crate::core::parse::Rule;
 
@@ -17,15 +11,18 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
+    // wrapped errors
     ParseBool(ParseBoolError),
     ParseInt(ParseIntError),
     ParseFloat(ParseFloatError),
     PestParse(pest::error::Error<Rule>),
-    Type(String, String),
-    Name(String),
     Regex(regex::Error),
     IO(std::io::Error),
     Readline(rustyline::error::ReadlineError),
+
+    // custom errors
+    Name(String),
+    Type(String, String),
 }
 
 impl fmt::Display for Error {
@@ -36,13 +33,13 @@ impl fmt::Display for Error {
             ParseInt(err) => write!(f, "Parse Int Error: {:#?}", err),
             ParseFloat(err) => write!(f, "Parse Float Error: {:#?}", err),
             PestParse(err) => write!(f, "Pest Parse Error: {:#?}", err),
-            Type(expected, actual) => {
-                write!(f, "Type Error: expected {:#?}, got {:#?}", expected, actual)
-            }
-            Name(msg) => write!(f, "Name Error: '{:#?}' is not defined", msg),
             Regex(err) => write!(f, "Regex Error: {:#?}", err),
             IO(err) => write!(f, "IO Error: {:#?}", err),
             Readline(err) => write!(f, "Readline Error: {:#?}", err),
+            Name(msg) => write!(f, "Name Error: '{:#?}' is not defined", msg),
+            Type(expected, actual) => {
+                write!(f, "Type Error: expected {:#?}, got {:#?}", expected, actual)
+            }
         }
     }
 }
@@ -55,14 +52,17 @@ impl std::error::Error for Error {
             ParseInt(ref err) => Some(err),
             ParseFloat(ref err) => Some(err),
             PestParse(ref err) => Some(err),
-            Type(_, _) => None,
-            Name(_) => None,
             Regex(ref err) => Some(err),
             IO(ref err) => Some(err),
             Readline(ref err) => Some(err),
+            Type(_, _) => None,
+            Name(_) => None,
         }
     }
 }
+
+
+// impl for custom errors
 
 impl From<ParseBoolError> for Error {
     fn from(err: ParseBoolError) -> Self {
