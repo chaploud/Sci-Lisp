@@ -9,7 +9,6 @@ use pest::iterators::Pair;
 use crate::core::parse::Rule;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
-use crate::core::types::ifn::IFn;
 use crate::core::types::keyword::Keyword;
 use crate::core::types::list::List;
 use crate::core::types::map::Map;
@@ -17,6 +16,8 @@ use crate::core::types::set::Set;
 use crate::core::types::symbol::Symbol;
 use crate::core::types::type_name::TypeName;
 use crate::core::types::vector::Vector;
+use crate::core::types::function::Function;
+use crate::core::types::r#macro::Macro;
 
 #[derive(Clone)]
 pub enum Value {
@@ -32,8 +33,8 @@ pub enum Value {
     Vector(Vector),
     Map(Map),
     Set(Set),
-    Function(Rc<dyn IFn>),
-    Macro(Rc<dyn IFn>),
+    Function(Function),
+    Macro(Macro),
 }
 
 use crate::core::value::Value::*;
@@ -111,8 +112,8 @@ impl fmt::Debug for Value {
 }
 
 impl Value {
-    pub fn type_name(&self) -> std::string::String {
-        match self {
+    pub fn type_name(&self) -> Result<Value> {
+        let result = match self {
             Value::Nil => TypeName::Nil.to_string(),
             Value::Bool(_) => TypeName::Bool.to_string(),
             Value::I64(_) => TypeName::I64.to_string(),
@@ -127,7 +128,9 @@ impl Value {
             Value::Set(_) => TypeName::Set.to_string(),
             Value::Function(_) => TypeName::Function.to_string(),
             Value::Macro(_) => TypeName::Macro.to_string(),
-        }
+        };
+
+        Ok(Value::String(result))
     }
 }
 

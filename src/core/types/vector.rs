@@ -9,7 +9,7 @@ pub struct Vector {
     pub value: Vec<Value>,
 }
 
-impl Vector {
+impl Vector  {
     pub fn new() -> Self {
         Vector {
             value: Vec::<Value>::new(),

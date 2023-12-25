@@ -8,7 +8,7 @@ use indexmap::IndexMap;
 use crate::core::value::Value;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Map {
+pub struct Map{
     pub value: indexmap::IndexMap<Value, Value>,
 }
 

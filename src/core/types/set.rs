@@ -12,7 +12,7 @@ pub struct Set {
     pub value: indexmap::IndexSet<Value>,
 }
 
-impl Hash for Set {
+impl Hash for Set{
     fn hash<H: Hasher>(&self, state: &mut H) {
         let keys: Vec<_> = self.value.iter().collect();
         Hash::hash(&keys, state);

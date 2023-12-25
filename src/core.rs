@@ -3,7 +3,7 @@
 pub mod utility;
 pub mod cli;
 pub mod types;
-pub mod functions;
+pub mod builtin;
 
 pub mod environment;
 pub mod value;
