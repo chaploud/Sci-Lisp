@@ -2,11 +2,11 @@
 
 use std::fmt::{self, Debug};
 
-use crate::core::value::Value;
 use crate::core::types::error::Result;
+use crate::core::value::Value;
 #[derive(Debug, Clone)]
 pub struct Function {
-    pub name: std::string::String,
+    pub name: &'static str,
     pub call: fn(Vec<Value>) -> Result<Value>,
 }
 

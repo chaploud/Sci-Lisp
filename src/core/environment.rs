@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 
+use crate::core::builtin::functions::TYPE_FN;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
 use crate::core::value::Value;
@@ -22,6 +23,7 @@ impl<'a> Environment<'a> {
         };
 
         // TODO: Add core functions to the environment
+        ret.put(TYPE_FN.to_string(), Box::new(Value::Function(TYPE_FN)));
 
         ret
     }
