@@ -14,6 +14,7 @@ use crate::core::environment::Environment;
 use crate::core::eval::eval;
 use crate::core::parse::parse;
 use crate::core::read::read;
+use crate::core::types::error::Error;
 use crate::core::types::error::Result;
 use crate::core::utility::utility::try_read_file;
 use crate::core::value::Value;
@@ -75,38 +76,6 @@ pub fn repl() -> Result<()> {
     loop {
         let readline = rl.readline("λ > ".bold().purple().to_string().as_str());
         match readline {
-            Ok(line) => {
-                let parsed = parse(&line);
-                match parsed {
-                    Ok(parsed) => {
-                        let mut ast = Vec::<Value>::new();
-                        let result = read(&mut ast, parsed);
-                        if let Err(err) = result {
-                            eprintln!("{:#?}", err);
-                            continue;
-                        }
-                        let value = eval(&mut environment, &mut ast);
-                        if let Err(err) = value {
-                            eprintln!("{:#?}", err);
-                            continue;
-                        }
-                        println!("{}", value.unwrap());
-                    }
-                    Err(err) => {
-                        eprintln!("{:?}", err);
-                    }
-                };
-
-                if let Err(err) = rl.add_history_entry(&line) {
-                    eprintln!("Error: {:?}", err);
-                    break;
-                }
-
-                if line == "exit" {
-                    say_goodbye();
-                    break;
-                }
-            }
             Err(ReadlineError::Interrupted) => {
                 println!("Ctrl-C");
                 say_goodbye();
@@ -118,15 +87,43 @@ pub fn repl() -> Result<()> {
                 break;
             }
             Err(err) => {
-                eprintln!("Error: {:?}", err);
-                break;
+                eprintln!("{}", err);
+                continue;
             }
-        }
+            Ok(line) => {
+                rl.add_history_entry(&line)?;
+
+                if line == "exit" {
+                    say_goodbye();
+                    break;
+                }
+
+                // read/parse
+                let parsed = parse(&line);
+                if let Err(err) = parsed {
+                    eprintln!("{}", err);
+                    continue;
+                }
+
+                let mut ast = Vec::<Value>::new();
+                let result = read(&mut ast, parsed.unwrap());
+                if let Err(err) = result {
+                    eprintln!("{}", err);
+                    continue;
+                }
+
+                let value = eval(&mut environment, &mut ast);
+                if let Err(err) = value {
+                    eprintln!("{}", err);
+                    continue;
+                }
+
+                println!("{}", value.unwrap());
+            }
+        };
     }
 
-    if let Err(err) = rl.save_history(HISTORY_FILE) {
-        eprintln!("Error: {:?}", err);
-    }
+    rl.save_history(HISTORY_FILE)?;
     Ok(())
 }
 

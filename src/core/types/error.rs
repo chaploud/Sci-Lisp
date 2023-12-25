@@ -25,6 +25,7 @@ pub enum Error {
     Name(String),
     Regex(regex::Error),
     IO(std::io::Error),
+    Readline(rustyline::error::ReadlineError),
 }
 
 impl fmt::Display for Error {
@@ -41,6 +42,7 @@ impl fmt::Display for Error {
             Name(msg) => write!(f, "Name Error: '{:#?}' is not defined", msg),
             Regex(err) => write!(f, "Regex Error: {:#?}", err),
             IO(err) => write!(f, "IO Error: {:#?}", err),
+            Readline(err) => write!(f, "Readline Error: {:#?}", err),
         }
     }
 }
@@ -57,6 +59,7 @@ impl std::error::Error for Error {
             Name(_) => None,
             Regex(ref err) => Some(err),
             IO(ref err) => Some(err),
+            Readline(ref err) => Some(err),
         }
     }
 }
@@ -88,6 +91,12 @@ impl From<pest::error::Error<Rule>> for Error {
 impl From<std::io::Error> for Error {
     fn from(err: std::io::Error) -> Self {
         Error::IO(err)
+    }
+}
+
+impl From<rustyline::error::ReadlineError> for Error {
+    fn from(err: rustyline::error::ReadlineError) -> Self {
+        Error::Readline(err)
     }
 }
 
