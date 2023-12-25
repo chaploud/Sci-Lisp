@@ -20,7 +20,7 @@ impl IFn for Macro {
 
 impl std::fmt::Debug for Macro {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "function: {:?} ", self.name)
+        write!(f, "function: '{}' ", self.name)
     }
 }
 
@@ -41,6 +41,6 @@ impl std::hash::Hash for Macro {
 
 impl fmt::Display for Macro {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "macro: {:?} ", self.name)
+        write!(f, "macro: '{}' ", self.name)
     }
 }

@@ -17,6 +17,7 @@ use crate::core::types::set::Set;
 use crate::core::types::symbol::Symbol;
 use crate::core::types::type_name::TypeName;
 use crate::core::types::vector::Vector;
+use crate::core::environment::Environment;
 
 #[derive(Clone)]
 pub enum Value {
@@ -37,6 +38,8 @@ pub enum Value {
 }
 
 use crate::core::value::Value::*;
+
+use super::environment;
 
 impl PartialEq for Value {
     fn eq(&self, other: &Value) -> bool {

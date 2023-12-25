@@ -21,9 +21,9 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
         Value::F64(_) => Ok(val),
         Value::Regex(_) => Ok(val),
         Value::String(_) => Ok(val),
-        Value::Symbol(symbol) => match environment.get(&symbol.name) {
-            Ok(value) => Ok(value.clone()),
-            Err(err) => Err(err),
+        Value::Symbol(symbol) => {
+            // TODO: impl Evaluable trait for Symbol, List, Vector
+            Ok(Value::Symbol(Symbol::eval(environment, &symbol)))
         },
         Value::Keyword(_) => Ok(val),
         Value::List(list) => {
@@ -35,7 +35,7 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
                     eval(environment, ast).unwrap()
                 })
                 .collect();
-            Ok(Value::List(List::from(result)))
+            Ok(Value::List(List::eval(&environment, result)))
         }
         Value::Vector(vector) => {
             let result: Vec<Value> = vector
@@ -46,7 +46,7 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
                     eval(environment, ast).unwrap()
                 })
                 .collect();
-            Ok(Value::Vector(Vector::from(result)))
+            Ok(Value::Vector(Ok(Value::eval(&environment, result))))
         }
         Value::Map(map) => {
             let result: Vec<(Value, Value)> = map

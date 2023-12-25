@@ -3,6 +3,7 @@
 use core::fmt;
 
 use crate::core::value::Value;
+use crate::core::environment::{Environment, self};
 
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub struct List {
