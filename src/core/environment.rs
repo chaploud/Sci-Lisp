@@ -2,17 +2,29 @@
 
 use std::collections::HashMap;
 
-use crate::core::builtin::functions::TYPE_FN;
+use crate::core::builtin::functions::*;
+use crate::core::builtin::macros::*;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
 use crate::core::value::Value;
 
-pub type EnvLookup = HashMap<String, Box<Value>>;
+pub type EnvLookup = HashMap<String, Value>;
 
 #[derive(Debug, PartialEq)]
 pub struct Environment<'a> {
     lookup: EnvLookup,
     pub parent: Option<&'a Environment<'a>>,
+}
+
+fn put_helper(env: &mut Environment, values: Vec<Value>) {
+    for v in values {
+        let (key, value) = match v {
+            Value::Function(f) => (f.name.to_string(), Value::Function(f)),
+            Value::Macro(m) => (m.name.to_string(), Value::Macro(m)),
+            _ => unreachable!(),
+        };
+        env.put(key, value).unwrap();
+    }
 }
 
 impl<'a> Environment<'a> {
@@ -22,15 +34,15 @@ impl<'a> Environment<'a> {
             parent,
         };
 
-        // TODO: Add core functions to the environment
-        ret.put(TYPE_FN.to_string(), Box::new(Value::Function(TYPE_FN)));
+        put_helper(&mut ret, ALL_FUNCTIONS.to_vec());
+        put_helper(&mut ret, ALL_MACROS.to_vec());
 
         ret
     }
 
-    pub fn get(&self, key: &str) -> Result<Box<Value>> {
+    pub fn get(&self, key: &str) -> Result<&Value> {
         match self.lookup.get(key) {
-            Some(value) => Ok(value.clone()),
+            Some(value) => Ok(value),
             None => match &self.parent {
                 None => Err(Error::Name(key.to_string())),
                 Some(parent) => parent.get(key),
@@ -38,11 +50,11 @@ impl<'a> Environment<'a> {
         }
     }
 
-    pub fn put(&mut self, key: String, value: Box<Value>) -> Result<()> {
-        let current = self.lookup.entry(key).or_insert_with(|| value.clone());
-        if *value != **current {
-            *current = value;
+    pub fn put(&mut self, key: String, mut value: Value) -> Result<Value> {
+        let mut current = self.lookup.entry(key).or_insert_with(|| value.clone());
+        if value != *current {
+            current = &mut value;
         }
-        Ok(())
+        Ok(Value::Nil)
     }
 }

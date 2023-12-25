@@ -1,8 +1,8 @@
 /* core/types/error.rs */
 
+use std::fmt::{self, Debug};
 use std::num::{ParseFloatError, ParseIntError};
 use std::str::ParseBoolError;
-use std::fmt::{self, Debug};
 
 use crate::core::parse::Rule;
 
@@ -36,7 +36,7 @@ impl fmt::Display for Error {
             Regex(err) => write!(f, "Regex Error: {:#?}", err),
             IO(err) => write!(f, "IO Error: {:#?}", err),
             Readline(err) => write!(f, "Readline Error: {:#?}", err),
-            Name(msg) => write!(f, "Name Error: '{:#?}' is not defined", msg),
+            Name(msg) => write!(f, "Name Error: '{}' is not defined", msg),
             Type(expected, actual) => {
                 write!(f, "Type Error: expected {:#?}, got {:#?}", expected, actual)
             }
@@ -60,7 +60,6 @@ impl std::error::Error for Error {
         }
     }
 }
-
 
 // impl for custom errors
 

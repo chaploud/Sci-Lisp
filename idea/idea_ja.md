@@ -66,9 +66,29 @@
 
 ### スペシャルフォームの評価
 
-## Errorの体系作成
+## Environmentについての考察
 
-- 現在はErr(String)のみ
+- Environmentに値を設定するもの
+  - def (グローバル)
+  - let (ローカル)
+  - enum
+  - struct
+  - class
+  - macro
+  - defn (def + fn) -> Sci-Lispで記述
+
+## リーダーマクロ
+
+- 研究必要...
+- ' => (quote ...)
+- `
+- ~
+- ~@
+- @
+
+## つぶやき
+
+- nsはぶっちゃけほしい
 
 ## cargo
 
@@ -78,3 +98,9 @@ cargo build  # デバッグビルド
 cargo build --relase  # リリースビルド
 cargo test   # テストの実行
 ```
+
+## オープンソース展開
+
+- Rustで拡張するTIPS、インターフェース
+- 基本はスクリプト言語で、コンパイルはrustcを要求する(最適化最大限)
+- 実現困難であれば、スクリプト言語一本で行く。高速化したければRustを書いでください(Pythonもそうだし)

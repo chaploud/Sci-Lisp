@@ -1,8 +1,13 @@
 /* core/builtin/macros.rs */
 
-use crate::core::types::r#macro::Macro;
+use std::borrow::Cow;
 
-pub const DEF_MACRO: Macro = Macro {
-    name: "def",
-    call: |args| args[0].type_name(),
+use crate::core::types::r#macro::Macro;
+use crate::core::value::Value;
+
+pub const DEF: Macro = Macro {
+    name: Cow::Borrowed("def"),
+    func: |args: Vec<Value>| Ok(Value::Nil),
 };
+
+pub const ALL_MACROS: [Value; 1] = [Value::Macro(DEF)];

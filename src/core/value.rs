@@ -2,7 +2,6 @@
 
 use std::fmt;
 use std::hash::Hash;
-use std::rc::Rc;
 
 use pest::iterators::Pair;
 
@@ -54,7 +53,9 @@ impl PartialEq for Value {
             (Vector(v1), Vector(v2)) => v1 == v2,
             (Map(h1), Map(h2)) => h1 == h2,
             (Set(s1), Set(s2)) => s1 == s2,
-            _ => false, // TODO: Function, Macro
+            (Function(f1), Function(f2)) => f1.name == f2.name, // TODO: Dubious
+            (Macro(m1), Macro(m2)) => m1.name == m2.name,       // TODO: Dubious
+            _ => false,
         }
     }
 }
@@ -75,9 +76,8 @@ impl Hash for Value {
             Vector(v) => v.hash(state),
             Map(h) => h.hash(state),
             Set(s) => s.hash(state),
-            // TODO: Function, Macro, Error
-            Function(f) => 0.hash(state),
-            Macro(m) => 0.hash(state),
+            Function(f) => f.name.hash(state),
+            Macro(m) => m.name.hash(state),
         }
     }
 }
@@ -98,9 +98,8 @@ impl fmt::Display for Value {
             Vector(v) => write!(f, "{}", v),
             Map(m) => write!(f, "{}", m),
             Set(s) => write!(f, "{}", s),
-            // TODO: Function, Macro
-            Function(func) => write!(f, "function"),
-            Macro(macro_) => write!(f, "macro"),
+            Function(func) => write!(f, "{}", func),
+            Macro(mac) => write!(f, "{}", mac),
         }
     }
 }
@@ -138,6 +137,7 @@ impl Value {
     pub fn as_nil() -> Result<Value> {
         Ok(Value::Nil)
     }
+
     pub fn as_bool(pair: Pair<Rule>) -> Result<Value> {
         let result = pair.as_str().parse::<bool>();
         match result {
@@ -145,6 +145,7 @@ impl Value {
             Err(err) => Err(Error::ParseBool(err)),
         }
     }
+
     pub fn as_i64(pair: Pair<Rule>) -> Result<Value> {
         let mut s = pair.as_str().to_string();
         s.retain(|c| c != '_');
@@ -154,6 +155,7 @@ impl Value {
             Err(err) => Err(Error::ParseInt(err)),
         }
     }
+
     pub fn as_f64(pair: Pair<Rule>) -> Result<Value> {
         let result = pair.as_str().parse::<f64>();
         match result {
@@ -161,14 +163,17 @@ impl Value {
             Err(err) => Err(Error::ParseFloat(err)),
         }
     }
+
     pub fn as_symbol(pair: Pair<Rule>) -> Result<Value> {
         let result = pair.as_str().to_string();
-        Ok(Value::Symbol(Symbol { value: result }))
+        Ok(Value::Symbol(Symbol { name: result }))
     }
+
     pub fn as_keyword(pair: Pair<Rule>) -> Result<Value> {
         let result = pair.as_str().to_string();
-        Ok(Value::Keyword(Keyword { value: result }))
+        Ok(Value::Keyword(Keyword { name: result }))
     }
+
     pub fn as_regex(pair: Pair<Rule>) -> Result<Value> {
         let result = pair.into_inner().next().unwrap().as_str();
         let regex = regex::Regex::new(&result);
@@ -177,22 +182,27 @@ impl Value {
             Err(err) => Err(Error::Regex(err)),
         }
     }
+
     pub fn as_string(pair: Pair<Rule>) -> Result<Value> {
         let result = pair.into_inner().next().unwrap().as_str();
         Ok(Value::String(result.to_string()))
     }
+
     pub fn as_list(values: Vec<Value>) -> Result<Value> {
         let list = List::from(values);
         Ok(Value::List(list))
     }
+
     pub fn as_vector(values: Vec<Value>) -> Result<Value> {
         let vector = Vector::from(values);
         Ok(Value::Vector(vector))
     }
+
     pub fn as_map(values: Vec<(Value, Value)>) -> Result<Value> {
         let map = Map::from(values);
         Ok(Value::Map(map))
     }
+
     pub fn as_set(values: Vec<Value>) -> Result<Value> {
         let set = Set::from(values);
         Ok(Value::Set(set))

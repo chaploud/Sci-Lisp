@@ -2,6 +2,7 @@
 
 pub mod error;
 pub mod function;
+pub mod ifn;
 pub mod keyword;
 pub mod list;
 pub mod r#macro;
