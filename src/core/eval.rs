@@ -6,6 +6,7 @@ use crate::core::types::list::List;
 use crate::core::types::map::Map;
 use crate::core::types::set::Set;
 use crate::core::types::vector::Vector;
+use crate::core::value::Evaluable;
 use crate::core::value::Value;
 
 pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value> {
@@ -21,10 +22,7 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
         Value::F64(_) => Ok(val),
         Value::Regex(_) => Ok(val),
         Value::String(_) => Ok(val),
-        Value::Symbol(symbol) => {
-            // TODO: impl Evaluable trait for Symbol, List, Vector
-            Ok(Value::Symbol(Symbol::eval(environment, &symbol)))
-        },
+        Value::Symbol(symbol) => Ok(symbol.eval(environment)?),
         Value::Keyword(_) => Ok(val),
         Value::List(list) => {
             let result: Vec<Value> = list
@@ -35,7 +33,8 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
                     eval(environment, ast).unwrap()
                 })
                 .collect();
-            Ok(Value::List(List::eval(&environment, result)))
+            let result_list = List::from(result);
+            Ok(result_list.eval(environment)?)
         }
         Value::Vector(vector) => {
             let result: Vec<Value> = vector
@@ -46,7 +45,7 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
                     eval(environment, ast).unwrap()
                 })
                 .collect();
-            Ok(Value::Vector(Ok(Value::eval(&environment, result))))
+            Ok(Value::Vector(Vector::from(result)))
         }
         Value::Map(map) => {
             let result: Vec<(Value, Value)> = map

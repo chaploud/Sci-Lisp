@@ -5,6 +5,7 @@ use std::hash::Hash;
 
 use pest::iterators::Pair;
 
+use crate::core::environment::Environment;
 use crate::core::parse::Rule;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
@@ -17,7 +18,6 @@ use crate::core::types::set::Set;
 use crate::core::types::symbol::Symbol;
 use crate::core::types::type_name::TypeName;
 use crate::core::types::vector::Vector;
-use crate::core::environment::Environment;
 
 #[derive(Clone)]
 pub enum Value {
@@ -38,8 +38,6 @@ pub enum Value {
 }
 
 use crate::core::value::Value::*;
-
-use super::environment;
 
 impl PartialEq for Value {
     fn eq(&self, other: &Value) -> bool {
@@ -211,4 +209,12 @@ impl Value {
         Ok(Value::Set(set))
     }
     // TODO: Function, Macro, Error
+}
+
+pub trait Evaluable {
+    fn eval(self, environment: &mut Environment) -> Result<Value>;
+}
+
+pub trait Collection {
+    fn get_value(&self) -> Vec<Value>;
 }

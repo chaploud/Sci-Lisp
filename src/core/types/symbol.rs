@@ -2,6 +2,11 @@
 
 use std::fmt;
 
+use crate::core::environment::Environment;
+use crate::core::types::error::Result;
+use crate::core::value::Evaluable;
+use crate::core::value::Value;
+
 #[derive(Eq, Clone, Debug, Hash)]
 pub struct Symbol {
     pub name: std::string::String,
@@ -16,6 +21,12 @@ impl PartialEq for Symbol {
 impl fmt::Display for Symbol {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.name)
+    }
+}
+
+impl Evaluable for Symbol {
+    fn eval(self, environment: &mut Environment) -> Result<Value> {
+        environment.get(&self.name).cloned()
     }
 }
 

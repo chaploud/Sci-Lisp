@@ -23,6 +23,7 @@ pub enum Error {
     // custom errors
     Name(String),
     Type(String, String),
+    NotCallable(String),
 }
 
 impl fmt::Display for Error {
@@ -38,8 +39,9 @@ impl fmt::Display for Error {
             Readline(err) => write!(f, "Readline Error: {:#?}", err),
             Name(msg) => write!(f, "Name Error: '{}' is not defined", msg),
             Type(expected, actual) => {
-                write!(f, "Type Error: expected {:#?}, got {:#?}", expected, actual)
+                write!(f, "Type Error: expected {}, got {}", expected, actual)
             }
+            NotCallable(msg) => write!(f, "Not Callable Error: '{}' is not callable", msg),
         }
     }
 }
@@ -57,6 +59,7 @@ impl std::error::Error for Error {
             Readline(ref err) => Some(err),
             Type(_, _) => None,
             Name(_) => None,
+            NotCallable(_) => None,
         }
     }
 }
