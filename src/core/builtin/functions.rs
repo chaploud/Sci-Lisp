@@ -9,7 +9,7 @@ use crate::core::value::Value;
 
 pub const TYPE_FN: Function = Function {
     name: Cow::Borrowed("type"),
-    func: |args: Vec<Value>| Value::type_name(&args[0])
+    func: |args: Vec<Value>| Value::type_name(&args[0]),
 };
 
 pub const ALL_FUNCTIONS: [Value; 1] = [Value::Function(TYPE_FN)];
