@@ -14,7 +14,7 @@ f64 = @{int ~ "." ~ int? ~ exp? |                    // +0_2.0_2e-2, 2.
         pm? ~ "." ~ digit ~ (digit | "_")* ~ exp? |  // -.0_0e5
         nan |
         inf }
-i64 = @{ int ~ !"." }
+i64 = @{ int ~ !("." | ^"e") }
   int = _{ pm? ~ digit ~ (digit | "_")* }
   digit = _{ ASCII_DIGIT }
   pm = _{ ("-" | "+") }

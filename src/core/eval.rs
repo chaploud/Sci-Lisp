@@ -25,57 +25,54 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
         Value::Symbol(symbol) => Ok(symbol.eval(environment)?),
         Value::Keyword(_) => Ok(val),
         Value::List(list) => {
-            let result: Vec<Value> = list
+            let result: Result<Vec<Value>> = list
                 .value
                 .into_iter()
                 .map(|v| {
                     ast.push(v);
-                    eval(environment, ast).unwrap()
+                    eval(environment, ast)
                 })
                 .collect();
-            let result_list = List::from(result);
+            let result_list = List::from(result?);
             Ok(result_list.eval(environment)?)
         }
         Value::Vector(vector) => {
-            let result: Vec<Value> = vector
+            let result: Result<Vec<Value>> = vector
                 .value
                 .into_iter()
                 .map(|v| {
                     ast.push(v);
-                    eval(environment, ast).unwrap()
+                    eval(environment, ast)
                 })
                 .collect();
-            Ok(Value::Vector(Vector::from(result)))
+            Ok(Value::Vector(Vector::from(result?)))
         }
         Value::Map(map) => {
-            let result: Vec<(Value, Value)> = map
+            let result: Result<Vec<(Value, Value)>> = map
                 .value
                 .into_iter()
                 .map(|(k, v)| {
-                    (
-                        {
-                            ast.push(k);
-                            eval(environment, ast).unwrap()
-                        },
-                        {
-                            ast.push(v);
-                            eval(environment, ast).unwrap()
-                        },
-                    )
+                    {
+                        ast.push(k);
+                        eval(environment, ast)
+                    }.and_then(|ek| {
+                        ast.push(v);
+                        eval(environment, ast).map(|ev| (ek, ev))
+                    })
                 })
                 .collect();
-            Ok(Value::Map(Map::from(result)))
+            Ok(Value::Map(Map::from(result?)))
         }
         Value::Set(set) => {
-            let result: Vec<Value> = set
+            let result: Result<Vec<Value>> = set
                 .value
                 .into_iter()
                 .map(|v| {
                     ast.push(v);
-                    eval(environment, ast).unwrap()
+                    eval(environment, ast)
                 })
                 .collect();
-            Ok(Value::Set(Set::from(result)))
+            Ok(Value::Set(Set::from(result?)))
         }
         // TODO: function, macro, error
         _ => unreachable!(),
