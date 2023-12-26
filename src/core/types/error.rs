@@ -24,6 +24,7 @@ pub enum Error {
     Name(String),
     Type(String, String),
     NotCallable(String),
+    Syntax(String),
 }
 
 impl fmt::Display for Error {
@@ -42,6 +43,7 @@ impl fmt::Display for Error {
                 write!(f, "Type Error: expected {}, got {}", expected, actual)
             }
             NotCallable(msg) => write!(f, "Not Callable Error: '{}' is not callable", msg),
+            Syntax(msg) => write!(f, "Syntax Error: {}", msg),
         }
     }
 }
@@ -60,6 +62,7 @@ impl std::error::Error for Error {
             Type(_, _) => None,
             Name(_) => None,
             NotCallable(_) => None,
+            Syntax(_) => None,
         }
     }
 }

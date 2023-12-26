@@ -1,13 +1,15 @@
 /* core/eval.rs */
 
-use crate::core::environment::Environment;
-use crate::core::types::error::Result;
 use crate::core::types::list::List;
 use crate::core::types::map::Map;
 use crate::core::types::set::Set;
 use crate::core::types::vector::Vector;
+use crate::core::environment::Environment;
+use crate::core::types::error::Error;
+use crate::core::types::error::Result;
 use crate::core::value::Evaluable;
 use crate::core::value::Value;
+
 
 pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value> {
     let val = match ast.pop() {
@@ -48,6 +50,9 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
             Ok(Value::Vector(Vector::from(result?)))
         }
         Value::Map(map) => {
+            if map.value.len() % 2 != 0 {
+                return Err(Error::Syntax("map must contain an even number of forms".to_string()));
+            }
             let result: Result<Vec<(Value, Value)>> = map
                 .value
                 .into_iter()
