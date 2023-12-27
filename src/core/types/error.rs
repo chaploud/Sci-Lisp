@@ -1,6 +1,6 @@
 /* core/types/error.rs */
 
-use std::fmt::{self, Debug};
+use std::fmt::{self, Debug, write};
 use std::num::{ParseFloatError, ParseIntError};
 use std::str::ParseBoolError;
 
@@ -25,6 +25,7 @@ pub enum Error {
     Type(String, String),
     NotCallable(String),
     Syntax(String),
+    Cast(String, String),
 }
 
 impl fmt::Display for Error {
@@ -44,6 +45,7 @@ impl fmt::Display for Error {
             }
             NotCallable(msg) => write!(f, "Not Callable Error: '{}' is not callable", msg),
             Syntax(msg) => write!(f, "Syntax Error: {}", msg),
+            Cast(src, dest) => write!(f, "Cast Error: cannot cast {} to {}", src, dest),
         }
     }
 }
@@ -63,6 +65,7 @@ impl std::error::Error for Error {
             Name(_) => None,
             NotCallable(_) => None,
             Syntax(_) => None,
+            Cast(_, _) => None,
         }
     }
 }

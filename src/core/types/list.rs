@@ -5,7 +5,6 @@ use core::fmt;
 use crate::core::environment::Environment;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
-use crate::core::types::ifn::IFn;
 use crate::core::types::type_name::TypeName;
 use crate::core::value::{Evaluable, Value};
 
@@ -35,15 +34,15 @@ impl Evaluable for List {
         let rest = &self.value[1..].to_vec();
         match first {
             Value::Symbol(sym) => {
-                let ifn = environment.get(&sym.name)?;
+                let ifn = environment.get(&sym.name)?.clone();
                 match ifn {
                     Value::Function(f) => f.call(rest.to_vec()),
-                    Value::Macro(m) => m.call(rest.to_vec()),
+                    Value::Macro(m) => m.call(rest.to_vec(), environment),
                     _ => return Err(Error::NotCallable(ifn.to_string())),
                 }
             }
             Value::Function(f) => f.call(rest.to_vec()),
-            Value::Macro(m) => m.call(rest.to_vec()),
+            Value::Macro(m) => m.call(rest.to_vec(), environment),
             _ => {
                 return Err(Error::Type(
                     TypeName::Symbol.to_string(),

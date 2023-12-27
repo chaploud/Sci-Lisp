@@ -4,7 +4,6 @@ use std::borrow::Cow;
 use std::fmt;
 
 use crate::core::types::error::Result;
-use crate::core::types::ifn::IFn;
 use crate::core::value::Value;
 
 pub struct Function {
@@ -12,8 +11,8 @@ pub struct Function {
     pub func: fn(Vec<Value>) -> Result<Value>,
 }
 
-impl IFn for Function {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+impl Function {
+    pub fn call(&self, args: Vec<Value>) -> Result<Value> {
         (self.func)(args)
     }
 }

@@ -4,17 +4,17 @@ use std::borrow::Cow;
 use std::fmt;
 
 use crate::core::types::error::Result;
-use crate::core::types::ifn::IFn;
 use crate::core::value::Value;
+use crate::core::environment::Environment;
 
 pub struct Macro {
     pub name: Cow<'static, str>,
-    pub func: fn(Vec<Value>) -> Result<Value>,
+    pub func: fn(Vec<Value>, &mut Environment) -> Result<Value>,
 }
 
-impl IFn for Macro {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
-        (self.func)(args)
+impl Macro {
+    pub fn call(&self, args: Vec<Value>, environment: &mut Environment) -> Result<Value> {
+        (self.func)(args, environment)
     }
 }
 
