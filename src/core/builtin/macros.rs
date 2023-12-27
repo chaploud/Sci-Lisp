@@ -31,4 +31,38 @@ pub const DEF: Macro = Macro {
     },
 };
 
-pub const ALL_MACROS: [Value; 1] = [Value::Macro(DEF)];
+pub const QUOTE: Macro = Macro {
+    name: Cow::Borrowed("quote"),
+    func: |args: Vec<Value>, _: &mut Environment| {
+        if args.len() > 1 {
+            return Err(Error::Syntax("quote: too many arguments".to_string()));
+        }
+        if args.len() < 1 {
+            return Err(Error::Syntax("quote: too few arguments".to_string()));
+        }
+
+        Ok(args[0].clone())
+    },
+};
+
+pub const ALL_MACROS: [Value; 2] = [Value::Macro(DEF), Value::Macro(QUOTE)];
+
+// TODO:
+// QuoteMacro,
+// ConstMacro,
+// SetMacro,
+// SliceMacro,
+// LetMacro,
+// DoMacro,
+// FnMacro,
+// IfMacro,
+// SwitchMacro,
+// ForMacro,
+// WhileMacro,
+// BreakMacro,
+// ContinueMacro,
+// EnumMacro,
+// StructMacro,
+// MacroMacro,
+// ClassMacro,
+// ThreadMacro,

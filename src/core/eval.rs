@@ -40,23 +40,24 @@ pub fn eval_list(
                 .collect();
             func.call(args?)
         }
-        Value::Macro(mac) => {
-            match mac.name {
-                Cow::Borrowed("def") => {
-                    let mut args: Vec<Value> = vec![];
-                    for (i, v) in rest.into_iter().enumerate() {
-                        if i == 0 {
-                            args.push(v);
-                        } else {
-                            ast.push(v);
-                            args.push(eval(environment, ast)?);
-                        }
+        Value::Macro(mac) => match mac.name {
+            Cow::Borrowed("def") => {
+                let mut args: Vec<Value> = vec![];
+                for (i, v) in rest.into_iter().enumerate() {
+                    if i == 0 {
+                        args.push(v);
+                    } else {
+                        ast.push(v);
+                        args.push(eval(environment, ast)?);
                     }
-                    mac.call(args, environment)
                 }
-                _ => unreachable!(), // TODO:
+                mac.call(args, environment)
             }
-        }
+
+            Cow::Borrowed("quote") => mac.call(rest, environment),
+
+            _ => mac.call(rest, environment),
+        },
         _ => Err(Error::Syntax(format!("cannot call '{}'", first))),
     };
 
