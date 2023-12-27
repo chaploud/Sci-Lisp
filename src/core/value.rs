@@ -161,7 +161,7 @@ impl fmt::Display for Value {
             QuoteMacro => write!(f, "macro 'quote'"),
             DefMacro => write!(f, "macro 'def'"),
             ConstMacro => write!(f, "macro 'const'"),
-            SetMacro => write!(f, "macro 'set'"),
+            SetMacro => write!(f, "macro 'set!'"),
             SliceMacro => write!(f, "macro 'slice'"),
             LetMacro => write!(f, "macro 'let'"),
             DoMacro => write!(f, "macro 'do'"),

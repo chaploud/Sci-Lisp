@@ -1,15 +1,67 @@
 /* core/eval.rs */
 
+use std::borrow::Cow;
+
+use crate::core::environment::Environment;
+use crate::core::types::error::Error;
+use crate::core::types::error::Result;
 use crate::core::types::list::List;
 use crate::core::types::map::Map;
 use crate::core::types::set::Set;
 use crate::core::types::vector::Vector;
-use crate::core::environment::Environment;
-use crate::core::types::error::Error;
-use crate::core::types::error::Result;
 use crate::core::value::Evaluable;
 use crate::core::value::Value;
 
+pub fn eval_list(
+    environment: &mut Environment,
+    ast: &mut Vec<Value>,
+    list: &List,
+) -> Result<Value> {
+    let first = match list.value.first() {
+        None => return Ok(Value::List(list.clone())),
+        Some(first) => first,
+    };
+
+    let rest = list.value[1..].to_vec();
+
+    let first = match first {
+        Value::Symbol(sym) => environment.get(&sym.name)?.clone(),
+        _ => return Err(Error::Syntax(format!("cannot call '{}'", first))),
+    };
+
+    let result: Result<Value> = match first {
+        Value::Function(func) => {
+            let args: Result<Vec<Value>> = rest
+                .into_iter()
+                .map(|v| {
+                    ast.push(v.clone());
+                    eval(environment, ast)
+                })
+                .collect();
+            func.call(args?)
+        }
+        Value::Macro(mac) => {
+            match mac.name {
+                Cow::Borrowed("def") => {
+                    let mut args: Vec<Value> = vec![];
+                    for (i, v) in rest.into_iter().enumerate() {
+                        if i == 0 {
+                            args.push(v);
+                        } else {
+                            ast.push(v);
+                            args.push(eval(environment, ast)?);
+                        }
+                    }
+                    mac.call(args, environment)
+                }
+                _ => unreachable!(), // TODO:
+            }
+        }
+        _ => Err(Error::Syntax(format!("cannot call '{}'", first))),
+    };
+
+    result
+}
 
 pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value> {
     let val = match ast.pop() {
@@ -26,18 +78,7 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
         Value::String(_) => Ok(val),
         Value::Symbol(symbol) => Ok(symbol.eval(environment)?),
         Value::Keyword(_) => Ok(val),
-        Value::List(list) => {
-            let result: Result<Vec<Value>> = list
-                .value
-                .into_iter()
-                .map(|v| {
-                    ast.push(v);
-                    eval(environment, ast)
-                })
-                .collect();
-            let result_list = List::from(result?);
-            Ok(result_list.eval(environment)?)
-        }
+        Value::List(list) => eval_list(environment, ast, &list),
         Value::Vector(vector) => {
             let result: Result<Vec<Value>> = vector
                 .value
@@ -51,7 +92,9 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
         }
         Value::Map(map) => {
             if map.value.len() % 2 != 0 {
-                return Err(Error::Syntax("map must contain an even number of forms".to_string()));
+                return Err(Error::Syntax(
+                    "map must contain an even number of forms".to_string(),
+                ));
             }
             let result: Result<Vec<(Value, Value)>> = map
                 .value
@@ -60,7 +103,8 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
                     {
                         ast.push(k);
                         eval(environment, ast)
-                    }.and_then(|ek| {
+                    }
+                    .and_then(|ek| {
                         ast.push(v);
                         eval(environment, ast).map(|ev| (ek, ev))
                     })

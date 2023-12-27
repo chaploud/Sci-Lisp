@@ -3,9 +3,9 @@
 use std::borrow::Cow;
 use std::fmt;
 
+use crate::core::environment::Environment;
 use crate::core::types::error::Result;
 use crate::core::value::Value;
-use crate::core::environment::Environment;
 
 pub struct Macro {
     pub name: Cow<'static, str>,

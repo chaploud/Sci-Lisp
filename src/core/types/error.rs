@@ -1,6 +1,6 @@
 /* core/types/error.rs */
 
-use std::fmt::{self, Debug, write};
+use std::fmt::{self, write, Debug};
 use std::num::{ParseFloatError, ParseIntError};
 use std::str::ParseBoolError;
 
