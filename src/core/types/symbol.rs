@@ -5,7 +5,7 @@ use std::{borrow::Cow, fmt};
 
 use crate::core::types::meta::Meta;
 
-#[derive(Eq, Clone, Debug, PartialOrd, Ord)]
+#[derive(Eq, Clone, Debug)]
 pub struct Symbol {
     pub name: Cow<'static, str>,
     pub meta: Meta,

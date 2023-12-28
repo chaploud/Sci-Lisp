@@ -4,7 +4,7 @@ use std::borrow::Cow;
 
 use crate::core::types::error::Error;
 #[allow(unused_imports)]
-use crate::core::types::error::{arity_error, arity_error_range, arity_error_min};
+use crate::core::types::error::{arity_error, arity_error_min, arity_error_range};
 use crate::core::types::meta::Meta;
 use crate::core::types::r#macro::Macro;
 use crate::core::types::symbol::Symbol;

@@ -3,7 +3,7 @@
 use std::borrow::Cow;
 
 #[allow(unused_imports)]
-use crate::core::types::error::{arity_error, arity_error_range, arity_error_min, Error};
+use crate::core::types::error::{arity_error, arity_error_min, arity_error_range, Error};
 use crate::core::types::function::Function;
 use crate::core::types::meta::Meta;
 use crate::core::types::symbol::Symbol;
@@ -161,7 +161,6 @@ pub const REM: Function = Function {
         Ok(result)
     },
 };
-
 
 pub const EQUAL: Function = Function {
     name: Symbol {

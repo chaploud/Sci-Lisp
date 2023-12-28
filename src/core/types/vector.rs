@@ -4,7 +4,7 @@ use core::fmt;
 
 use crate::core::value::Value;
 
-#[derive(Debug, Clone, PartialEq, Hash, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub struct Vector {
     pub value: Vec<Value>,
 }

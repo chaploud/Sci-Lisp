@@ -6,7 +6,7 @@ use crate::core::types::error::Result;
 use crate::core::types::symbol::Symbol;
 use crate::core::value::Value;
 
-#[derive(PartialEq, PartialOrd)]
+#[derive(PartialEq)]
 pub struct Function {
     pub name: Symbol,
     pub func: fn(Vec<Value>) -> Result<Value>,
