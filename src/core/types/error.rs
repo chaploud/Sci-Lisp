@@ -126,11 +126,17 @@ pub fn arity_error(expected: usize, actual: usize) -> Error {
     Error::Arity(format!("expected {} arguments, got {}", expected, actual))
 }
 
-#[allow(dead_code)]
 pub fn arity_error_range(expected_min: usize, expected_max: usize, actual: usize) -> Error {
     Error::Arity(format!(
         "expected between {} and {} arguments, got {}",
         expected_min, expected_max, actual
+    ))
+}
+
+pub fn arity_error_min(expected_min: usize, actual: usize) -> Error {
+    Error::Arity(format!(
+        "expected at least {} arguments, got {}",
+        expected_min, actual
     ))
 }
 

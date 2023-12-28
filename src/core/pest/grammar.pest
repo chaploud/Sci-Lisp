@@ -2,8 +2,8 @@ COMMENT = _{ ";" ~ (!NEWLINE ~ ANY)* ~ NEWLINE }
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" | "," }
 
 prefix_char = _{ "#" | "'" | "`" | "~" | "~@" | ":" | "@" | "\\" }
-special_char = _{ "!" | "$" | "%" | "&" | "-" | "=" | "^" | "|" | "+" | "*" | "<" | ">" | "?" | "_"}
-separation_char = _{"/" | "."}
+special_char = _{ "!" | "$" | "%" | "&" | "-" | "=" | "^" | "|" | "+" | "*" | "<" | ">" | "?" | "_" | "/" }
+separation_char = _{ "." }
 
 identifier = _{ ( ASCII_ALPHA | special_char) ~ (ASCII_ALPHANUMERIC | special_char)* }
 

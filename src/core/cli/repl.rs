@@ -77,8 +77,7 @@ pub fn repl() -> Result<()> {
         match readline {
             Err(ReadlineError::Interrupted) => {
                 println!("Ctrl-C");
-                say_goodbye();
-                break;
+                continue;
             }
             Err(ReadlineError::Eof) => {
                 println!("Ctrl-D");

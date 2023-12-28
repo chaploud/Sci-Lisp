@@ -2,6 +2,7 @@
 
 use std::fmt;
 use std::hash::Hash;
+use std::ops::{Add, Div, Mul, Rem, Sub};
 
 use pest::iterators::Pair;
 
@@ -219,6 +220,131 @@ impl Value {
             Value::Nil => false,
             Value::Bool(b) => *b,
             _ => true,
+        }
+    }
+}
+
+impl Value {
+    // convert Value::I64 to Value::I64
+    // convert Value::F64 to Value::I64
+    // convert Value::String to Value::I64
+    pub fn to_i64(&self) -> Result<Value> {
+        match self {
+            Value::I64(i) => Ok(Value::I64(*i)),
+            Value::F64(f) => Ok(Value::I64(*f as i64)),
+            Value::String(s) => {
+                let result = s.parse::<i64>();
+                match result {
+                    Ok(value) => Ok(Value::I64(value)),
+                    Err(err) => Err(Error::ParseInt(err)),
+                }
+            }
+            _ => Err(Error::Type(format!(
+                "Cannot convert {} to i64",
+                self.type_name()?
+            ))),
+        }
+    }
+
+    pub fn to_f64(&self) -> Result<Value> {
+        match self {
+            Value::I64(i) => Ok(Value::F64(*i as f64)),
+            Value::F64(f) => Ok(Value::F64(*f)),
+            Value::String(s) => {
+                let result = s.parse::<f64>();
+                match result {
+                    Ok(value) => Ok(Value::F64(value)),
+                    Err(err) => Err(Error::ParseFloat(err)),
+                }
+            }
+            _ => Err(Error::Type(format!(
+                "Cannot convert {} to f64",
+                self.type_name()?
+            ))),
+        }
+    }
+}
+
+impl Add for Value {
+    type Output = Value;
+
+    fn add(self, other: Value) -> Value {
+        match (self, other) {
+            (Value::I64(i1), Value::I64(i2)) => Value::I64(i1 + i2),
+            (Value::I64(i1), Value::F64(f2)) => Value::F64(i1 as f64 + f2),
+            (Value::F64(f1), Value::I64(i2)) => Value::F64(f1 + i2 as f64),
+            (Value::F64(f1), Value::F64(f2)) => Value::F64(f1 + f2),
+            (s, o) => panic!("Cannot add {} and {}", s, o),
+        }
+    }
+}
+
+impl Sub for Value {
+    type Output = Value;
+
+    fn sub(self, other: Value) -> Value {
+        match (self, other) {
+            (Value::I64(i1), Value::I64(i2)) => Value::I64(i1 - i2),
+            (Value::I64(i1), Value::F64(f2)) => Value::F64(i1 as f64 - f2),
+            (Value::F64(f1), Value::I64(i2)) => Value::F64(f1 - i2 as f64),
+            (Value::F64(f1), Value::F64(f2)) => Value::F64(f1 - f2),
+            (s, o) => panic!("Cannot subtract {} and {}", s, o),
+        }
+    }
+}
+
+impl Mul for Value {
+    type Output = Value;
+
+    fn mul(self, other: Value) -> Value {
+        match (self, other) {
+            (Value::I64(i1), Value::I64(i2)) => Value::I64(i1 * i2),
+            (Value::I64(i1), Value::F64(f2)) => Value::F64(i1 as f64 * f2),
+            (Value::F64(f1), Value::I64(i2)) => Value::F64(f1 * i2 as f64),
+            (Value::F64(f1), Value::F64(f2)) => Value::F64(f1 * f2),
+            (s, o) => panic!("Cannot multiply {} and {}", s, o),
+        }
+    }
+}
+
+impl Div for Value {
+    type Output = Value;
+
+    fn div(self, other: Value) -> Value {
+        match (self, other) {
+            (Value::I64(i1), Value::I64(i2)) => Value::F64(i1 as f64 / i2 as f64),
+            (Value::I64(i1), Value::F64(f2)) => Value::F64(i1 as f64 / f2 as f64),
+            (Value::F64(f1), Value::I64(i2)) => Value::F64(f1 as f64 / i2 as f64),
+            (Value::F64(f1), Value::F64(f2)) => Value::F64(f1 as f64 / f2 as f64),
+
+            (s, o) => panic!("Cannot divide {} and {}", s, o),
+        }
+    }
+}
+
+impl Value {
+    // implement pythonic divide '//' operator
+    pub fn floor_div(self, other: Value) -> Value {
+        match (self, other) {
+            (Value::I64(i1), Value::I64(i2)) => Value::I64(i1 / i2),
+            (Value::I64(i1), Value::F64(f2)) => Value::F64((i1 as f64 / f2).floor()),
+            (Value::F64(f1), Value::I64(i2)) => Value::F64((f1 / i2 as f64).floor()),
+            (Value::F64(f1), Value::F64(f2)) => Value::F64((f1 / f2).floor()),
+            (s, o) => panic!("Cannot floor divide {} and {}", s, o),
+        }
+    }
+}
+
+impl Rem for Value {
+    type Output = Value;
+
+    fn rem(self, other: Value) -> Value {
+        match (self, other) {
+            (Value::I64(i1), Value::I64(i2)) => Value::I64(i1 % i2),
+            (Value::I64(i1), Value::F64(f2)) => Value::F64(i1 as f64 % f2),
+            (Value::F64(f1), Value::I64(i2)) => Value::F64(f1 % i2 as f64),
+            (Value::F64(f1), Value::F64(f2)) => Value::F64(f1 % f2),
+            (s, o) => panic!("Cannot modulo {} and {}", s, o),
         }
     }
 }

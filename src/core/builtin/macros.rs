@@ -222,7 +222,42 @@ pub const IF: Macro = Macro {
     },
 };
 
-pub const ALL_MACROS: [Value; 7] = [
+pub const WHILE: Macro = Macro {
+    name: Symbol {
+        name: Cow::Borrowed("while"),
+        meta: Meta {
+            doc: Cow::Borrowed(
+                "While the first expression is true, evaluate the second expression.",
+            ),
+            mutable: false,
+        },
+    },
+    func: |args, environment, ast, evalfn| {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        let condition = &args[0];
+        let body = &args[1];
+
+        let mut ret = Value::Nil;
+        let result = loop {
+            ast.push(condition.clone());
+            let truthy = evalfn(environment, ast)?;
+
+            if truthy.is_truthy() {
+                ast.push(body.clone());
+                ret = evalfn(environment, ast)?;
+            } else {
+                break ret;
+            }
+        };
+
+        Ok(result)
+    },
+};
+
+pub const ALL_MACROS: [Value; 8] = [
     Value::Macro(DEF),
     Value::Macro(QUOTE),
     Value::Macro(TIME),
@@ -230,6 +265,7 @@ pub const ALL_MACROS: [Value; 7] = [
     Value::Macro(CONST),
     Value::Macro(SET),
     Value::Macro(IF),
+    Value::Macro(WHILE),
 ];
 
 // TODO:
