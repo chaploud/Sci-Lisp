@@ -7,7 +7,7 @@ use indexmap::IndexSet;
 
 use crate::core::value::Value;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Set {
     pub value: indexmap::IndexSet<Value>,
 }
@@ -37,6 +37,12 @@ impl Set {
 impl fmt::Display for Set {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "#{:?}", self.value)
+    }
+}
+
+impl PartialOrd for Set {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.value.partial_cmp(&other.value)
     }
 }
 

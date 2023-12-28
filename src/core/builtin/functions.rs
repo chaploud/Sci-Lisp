@@ -163,7 +163,33 @@ pub const REM: Function = Function {
 };
 
 
-pub const ALL_FUNCTIONS: [Value; 8] = [
+pub const EQUAL: Function = Function {
+    name: Symbol {
+        name: Cow::Borrowed("="),
+        meta: Meta {
+            doc: Cow::Borrowed("Check if all arguments are equal."),
+            mutable: false,
+        },
+    },
+    func: |args: Vec<Value>| {
+        if args.len() < 1 {
+            return Err(arity_error_min(1, args.len()));
+        }
+        if args.len() == 1 {
+            return Ok(Value::Bool(true));
+        }
+        let mut prev = args[0].clone();
+        for arg in args.into_iter().skip(1) {
+            if arg != prev {
+                return Ok(Value::Bool(false));
+            }
+            prev = arg;
+        }
+        Ok(Value::Bool(true))
+    },
+};
+
+pub const ALL_FUNCTIONS: [Value; 9] = [
     Value::Function(TYPE),
     Value::Function(PRINT),
     Value::Function(ADD),
@@ -172,6 +198,7 @@ pub const ALL_FUNCTIONS: [Value; 8] = [
     Value::Function(DIV),
     Value::Function(FLOORDIV),
     Value::Function(REM),
+    Value::Function(EQUAL),
 ];
 
 // TODO:
