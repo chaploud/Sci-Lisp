@@ -1,22 +1,20 @@
 /* core/types/macro.rs */
 
-use std::borrow::Cow;
 use std::fmt;
 
 use crate::core::environment::Environment;
 use crate::core::types::error::Result;
-use crate::core::types::meta::Meta;
+use crate::core::types::symbol::Symbol;
 use crate::core::value::Value;
 
 pub struct Macro {
-    pub name: Cow<'static, str>,
+    pub name: Symbol,
     pub func: fn(
         Vec<Value>,
         &mut Environment,
         &mut Vec<Value>,
         fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
     ) -> Result<Value>,
-    pub meta: Meta,
 }
 impl Macro {
     pub fn call(
@@ -41,7 +39,6 @@ impl Clone for Macro {
         Macro {
             name: self.name.clone(),
             func: self.func.clone(),
-            meta: self.meta.clone(),
         }
     }
 }
@@ -50,7 +47,6 @@ impl std::hash::Hash for Macro {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.name.hash(state);
         self.func.hash(state);
-        self.meta.hash(state);
     }
 }
 

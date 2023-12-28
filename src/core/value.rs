@@ -165,8 +165,11 @@ impl Value {
     }
 
     pub fn as_symbol(pair: Pair<Rule>) -> Result<Value> {
-        let result = pair.as_str().to_string();
-        Ok(Value::Symbol(Symbol { name: result }))
+        let result = pair.as_str().to_string().into();
+        Ok(Value::Symbol(Symbol {
+            name: result,
+            meta: Default::default(),
+        }))
     }
 
     pub fn as_keyword(pair: Pair<Rule>) -> Result<Value> {

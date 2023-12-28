@@ -29,6 +29,7 @@ pub enum Error {
     #[allow(dead_code)]
     Cast(String, String),
     Arity(String),
+    Immutable(String),
 }
 
 impl fmt::Display for Error {
@@ -48,6 +49,7 @@ impl fmt::Display for Error {
             Syntax(msg) => write!(f, "Syntax Error: {}", msg),
             Cast(src, dest) => write!(f, "Cast Error: cannot cast {} to {}", src, dest),
             Arity(msg) => write!(f, "Arity Error: {}", msg),
+            Immutable(msg) => write!(f, "Immutable Error: {}", msg),
         }
     }
 }
@@ -69,6 +71,7 @@ impl std::error::Error for Error {
             Syntax(_) => None,
             Cast(_, _) => None,
             Arity(_) => None,
+            Immutable(_) => None,
         }
     }
 }
