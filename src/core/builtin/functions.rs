@@ -188,7 +188,111 @@ pub const EQUAL: Function = Function {
     },
 };
 
-pub const ALL_FUNCTIONS: [Value; 9] = [
+pub const GE: Function = Function {
+    name: Symbol {
+        name: Cow::Borrowed(">="),
+        meta: Meta {
+            doc: Cow::Borrowed("Greater than or equal to."),
+            mutable: false,
+        },
+    },
+    func: |args: Vec<Value>| {
+        if args.len() < 1 {
+            return Err(arity_error_min(1, args.len()));
+        }
+        if args.len() == 1 {
+            return Ok(Value::Bool(true));
+        }
+        let mut prev = args[0].clone();
+        for arg in args.into_iter().skip(1) {
+            if prev < arg {
+                return Ok(Value::Bool(false));
+            }
+            prev = arg;
+        }
+        Ok(Value::Bool(true))
+    },
+};
+
+pub const GT: Function = Function {
+    name: Symbol {
+        name: Cow::Borrowed(">"),
+        meta: Meta {
+            doc: Cow::Borrowed("Greater than."),
+            mutable: false,
+        },
+    },
+    func: |args: Vec<Value>| {
+        if args.len() < 1 {
+            return Err(arity_error_min(1, args.len()));
+        }
+        if args.len() == 1 {
+            return Ok(Value::Bool(true));
+        }
+        let mut prev = args[0].clone();
+        for arg in args.into_iter().skip(1) {
+            if prev <= arg {
+                return Ok(Value::Bool(false));
+            }
+            prev = arg;
+        }
+        Ok(Value::Bool(true))
+    },
+};
+
+pub const LE: Function = Function {
+    name: Symbol {
+        name: Cow::Borrowed("<="),
+        meta: Meta {
+            doc: Cow::Borrowed("Less than or equal to."),
+            mutable: false,
+        },
+    },
+    func: |args: Vec<Value>| {
+        if args.len() < 1 {
+            return Err(arity_error_min(1, args.len()));
+        }
+        if args.len() == 1 {
+            return Ok(Value::Bool(true));
+        }
+        let mut prev = args[0].clone();
+        for arg in args.into_iter().skip(1) {
+            if prev > arg {
+                return Ok(Value::Bool(false));
+            }
+            prev = arg;
+        }
+        Ok(Value::Bool(true))
+    },
+};
+
+pub const LT: Function = Function {
+    name: Symbol {
+        name: Cow::Borrowed("<"),
+        meta: Meta {
+            doc: Cow::Borrowed("Less than."),
+            mutable: false,
+        },
+    },
+    func: |args: Vec<Value>| {
+        if args.len() < 1 {
+            return Err(arity_error_min(1, args.len()));
+        }
+        if args.len() == 1 {
+            return Ok(Value::Bool(true));
+        }
+        let mut prev = args[0].clone();
+        for arg in args.into_iter().skip(1) {
+            if prev >= arg {
+                return Ok(Value::Bool(false));
+            }
+            prev = arg;
+        }
+        Ok(Value::Bool(true))
+    },
+};
+
+pub const ALL_FUNCTIONS: [Value; 13] = [
     Value::Function(TYPE),
     Value::Function(PRINT),
     Value::Function(ADD),
@@ -198,7 +302,11 @@ pub const ALL_FUNCTIONS: [Value; 9] = [
     Value::Function(FLOORDIV),
     Value::Function(REM),
     Value::Function(EQUAL),
+    Value::Function(GE),
+    Value::Function(GT),
+    Value::Function(LE),
+    Value::Function(LT),
 ];
 
 // TODO:
-// doc
+// doc => macro
