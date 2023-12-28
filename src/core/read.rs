@@ -36,13 +36,15 @@ pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
                 .map(|p| {
                     {
                         if p.len() != 2 {
-                            return Err(Error::Syntax("map must have even number of elements".to_string()));
+                            return Err(Error::Syntax(
+                                "map must have even number of elements".to_string(),
+                            ));
                         }
                         read(ast, p[0].clone())
-                    }.and_then(|key| {
-                        read(ast, p[1].clone()).map(|value| (key, value))
-                    })
-                }).collect();
+                    }
+                    .and_then(|key| read(ast, p[1].clone()).map(|value| (key, value)))
+                })
+                .collect();
             result?
         }),
         Rule::set => Value::as_set(inner_collect(ast, pair)?),

@@ -50,11 +50,8 @@ impl<'a> Environment<'a> {
         }
     }
 
-    pub fn put(&mut self, key: String, mut value: Value) -> Result<Value> {
-        let mut current = self.lookup.entry(key).or_insert_with(|| value.clone());
-        if value != *current {
-            current = &mut value;
-        }
+    pub fn put(&mut self, key: String, value: Value) -> Result<Value> {
+        self.lookup.insert(key, value.clone());
         Ok(Value::Nil)
     }
 }

@@ -14,7 +14,6 @@ use crate::core::environment::Environment;
 use crate::core::eval::eval;
 use crate::core::parse::parse;
 use crate::core::read::read;
-use crate::core::types::error::Error;
 use crate::core::types::error::Result;
 use crate::core::utility::utility::try_read_file;
 use crate::core::value::Value;

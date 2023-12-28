@@ -1,7 +1,5 @@
 /* core/eval.rs */
 
-use std::borrow::Cow;
-
 use crate::core::environment::Environment;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
@@ -59,9 +57,7 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
         Value::F64(_) => Ok(val),
         Value::Regex(_) => Ok(val),
         Value::String(_) => Ok(val),
-        Value::Symbol(symbol) => {
-            Ok(environment.get(&symbol.name)?.clone())
-        }
+        Value::Symbol(symbol) => Ok(environment.get(&symbol.name)?.clone()),
         Value::Keyword(_) => Ok(val),
         Value::List(list) => eval_list(environment, ast, &list),
         Value::Vector(vector) => {
@@ -103,7 +99,6 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
                 .collect();
             Ok(Value::Set(Set::from(result?)))
         }
-        // TODO: function, macro, error
         _ => unreachable!(),
     }
 }

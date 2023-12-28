@@ -2,11 +2,11 @@
 
 use std::borrow::Cow;
 
-use crate::core::types::function::Function;
-use crate::core::value::Value;
+#[allow(unused_imports)]
 use crate::core::types::error::{arity_error, arity_error_range};
-
-// NOTE: use Cow::Owned(name) to create a Function
+use crate::core::types::function::Function;
+use crate::core::types::meta::Meta;
+use crate::core::value::Value;
 
 pub const TYPE: Function = Function {
     name: Cow::Borrowed("type"),
@@ -16,7 +16,14 @@ pub const TYPE: Function = Function {
         }
 
         Value::type_name(&args[0])
-    }
+    },
+    meta: Meta {
+        doc: Cow::Borrowed("Get the type of a value."),
+        mutable: false,
+    },
 };
 
 pub const ALL_FUNCTIONS: [Value; 1] = [Value::Function(TYPE)];
+
+// TODO:
+// doc

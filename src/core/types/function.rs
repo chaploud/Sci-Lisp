@@ -4,11 +4,13 @@ use std::borrow::Cow;
 use std::fmt;
 
 use crate::core::types::error::Result;
+use crate::core::types::meta::Meta;
 use crate::core::value::Value;
 
 pub struct Function {
     pub name: Cow<'static, str>,
     pub func: fn(Vec<Value>) -> Result<Value>,
+    pub meta: Meta,
 }
 
 impl Function {
@@ -28,6 +30,7 @@ impl Clone for Function {
         Function {
             name: self.name.clone(),
             func: self.func.clone(),
+            meta: self.meta.clone(),
         }
     }
 }
@@ -35,6 +38,8 @@ impl Clone for Function {
 impl std::hash::Hash for Function {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.name.hash(state);
+        self.func.hash(state);
+        self.meta.hash(state);
     }
 }
 

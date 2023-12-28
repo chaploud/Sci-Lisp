@@ -10,6 +10,7 @@ pub struct List {
 }
 
 impl List {
+    #[allow(dead_code)]
     pub fn new() -> Self {
         List {
             value: Vec::<Value>::new(),

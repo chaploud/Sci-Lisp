@@ -1,6 +1,6 @@
 /* core/types/error.rs */
 
-use std::fmt::{self, write, Debug};
+use std::fmt::{self, Debug};
 use std::num::{ParseFloatError, ParseIntError};
 use std::str::ParseBoolError;
 
@@ -23,8 +23,10 @@ pub enum Error {
     // custom errors
     Name(String),
     Type(String),
+    #[allow(dead_code)]
     NotCallable(String),
     Syntax(String),
+    #[allow(dead_code)]
     Cast(String, String),
     Arity(String),
 }
@@ -115,13 +117,13 @@ impl From<regex::Error> for Error {
     }
 }
 
-
 // error helpers
 
 pub fn arity_error(expected: usize, actual: usize) -> Error {
     Error::Arity(format!("expected {} arguments, got {}", expected, actual))
 }
 
+#[allow(dead_code)]
 pub fn arity_error_range(expected_min: usize, expected_max: usize, actual: usize) -> Error {
     Error::Arity(format!(
         "expected between {} and {} arguments, got {}",
@@ -129,6 +131,7 @@ pub fn arity_error_range(expected_min: usize, expected_max: usize, actual: usize
     ))
 }
 
+#[allow(dead_code)]
 pub fn type_error(expected: &str, actual: &str) -> Error {
     Error::Type(format!("expected type: '{}', got: '{}'", expected, actual))
 }

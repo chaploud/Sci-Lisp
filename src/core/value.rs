@@ -5,7 +5,6 @@ use std::hash::Hash;
 
 use pest::iterators::Pair;
 
-use crate::core::environment::Environment;
 use crate::core::parse::Rule;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
@@ -54,8 +53,8 @@ impl PartialEq for Value {
             (Vector(v1), Vector(v2)) => v1 == v2,
             (Map(h1), Map(h2)) => h1 == h2,
             (Set(s1), Set(s2)) => s1 == s2,
-            (Function(f1), Function(f2)) => f1.name == f2.name, // TODO: Dubious
-            (Macro(m1), Macro(m2)) => m1.name == m2.name,       // TODO: Dubious
+            (Function(f1), Function(f2)) => f1.name == f2.name && f1.func == f2.func,
+            (Macro(m1), Macro(m2)) => m1.name == m2.name && m1.func == m2.func,
             _ => false,
         }
     }
@@ -208,9 +207,4 @@ impl Value {
         let set = Set::from(values);
         Ok(Value::Set(set))
     }
-    // TODO: Function, Macro, Error
-}
-
-pub trait Collection {
-    fn get_value(&self) -> Vec<Value>;
 }

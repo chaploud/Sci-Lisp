@@ -2,11 +2,12 @@
 
 use std::borrow::Cow;
 
-use crate::core::types::error::Result;
 use crate::core::types::error::Error;
+#[allow(unused_imports)]
+use crate::core::types::error::{arity_error, arity_error_range};
+use crate::core::types::meta::Meta;
 use crate::core::types::r#macro::Macro;
 use crate::core::value::Value;
-use crate::core::types::error::{arity_error, arity_error_range};
 
 pub const DEF: Macro = Macro {
     name: Cow::Borrowed("def"),
@@ -39,6 +40,10 @@ pub const DEF: Macro = Macro {
         environment.put(symbol.name.clone(), value)?;
         Ok(Value::Symbol(symbol))
     },
+    meta: Meta {
+        doc: Cow::Borrowed("Bind a value to a symbol."),
+        mutable: false,
+    },
 };
 
 pub const QUOTE: Macro = Macro {
@@ -49,6 +54,10 @@ pub const QUOTE: Macro = Macro {
         }
 
         Ok(args[0].clone())
+    },
+    meta: Meta {
+        doc: Cow::Borrowed("Quote a value."),
+        mutable: false,
     },
 };
 
@@ -68,12 +77,15 @@ pub const TIME: Macro = Macro {
 
         Ok(result)
     },
+    meta: Meta {
+        doc: Cow::Borrowed("Time the evaluation of an expression."),
+        mutable: false,
+    },
 };
 
 // pub const DO: Macro = Macro {
 //     name: Cow::Borrowed("do"),
 // }
-
 
 pub const ALL_MACROS: [Value; 3] = [Value::Macro(DEF), Value::Macro(QUOTE), Value::Macro(TIME)];
 

@@ -20,6 +20,7 @@ impl Hash for Map {
 }
 
 impl Map {
+    #[allow(dead_code)]
     pub fn new() -> Self {
         Map {
             value: IndexMap::<Value, Value>::new(),

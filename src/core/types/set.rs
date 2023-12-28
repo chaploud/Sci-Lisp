@@ -20,6 +20,7 @@ impl Hash for Set {
 }
 
 impl Set {
+    #[allow(dead_code)]
     pub fn new() -> Self {
         Set {
             value: IndexSet::<Value>::new(),
