@@ -211,3 +211,14 @@ impl Value {
         Ok(Value::Set(set))
     }
 }
+
+impl Value {
+    // Only nil and false are falsey
+    pub fn is_truthy(&self) -> bool {
+        match self {
+            Value::Nil => false,
+            Value::Bool(b) => *b,
+            _ => true,
+        }
+    }
+}

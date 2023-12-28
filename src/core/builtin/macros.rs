@@ -149,22 +149,93 @@ pub const CONST: Macro = Macro {
     },
 };
 
-pub const ALL_MACROS: [Value; 5] = [
+pub const SET: Macro = Macro {
+    name: Symbol {
+        name: Cow::Borrowed("set!"),
+        meta: Meta {
+            doc: Cow::Borrowed("Bind a value to a symbol."),
+            mutable: false,
+        },
+    },
+    func: |args, environment, ast, evalfn| {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        let mut args_for_set: Vec<Value> = vec![];
+        for (i, v) in args.into_iter().enumerate() {
+            if i == 0 {
+                args_for_set.push(v);
+            } else {
+                ast.push(v.clone()); // NOTE: need to clone here
+                args_for_set.push(evalfn(environment, ast)?);
+            }
+        }
+
+        let symbol = match args_for_set[0].clone() {
+            Value::Symbol(sym) => sym,
+            _ => {
+                return Err(Error::Type(
+                    "set: first argument must be a symbol".to_string(),
+                ))
+            }
+        };
+
+        let value = args_for_set[1].clone();
+
+        environment.get(&symbol)?;
+        environment.put(&symbol, value)?;
+        Ok(Value::Symbol(symbol))
+    },
+};
+
+pub const IF: Macro = Macro {
+    name: Symbol {
+        name: Cow::Borrowed("if"),
+        meta: Meta {
+            doc: Cow::Borrowed("If the first argument is true, evaluate the second argument. Otherwise, evaluate the third argument."),
+            mutable: false,
+        },
+    },
+    func: |args, environment, ast, evalfn| {
+        if args.len() < 2 || args.len() > 3 {
+            return Err(arity_error_range(2, 3, args.len()));
+        }
+
+        let condition = &args[0];
+        ast.push(condition.clone());
+        let truthy = evalfn(environment, ast)?;
+
+        if truthy.is_truthy() {
+            let true_branch = &args[1];
+            ast.push(true_branch.clone());
+        } else {
+            let false_branch = if args.len() == 3 {
+                &args[2]
+            } else {
+                &Value::Nil
+            };
+            ast.push(false_branch.clone());
+        }
+        let result = evalfn(environment, ast)?;
+        Ok(result)
+    },
+};
+
+pub const ALL_MACROS: [Value; 7] = [
     Value::Macro(DEF),
     Value::Macro(QUOTE),
     Value::Macro(TIME),
     Value::Macro(DO),
     Value::Macro(CONST),
+    Value::Macro(SET),
+    Value::Macro(IF),
 ];
 
 // TODO:
-// ConstMacro,
-// SetMacro,
 // SliceMacro,
 // LetMacro,
-// DoMacro,
 // FnMacro,
-// IfMacro,
 // SwitchMacro,
 // ForMacro,
 // WhileMacro,
