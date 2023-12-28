@@ -1,12 +1,13 @@
 /* core/types/function.rs */
 
+use std::cmp::Ordering;
 use std::fmt;
 
 use crate::core::types::error::Result;
 use crate::core::types::symbol::Symbol;
 use crate::core::value::Value;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub struct Function {
     pub name: Symbol,
     pub func: fn(Vec<Value>) -> Result<Value>,
@@ -43,5 +44,17 @@ impl std::hash::Hash for Function {
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "function: '{}' ", self.name)
+    }
+}
+
+impl PartialOrd for Function {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.name.cmp(&other.name))
+    }
+}
+
+impl Ord for Function {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.name.cmp(&other.name)
     }
 }

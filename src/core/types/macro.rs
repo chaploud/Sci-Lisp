@@ -1,5 +1,6 @@
 /* core/types/macro.rs */
 
+use std::cmp::Ordering;
 use std::fmt;
 
 use crate::core::environment::Environment;
@@ -47,6 +48,26 @@ impl std::hash::Hash for Macro {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.name.hash(state);
         self.func.hash(state);
+    }
+}
+
+impl PartialEq for Macro {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+    }
+}
+
+impl PartialOrd for Macro {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.name.cmp(&other.name))
+    }
+}
+
+impl Eq for Macro {}
+
+impl Ord for Macro {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.name.cmp(&other.name)
     }
 }
 

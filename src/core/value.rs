@@ -1,5 +1,6 @@
 /* core/value.rs */
 
+use std::cmp::Ordering;
 use std::fmt;
 use std::hash::Hash;
 use std::ops::{Add, Div, Mul, Rem, Sub};
@@ -345,6 +346,54 @@ impl Rem for Value {
             (Value::F64(f1), Value::I64(i2)) => Value::F64(f1 % i2 as f64),
             (Value::F64(f1), Value::F64(f2)) => Value::F64(f1 % f2),
             (s, o) => panic!("Cannot modulo {} and {}", s, o),
+        }
+    }
+}
+
+impl PartialOrd for Value {
+    fn partial_cmp(&self, other: &Value) -> Option<Ordering> {
+        match (self, other) {
+            (Value::I64(i1), Value::I64(i2)) => i1.partial_cmp(i2),
+            (Value::I64(i1), Value::F64(f2)) => (*i1 as f64).partial_cmp(f2),
+            (Value::F64(f1), Value::I64(i2)) => f1.partial_cmp(&(*i2 as f64)),
+            (Value::F64(f1), Value::F64(f2)) => f1.partial_cmp(f2),
+            (Value::String(s1), Value::String(s2)) => s1.partial_cmp(s2),
+            (Value::Keyword(k1), Value::Keyword(k2)) => k1.partial_cmp(k2),
+            (Value::Symbol(s1), Value::Symbol(s2)) => s1.partial_cmp(s2),
+            (Value::Regex(r1), Value::Regex(r2)) => r1.as_str().partial_cmp(r2.as_str()),
+            (Value::List(l1), Value::List(l2)) => l1.partial_cmp(l2),
+            (Value::Vector(v1), Value::Vector(v2)) => v1.partial_cmp(v2),
+            (Value::Map(m1), Value::Map(m2)) => m1.partial_cmp(m2),
+            (Value::Set(s1), Value::Set(s2)) => s1.partial_cmp(s2),
+            (Value::Function(f1), Value::Function(f2)) => f1.partial_cmp(f2),
+            (Value::Macro(m1), Value::Macro(m2)) => m1.partial_cmp(m2),
+            (Value::Nil, Value::Nil) => Some(Ordering::Equal),
+            (Value::Bool(b1), Value::Bool(b2)) => b1.partial_cmp(b2),
+            (s, o) => panic!("Cannot compare {:?} and {:?}", s.type_name(), o.type_name()),
+        }
+    }
+}
+
+impl Ord for Value {
+    fn cmp(&self, other: &Value) -> Ordering {
+        match (self, other) {
+            (Value::I64(i1), Value::I64(i2)) => i1.cmp(i2),
+            (Value::I64(i1), Value::F64(f2)) => (*i1 as f64).partial_cmp(f2).unwrap(),
+            (Value::F64(f1), Value::I64(i2)) => f1.partial_cmp(&(*i2 as f64)).unwrap(),
+            (Value::F64(f1), Value::F64(f2)) => f1.partial_cmp(f2).unwrap(),
+            (Value::String(s1), Value::String(s2)) => s1.cmp(s2),
+            (Value::Keyword(k1), Value::Keyword(k2)) => k1.cmp(k2),
+            (Value::Symbol(s1), Value::Symbol(s2)) => s1.cmp(s2),
+            (Value::Regex(r1), Value::Regex(r2)) => r1.as_str().cmp(r2.as_str()),
+            (Value::List(l1), Value::List(l2)) => l1.cmp(l2),
+            (Value::Vector(v1), Value::Vector(v2)) => v1.cmp(v2),
+            (Value::Map(m1), Value::Map(m2)) => m1.cmp(m2),
+            (Value::Set(s1), Value::Set(s2)) => s1.cmp(s2),
+            (Value::Function(f1), Value::Function(f2)) => f1.cmp(f2),
+            (Value::Macro(m1), Value::Macro(m2)) => m1.cmp(m2),
+            (Value::Nil, Value::Nil) => Ordering::Equal,
+            (Value::Bool(b1), Value::Bool(b2)) => b1.cmp(b2),
+            (s, o) => panic!("Cannot compare {:?} and {:?}", s.type_name(), o.type_name()),
         }
     }
 }

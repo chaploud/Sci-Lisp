@@ -3,7 +3,7 @@
 use std::fmt;
 use std::hash::Hash;
 
-#[derive(Hash, PartialEq, Eq, Clone, Debug)]
+#[derive(Hash, PartialEq, Eq, Clone, Debug, PartialOrd, Ord)]
 pub struct Keyword {
     pub name: std::string::String,
 }

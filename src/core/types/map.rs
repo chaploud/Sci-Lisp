@@ -1,13 +1,14 @@
 /* core/types/map.rs */
 
 use core::fmt;
+use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 
 use indexmap::IndexMap;
 
 use crate::core::value::Value;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Map {
     pub value: indexmap::IndexMap<Value, Value>,
 }
@@ -45,6 +46,27 @@ impl fmt::Display for Map {
             result += format!("{} {}", key, val).as_str();
         }
         write!(f, "{{{}}}", result)
+    }
+}
+
+// 辞書の順序付けは、キーの順序付けによって決定される
+impl PartialOrd for Map {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        let mut self_vec: Vec<_> = self.value.iter().collect();
+        let mut other_vec: Vec<_> = other.value.iter().collect();
+        self_vec.sort();
+        other_vec.sort();
+        Some(self_vec.cmp(&other_vec))
+    }
+}
+
+impl Ord for Map {
+    fn cmp(&self, other: &Self) -> Ordering {
+        let mut self_vec: Vec<_> = self.value.iter().collect();
+        let mut other_vec: Vec<_> = other.value.iter().collect();
+        self_vec.sort();
+        other_vec.sort();
+        self_vec.cmp(&other_vec)
     }
 }
 

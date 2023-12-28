@@ -1,11 +1,12 @@
 /* core/types/symbol.rs */
 
+use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 use std::{borrow::Cow, fmt};
 
 use crate::core::types::meta::Meta;
 
-#[derive(Eq, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct Symbol {
     pub name: Cow<'static, str>,
     pub meta: Meta,
@@ -17,6 +18,8 @@ impl PartialEq for Symbol {
     }
 }
 
+impl Eq for Symbol {}
+
 impl Hash for Symbol {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.name.hash(state);
@@ -26,6 +29,18 @@ impl Hash for Symbol {
 impl fmt::Display for Symbol {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.name)
+    }
+}
+
+impl PartialOrd for Symbol {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Symbol {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.name.cmp(&other.name)
     }
 }
 
