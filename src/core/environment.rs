@@ -56,7 +56,8 @@ impl<'a> Environment<'a> {
         match self.lookup.entry(key.clone()) {
             Entry::Occupied(mut entry) => {
                 if entry.key().meta.mutable {
-                    if !key.meta.mutable { // overwrite with const
+                    if !key.meta.mutable {
+                        // overwrite with const
                         return Err(Error::Immutable(format!(
                             "cannot overwrite '{}' with const",
                             key

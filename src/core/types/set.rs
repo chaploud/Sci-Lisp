@@ -39,3 +39,11 @@ impl fmt::Display for Set {
         write!(f, "#{:?}", self.value)
     }
 }
+
+impl Iterator for Set {
+    type Item = Value;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.value.iter().next().cloned()
+    }
+}

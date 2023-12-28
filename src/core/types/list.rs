@@ -30,3 +30,11 @@ impl fmt::Display for List {
         write!(f, "{}", result)
     }
 }
+
+impl Iterator for List {
+    type Item = Value;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.value.iter().next().cloned()
+    }
+}

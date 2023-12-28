@@ -47,3 +47,14 @@ impl fmt::Display for Map {
         write!(f, "{{{}}}", result)
     }
 }
+
+impl Iterator for Map {
+    type Item = (Value, Value);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.value
+            .iter()
+            .next()
+            .map(|(k, v)| (k.clone(), v.clone()))
+    }
+}
