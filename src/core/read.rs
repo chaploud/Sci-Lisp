@@ -3,6 +3,7 @@
 use pest::iterators::Pair;
 
 use crate::core::parse::Rule;
+use crate::core::types::error::Error;
 use crate::core::types::error::Result;
 use crate::core::value::Value;
 
@@ -30,19 +31,21 @@ pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
                 .unwrap()
                 .into_inner()
                 .collect::<Vec<_>>();
-            let result = pairs
-                .chunks_exact(2)
+            let result: Result<Vec<(Value, Value)>> = pairs
+                .chunks(2)
                 .map(|p| {
-                    (
-                        read(ast, p[0].clone()).unwrap(),
-                        read(ast, p[1].clone()).unwrap(),
-                    )
-                })
-                .collect();
-            result
+                    {
+                        if p.len() != 2 {
+                            return Err(Error::Syntax("map must have even number of elements".to_string()));
+                        }
+                        read(ast, p[0].clone())
+                    }.and_then(|key| {
+                        read(ast, p[1].clone()).map(|value| (key, value))
+                    })
+                }).collect();
+            result?
         }),
         Rule::set => Value::as_set(inner_collect(ast, pair)?),
-        // TODO: function, macro, error
         _ => unreachable!(), // COMMENT, WHITESPACE, etc...
     };
 

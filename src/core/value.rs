@@ -211,10 +211,6 @@ impl Value {
     // TODO: Function, Macro, Error
 }
 
-pub trait Evaluable {
-    fn eval(self, environment: &mut Environment) -> Result<Value>;
-}
-
 pub trait Collection {
     fn get_value(&self) -> Vec<Value>;
 }

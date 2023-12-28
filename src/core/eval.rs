@@ -9,7 +9,6 @@ use crate::core::types::list::List;
 use crate::core::types::map::Map;
 use crate::core::types::set::Set;
 use crate::core::types::vector::Vector;
-use crate::core::value::Evaluable;
 use crate::core::value::Value;
 
 pub fn eval_list(
@@ -34,30 +33,13 @@ pub fn eval_list(
             let args: Result<Vec<Value>> = rest
                 .into_iter()
                 .map(|v| {
-                    ast.push(v.clone());
+                    ast.push(v.clone()); // NOTE: need to clone here
                     eval(environment, ast)
                 })
                 .collect();
             func.call(args?)
         }
-        Value::Macro(mac) => match mac.name {
-            Cow::Borrowed("def") => {
-                let mut args: Vec<Value> = vec![];
-                for (i, v) in rest.into_iter().enumerate() {
-                    if i == 0 {
-                        args.push(v);
-                    } else {
-                        ast.push(v);
-                        args.push(eval(environment, ast)?);
-                    }
-                }
-                mac.call(args, environment)
-            }
-
-            Cow::Borrowed("quote") => mac.call(rest, environment),
-
-            _ => mac.call(rest, environment),
-        },
+        Value::Macro(mac) => mac.call(rest, environment, ast, eval),
         _ => Err(Error::Syntax(format!("cannot call '{}'", first))),
     };
 
@@ -77,7 +59,9 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
         Value::F64(_) => Ok(val),
         Value::Regex(_) => Ok(val),
         Value::String(_) => Ok(val),
-        Value::Symbol(symbol) => Ok(symbol.eval(environment)?),
+        Value::Symbol(symbol) => {
+            Ok(environment.get(&symbol.name)?.clone())
+        }
         Value::Keyword(_) => Ok(val),
         Value::List(list) => eval_list(environment, ast, &list),
         Value::Vector(vector) => {
@@ -92,11 +76,6 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
             Ok(Value::Vector(Vector::from(result?)))
         }
         Value::Map(map) => {
-            if map.value.len() % 2 != 0 {
-                return Err(Error::Syntax(
-                    "map must contain an even number of forms".to_string(),
-                ));
-            }
             let result: Result<Vec<(Value, Value)>> = map
                 .value
                 .into_iter()

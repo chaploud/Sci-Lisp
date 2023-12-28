@@ -72,6 +72,10 @@
 - リーダーマクロはLisp側でmacro組んだらよろしい
   - 例: '(1, 2, 3) => (quote (1, 2, 3)) => これ自体はRustで実装
 
+#### def, defn, struct, 等のdocstring
+
+- meta情報を持たせる(これはHashMap?)
+
 ### スペシャルフォームの評価
 
 ## Environmentについての考察

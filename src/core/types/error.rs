@@ -22,10 +22,11 @@ pub enum Error {
 
     // custom errors
     Name(String),
-    Type(String, String),
+    Type(String),
     NotCallable(String),
     Syntax(String),
     Cast(String, String),
+    Arity(String),
 }
 
 impl fmt::Display for Error {
@@ -40,12 +41,11 @@ impl fmt::Display for Error {
             IO(err) => write!(f, "IO Error: {:#?}", err),
             Readline(err) => write!(f, "Readline Error: {:#?}", err),
             Name(msg) => write!(f, "Name Error: '{}' is not defined", msg),
-            Type(expected, actual) => {
-                write!(f, "Type Error: expected {}, got {}", expected, actual)
-            }
+            Type(msg) => write!(f, "Type Error: {}", msg),
             NotCallable(msg) => write!(f, "Not Callable Error: '{}' is not callable", msg),
             Syntax(msg) => write!(f, "Syntax Error: {}", msg),
             Cast(src, dest) => write!(f, "Cast Error: cannot cast {} to {}", src, dest),
+            Arity(msg) => write!(f, "Arity Error: {}", msg),
         }
     }
 }
@@ -61,11 +61,12 @@ impl std::error::Error for Error {
             Regex(ref err) => Some(err),
             IO(ref err) => Some(err),
             Readline(ref err) => Some(err),
-            Type(_, _) => None,
+            Type(_) => None,
             Name(_) => None,
             NotCallable(_) => None,
             Syntax(_) => None,
             Cast(_, _) => None,
+            Arity(_) => None,
         }
     }
 }
@@ -112,4 +113,22 @@ impl From<regex::Error> for Error {
     fn from(err: regex::Error) -> Self {
         Error::Regex(err)
     }
+}
+
+
+// error helpers
+
+pub fn arity_error(expected: usize, actual: usize) -> Error {
+    Error::Arity(format!("expected {} arguments, got {}", expected, actual))
+}
+
+pub fn arity_error_range(expected_min: usize, expected_max: usize, actual: usize) -> Error {
+    Error::Arity(format!(
+        "expected between {} and {} arguments, got {}",
+        expected_min, expected_max, actual
+    ))
+}
+
+pub fn type_error(expected: &str, actual: &str) -> Error {
+    Error::Type(format!("expected type: '{}', got: '{}'", expected, actual))
 }

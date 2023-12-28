@@ -9,12 +9,11 @@ use crate::core::value::Value;
 
 pub struct Macro {
     pub name: Cow<'static, str>,
-    pub func: fn(Vec<Value>, &mut Environment) -> Result<Value>,
+    pub func: fn(Vec<Value>, &mut Environment, &mut Vec<Value>, fn(&mut Environment, &mut Vec<Value>) -> Result<Value>) -> Result<Value>,
 }
-
 impl Macro {
-    pub fn call(&self, args: Vec<Value>, environment: &mut Environment) -> Result<Value> {
-        (self.func)(args, environment)
+    pub fn call(&self, args: Vec<Value>, environment: &mut Environment, ast: &mut Vec<Value>, evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>) -> Result<Value> {
+        (self.func)(args, environment, ast, evalfn)
     }
 }
 
