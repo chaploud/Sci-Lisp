@@ -97,6 +97,10 @@ pub fn repl() -> Result<()> {
                     break;
                 }
 
+                if line.trim().is_empty() {
+                    continue;
+                }
+
                 // read/parse
                 let parsed = parse(&line);
                 if let Err(err) = parsed {

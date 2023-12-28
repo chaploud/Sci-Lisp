@@ -142,7 +142,6 @@ pub const CONST: Macro = Macro {
         };
 
         let value = args_for_def[1].clone();
-
         symbol.meta.mutable = false;
 
         environment.put(&symbol, value)?;

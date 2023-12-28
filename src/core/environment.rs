@@ -55,7 +55,13 @@ impl<'a> Environment<'a> {
     pub fn put(&mut self, key: &Symbol, value: Value) -> Result<Value> {
         match self.lookup.entry(key.clone()) {
             Entry::Occupied(mut entry) => {
-                if key.meta.mutable {
+                if entry.key().meta.mutable {
+                    if !key.meta.mutable { // overwrite with const
+                        return Err(Error::Immutable(format!(
+                            "cannot overwrite '{}' with const",
+                            key
+                        )));
+                    }
                     entry.insert(value);
                 } else {
                     return Err(Error::Immutable(format!(

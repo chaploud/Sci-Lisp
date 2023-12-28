@@ -1,10 +1,11 @@
 /* core/types/symbol.rs */
 
+use std::hash::{Hash, Hasher};
 use std::{borrow::Cow, fmt};
 
 use crate::core::types::meta::Meta;
 
-#[derive(Eq, Clone, Debug, Hash)]
+#[derive(Eq, Clone, Debug)]
 pub struct Symbol {
     pub name: Cow<'static, str>,
     pub meta: Meta,
@@ -12,7 +13,13 @@ pub struct Symbol {
 
 impl PartialEq for Symbol {
     fn eq(&self, other: &Self) -> bool {
-        self.name == other.name && self.meta == other.meta
+        self.name == other.name
+    }
+}
+
+impl Hash for Symbol {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.name.hash(state);
     }
 }
 
