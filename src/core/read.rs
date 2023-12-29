@@ -2,6 +2,9 @@
 
 use pest::iterators::Pair;
 
+use crate::core::builtin::macros::{
+    SYMBOL_EXPAND, SYMBOL_QUOTE, SYMBOL_SYNTAX_QUOTE, SYMBOL_UNQUOTE, SYMBOL_UNQUOTE_SPLICING,
+};
 use crate::core::parse::Rule;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
@@ -48,6 +51,7 @@ pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
             result?
         }),
         Rule::set => Value::as_set(inner_collect(ast, pair)?),
+        Rule::quote => quote_to_ast(ast, pair),
         _ => unreachable!(), // COMMENT, WHITESPACE, etc...
     };
 
@@ -59,3 +63,18 @@ pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
         Err(err) => Err(err),
     }
 }
+
+fn quote_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
+    let pair = pair.into_inner().next().unwrap();
+    // add (quote ...) to ast
+    let value = read(ast, pair)?;
+    Value::as_list(vec![Value::Symbol(SYMBOL_QUOTE), value])
+}
+
+// fn syntax_quote_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {}
+
+// fn unquote_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {}
+
+// fn unquote_splicing_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {}
+
+// fn expand_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {}

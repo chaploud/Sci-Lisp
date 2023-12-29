@@ -34,7 +34,15 @@ map = { "{" ~ map_inner ~ "}" }
   map_inner = { expr* ~ expr* }
 set = { "#{" ~ expr* ~ "}" }
 
-expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string | list | vector | map | set }
+quote = { "'" ~ expr }
+syntax_quote = { "`" ~ expr }
+unquote = { "~" ~ expr }
+unquote_splicing = { "~@" ~ expr }
+expand = { "@" ~ expr }
+
+expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string
+        | list | vector | map | set
+        | quote | syntax_quote | unquote | unquote_splicing | expand }
 
 scilisp = { SOI ~ expr* ~ EOI}
 
@@ -43,6 +51,6 @@ scilisp = { SOI ~ expr* ~ EOI}
 // (`)backquote
 // (~)unquote
 // (~@)unquote-splicing
-// (@)apply(expand)
+// (@)expand
 // (.)dot
 // ([0:2])([-1])slice

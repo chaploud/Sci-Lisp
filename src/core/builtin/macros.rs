@@ -10,6 +10,46 @@ use crate::core::types::r#macro::Macro;
 use crate::core::types::symbol::Symbol;
 use crate::core::value::Value;
 
+pub const SYMBOL_QUOTE: Symbol = Symbol {
+    name: Cow::Borrowed("quote"),
+    meta: Meta {
+        doc: Cow::Borrowed("Quote a value."),
+        mutable: false,
+    },
+};
+
+pub const SYMBOL_SYNTAX_QUOTE: Symbol = Symbol {
+    name: Cow::Borrowed("syntax-quote"),
+    meta: Meta {
+        doc: Cow::Borrowed("Syntax-quote a value."),
+        mutable: false,
+    },
+};
+
+pub const SYMBOL_UNQUOTE: Symbol = Symbol {
+    name: Cow::Borrowed("unquote"),
+    meta: Meta {
+        doc: Cow::Borrowed("Unquote a value."),
+        mutable: false,
+    },
+};
+
+pub const SYMBOL_UNQUOTE_SPLICING: Symbol = Symbol {
+    name: Cow::Borrowed("unquote-splicing"),
+    meta: Meta {
+        doc: Cow::Borrowed("Unquote-splicing a value."),
+        mutable: false,
+    },
+};
+
+pub const SYMBOL_EXPAND: Symbol = Symbol {
+    name: Cow::Borrowed("expand"),
+    meta: Meta {
+        doc: Cow::Borrowed("Expand a value."),
+        mutable: false,
+    },
+};
+
 pub const DEF: Macro = Macro {
     name: Symbol {
         name: Cow::Borrowed("def"),
@@ -50,10 +90,72 @@ pub const DEF: Macro = Macro {
 };
 
 pub const QUOTE: Macro = Macro {
+    name: SYMBOL_QUOTE,
+    func: |args, _, _, _| {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        Ok(args[0].clone())
+    },
+};
+
+pub const UNQUOTE: Macro = Macro {
     name: Symbol {
-        name: Cow::Borrowed("quote"),
+        name: Cow::Borrowed("unquote"),
         meta: Meta {
-            doc: Cow::Borrowed("Quote a value."),
+            doc: Cow::Borrowed("Unquote a value."),
+            mutable: false,
+        },
+    },
+    func: |args, _, _, _| {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        Ok(args[0].clone())
+    },
+};
+
+pub const UNQUOTE_SPLICING: Macro = Macro {
+    name: Symbol {
+        name: Cow::Borrowed("unquote-splicing"),
+        meta: Meta {
+            doc: Cow::Borrowed("Unquote-splicing a value."),
+            mutable: false,
+        },
+    },
+    func: |args, _, _, _| {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        Ok(args[0].clone())
+    },
+};
+
+pub const EXPAND: Macro = Macro {
+    name: Symbol {
+        name: Cow::Borrowed("expand"),
+        meta: Meta {
+            doc: Cow::Borrowed("Expand a value."),
+            mutable: false,
+        },
+    },
+    func: |args, _, _, _| {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        Ok(args[0].clone())
+    },
+};
+
+pub const BACKQUOTE: Macro = Macro {
+    name: Symbol {
+        name: Cow::Borrowed("backquote"),
+        meta: Meta {
+            doc: Cow::Borrowed("Backquote a value."),
             mutable: false,
         },
     },
@@ -366,9 +468,13 @@ pub const SWITCH: Macro = Macro {
     },
 };
 
-pub const ALL_MACROS: [Value; 10] = [
+pub const ALL_MACROS: [Value; 14] = [
     Value::Macro(DEF),
     Value::Macro(QUOTE),
+    Value::Macro(UNQUOTE),
+    Value::Macro(UNQUOTE_SPLICING),
+    Value::Macro(EXPAND),
+    Value::Macro(BACKQUOTE),
     Value::Macro(TIME),
     Value::Macro(DO),
     Value::Macro(CONST),
