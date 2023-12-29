@@ -4,7 +4,6 @@ use std::borrow::Cow;
 
 use crate::core::environment::Environment;
 use crate::core::types::error::Error;
-#[allow(unused_imports)]
 use crate::core::types::error::{arity_error, arity_error_min, arity_error_range};
 use crate::core::types::meta::Meta;
 use crate::core::types::r#macro::Macro;
@@ -309,7 +308,65 @@ pub const LET: Macro = Macro {
     },
 };
 
-pub const ALL_MACROS: [Value; 9] = [
+// TODO: performance?
+pub const SWITCH: Macro = Macro {
+    name: Symbol {
+        name: Cow::Borrowed("switch"),
+        meta: Meta {
+            doc: Cow::Borrowed("Switch macro."),
+            mutable: false,
+        },
+    },
+    func: |args, environment, ast, evalfn| {
+        if args.len() < 1 {
+            return Err(arity_error_min(1, args.len()));
+        }
+
+        if args[1..].len() % 2 != 0 {
+            return Err(Error::Syntax(
+                "switch: case and expression must be in pairs".to_string(),
+            ));
+        }
+
+        ast.push(args[0].clone());
+        let val = evalfn(environment, ast)?;
+        let mut result = Value::Nil;
+
+        for chunk in args[1..].chunks(2) {
+            let case = &chunk[0];
+            let expr = &chunk[1];
+
+            match case {
+                Value::Vector(case) => {
+                    if case.value.iter().any(|v| *v == val) {
+                        ast.push(expr.clone());
+                        result = evalfn(environment, ast)?;
+                        break;
+                    }
+                }
+                Value::Keyword(case) => {
+                    if case.name == ":default" {
+                        ast.push(expr.clone());
+                        result = evalfn(environment, ast)?;
+                        break;
+                    } else {
+                        return Err(Error::Syntax(
+                            "switch: case must be a vector or :default keyword".to_string(),
+                        ));
+                    }
+                }
+                _ => {
+                    return Err(Error::Syntax(
+                        "switch: case must be a vector or :default keyword".to_string(),
+                    ))
+                }
+            }
+        }
+        Ok(result)
+    },
+};
+
+pub const ALL_MACROS: [Value; 10] = [
     Value::Macro(DEF),
     Value::Macro(QUOTE),
     Value::Macro(TIME),
@@ -319,14 +376,13 @@ pub const ALL_MACROS: [Value; 9] = [
     Value::Macro(IF),
     Value::Macro(WHILE),
     Value::Macro(LET),
+    Value::Macro(SWITCH),
 ];
 
 // TODO:
 // SliceMacro,
 // FnMacro,
-// SwitchMacro,
 // ForMacro,
-// WhileMacro,
 // BreakMacro,
 // ContinueMacro,
 // EnumMacro,
