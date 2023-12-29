@@ -1,6 +1,7 @@
 /* core/builtin/functions.rs */
 
 use std::borrow::Cow;
+use std::ptr;
 
 #[allow(unused_imports)]
 use crate::core::types::error::{arity_error, arity_error_min, arity_error_range, Error};
@@ -188,6 +189,48 @@ pub const EQUAL: Function = Function {
     },
 };
 
+pub const NOTEQUAL: Function = Function {
+    name: Symbol {
+        name: Cow::Borrowed("!="),
+        meta: Meta {
+            doc: Cow::Borrowed("Check if all arguments are not equal."),
+            mutable: false,
+        },
+    },
+    func: |args: Vec<Value>| {
+        if args.len() < 1 {
+            return Err(arity_error_min(1, args.len()));
+        }
+        if args.len() == 1 {
+            return Ok(Value::Bool(false));
+        }
+        let mut prev = args[0].clone();
+        for arg in args.into_iter().skip(1) {
+            if arg == prev {
+                return Ok(Value::Bool(false));
+            }
+            prev = arg;
+        }
+        Ok(Value::Bool(true))
+    },
+};
+
+pub const IS: Function = Function {
+    name: Symbol {
+        name: Cow::Borrowed("is"),
+        meta: Meta {
+            doc: Cow::Borrowed("Check if two values are the same."),
+            mutable: false,
+        },
+    },
+    func: |args: Vec<Value>| {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+        Ok(Value::Bool(ptr::eq(&args[0], &args[1])))
+    },
+};
+
 pub const GE: Function = Function {
     name: Symbol {
         name: Cow::Borrowed(">="),
@@ -292,7 +335,33 @@ pub const LT: Function = Function {
     },
 };
 
-pub const ALL_FUNCTIONS: [Value; 13] = [
+pub const DOC: Function = Function {
+    name: Symbol {
+        name: Cow::Borrowed("doc"),
+        meta: Meta {
+            doc: Cow::Borrowed("Get the documentation of a value."),
+            mutable: false,
+        },
+    },
+    func: |args: Vec<Value>| {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        let result = match &args[0] {
+            Value::Function(func) => func.name.meta.doc.clone(),
+            Value::Macro(mac) => mac.name.meta.doc.clone(),
+            Value::Symbol(sym) => sym.meta.doc.clone(),
+            _ => Cow::Owned(format!("{} has no documentation.", args[0].type_name()?)),
+        };
+
+        println!("{}", result);
+
+        Ok(Value::Nil)
+    },
+};
+
+pub const ALL_FUNCTIONS: [Value; 16] = [
     Value::Function(TYPE),
     Value::Function(PRINT),
     Value::Function(ADD),
@@ -302,10 +371,13 @@ pub const ALL_FUNCTIONS: [Value; 13] = [
     Value::Function(FLOORDIV),
     Value::Function(REM),
     Value::Function(EQUAL),
+    Value::Function(NOTEQUAL),
+    Value::Function(IS),
     Value::Function(GE),
     Value::Function(GT),
     Value::Function(LE),
     Value::Function(LT),
+    Value::Function(DOC),
 ];
 
 // TODO:

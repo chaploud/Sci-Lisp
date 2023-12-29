@@ -3,6 +3,7 @@
 use core::fmt;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
+use std::ops::{Index, IndexMut};
 
 use indexmap::IndexMap;
 
@@ -78,5 +79,19 @@ impl Iterator for Map {
             .iter()
             .next()
             .map(|(k, v)| (k.clone(), v.clone()))
+    }
+}
+
+impl Index<usize> for Map {
+    type Output = Value;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.value[index]
+    }
+}
+
+impl IndexMut<usize> for Map {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.value[index]
     }
 }

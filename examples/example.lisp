@@ -181,6 +181,7 @@ inf                 ; positive infinity
 
 ;; Compare
 (= 2 2)              ; equal
+(!= 2 2)             ; not equal
 (is [1, 2] [1, 2])   ; ident (=> false)
 (< 2 3)              ; less
 (<= 2 3)             ; less equal

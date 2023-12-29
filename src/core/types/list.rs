@@ -2,6 +2,7 @@
 
 use core::fmt;
 use std::cmp::Ordering;
+use std::ops::{Index, IndexMut};
 
 use crate::core::value::Value;
 
@@ -49,5 +50,19 @@ impl Iterator for List {
 
     fn next(&mut self) -> Option<Self::Item> {
         self.value.iter().next().cloned()
+    }
+}
+
+impl Index<usize> for List {
+    type Output = Value;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.value[index]
+    }
+}
+
+impl IndexMut<usize> for List {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.value[index]
     }
 }

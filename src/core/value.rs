@@ -226,9 +226,7 @@ impl Value {
 }
 
 impl Value {
-    // convert Value::I64 to Value::I64
-    // convert Value::F64 to Value::I64
-    // convert Value::String to Value::I64
+    #[allow(dead_code)]
     pub fn to_i64(&self) -> Result<Value> {
         match self {
             Value::I64(i) => Ok(Value::I64(*i)),

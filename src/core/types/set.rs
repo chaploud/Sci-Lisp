@@ -3,6 +3,7 @@
 use core::fmt;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
+use std::ops::Index;
 
 use indexmap::IndexSet;
 
@@ -66,5 +67,13 @@ impl Iterator for Set {
 
     fn next(&mut self) -> Option<Self::Item> {
         self.value.iter().next().cloned()
+    }
+}
+
+impl Index<usize> for Set {
+    type Output = Value;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.value[index]
     }
 }

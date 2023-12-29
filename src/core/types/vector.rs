@@ -1,6 +1,7 @@
 /* core/types/vector.rs */
 
 use core::fmt;
+use std::ops::{Index, IndexMut};
 
 use crate::core::value::Value;
 
@@ -33,5 +34,19 @@ impl Iterator for Vector {
 
     fn next(&mut self) -> Option<Self::Item> {
         self.value.iter().next().cloned()
+    }
+}
+
+impl Index<usize> for Vector {
+    type Output = Value;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.value[index]
+    }
+}
+
+impl IndexMut<usize> for Vector {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.value[index]
     }
 }
