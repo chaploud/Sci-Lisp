@@ -2,6 +2,7 @@
 
 use std::borrow::Cow;
 
+use crate::core::environment::Environment;
 use crate::core::types::error::Error;
 #[allow(unused_imports)]
 use crate::core::types::error::{arity_error, arity_error_min, arity_error_range};
@@ -257,7 +258,58 @@ pub const WHILE: Macro = Macro {
     },
 };
 
-pub const ALL_MACROS: [Value; 8] = [
+pub const LET: Macro = Macro {
+    name: Symbol {
+        name: Cow::Borrowed("let"),
+        meta: Meta {
+            doc: Cow::Borrowed("Bind a value to a symbol in a local scope."),
+            mutable: false,
+        },
+    },
+    func: |args, environment, ast, evalfn| {
+        if args.len() < 1 {
+            return Err(arity_error_min(1, args.len()));
+        }
+
+        let mut local_env = Environment::new(None, Some(environment));
+
+        let bind_form = match &args[0] {
+            Value::Vector(v) => v,
+            _ => {
+                return Err(Error::Syntax(
+                    "let: first argument must be a vector".to_string(),
+                ))
+            }
+        };
+
+        if bind_form.value.len() % 2 != 0 {
+            return Err(Error::Syntax(
+                "let: first argument must be a vector of even length".to_string(),
+            ));
+        }
+
+        bind_form.value.chunks(2).for_each(|chunk| {
+            let symbol = match &chunk[0] {
+                Value::Symbol(sym) => sym,
+                _ => todo!(),
+            };
+
+            let value = chunk[1].clone();
+
+            local_env.put(symbol, value).unwrap();
+        });
+
+        let mut result = Value::Nil;
+        for arg in args.into_iter().skip(1) {
+            ast.push(arg.clone());
+            result = evalfn(&mut local_env, ast)?;
+        }
+
+        Ok(result)
+    },
+};
+
+pub const ALL_MACROS: [Value; 9] = [
     Value::Macro(DEF),
     Value::Macro(QUOTE),
     Value::Macro(TIME),
@@ -266,11 +318,11 @@ pub const ALL_MACROS: [Value; 8] = [
     Value::Macro(SET),
     Value::Macro(IF),
     Value::Macro(WHILE),
+    Value::Macro(LET),
 ];
 
 // TODO:
 // SliceMacro,
-// LetMacro,
 // FnMacro,
 // SwitchMacro,
 // ForMacro,
