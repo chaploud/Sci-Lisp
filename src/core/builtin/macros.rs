@@ -1,15 +1,18 @@
 /* core/builtin/macros.rs */
 
 use std::borrow::Cow;
+use std::vec;
 
 use crate::core::environment::Environment;
 use crate::core::types::error::Error;
+use crate::core::types::error::Result;
 use crate::core::types::error::{arity_error, arity_error_min, arity_error_range};
 use crate::core::types::meta::Meta;
 use crate::core::types::r#macro::Macro;
 use crate::core::types::symbol::Symbol;
 use crate::core::value::Value;
 
+// ===== Reader macros
 pub const SYMBOL_QUOTE: Symbol = Symbol {
     name: Cow::Borrowed("quote"),
     meta: Meta {
@@ -42,14 +45,7 @@ pub const SYMBOL_UNQUOTE_SPLICING: Symbol = Symbol {
     },
 };
 
-pub const SYMBOL_EXPAND: Symbol = Symbol {
-    name: Cow::Borrowed("expand"),
-    meta: Meta {
-        doc: Cow::Borrowed("Expand a value."),
-        mutable: false,
-    },
-};
-
+// ===== Core macros
 pub const DEF: Macro = Macro {
     name: Symbol {
         name: Cow::Borrowed("def"),
@@ -101,70 +97,74 @@ pub const QUOTE: Macro = Macro {
 };
 
 pub const UNQUOTE: Macro = Macro {
-    name: Symbol {
-        name: Cow::Borrowed("unquote"),
-        meta: Meta {
-            doc: Cow::Borrowed("Unquote a value."),
-            mutable: false,
-        },
-    },
-    func: |args, _, _, _| {
+    name: SYMBOL_UNQUOTE,
+    func: |args, environment, ast, evalfn| {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
 
-        Ok(args[0].clone())
+        let arg = &args[0];
+
+        let val: Result<Value> = match arg {
+            Value::Symbol(symbol) => {
+                let value = environment.get(&symbol)?;
+                Ok(value.clone())
+            }
+            _ => Ok(arg.clone()),
+        };
+
+        ast.push(val?);
+        evalfn(environment, ast)
     },
 };
 
 pub const UNQUOTE_SPLICING: Macro = Macro {
-    name: Symbol {
-        name: Cow::Borrowed("unquote-splicing"),
-        meta: Meta {
-            doc: Cow::Borrowed("Unquote-splicing a value."),
-            mutable: false,
-        },
-    },
-    func: |args, _, _, _| {
+    name: SYMBOL_UNQUOTE_SPLICING,
+    func: |args, environment, ast, evalfn| {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
 
-        Ok(args[0].clone())
+        let arg = &args[0];
+
+        let value = match arg {
+            Value::Symbol(symbol) => environment.get(&symbol)?.clone(),
+            _ => arg.clone(),
+        };
+
+        // if value is collectionn then splice
+        match value {
+            Value::List(list) => list.value.into_iter().for_each(|v| ast.push(v)),
+            Value::Vector(vector) => vector.value.into_iter().for_each(|v| ast.push(v)),
+            Value::Map(map) => map.value.into_iter().for_each(|(k, v)| {
+                ast.push(Value::as_vector([k, v].to_vec()).unwrap());
+            }),
+            Value::Set(set) => set.value.into_iter().for_each(|v| ast.push(v)),
+            _ => ast.push(value),
+        };
+
+        Ok(Value::Nil)
     },
 };
 
-pub const EXPAND: Macro = Macro {
-    name: Symbol {
-        name: Cow::Borrowed("expand"),
-        meta: Meta {
-            doc: Cow::Borrowed("Expand a value."),
-            mutable: false,
-        },
-    },
-    func: |args, _, _, _| {
+pub const SYNTAX_QUOTE: Macro = Macro {
+    name: SYMBOL_SYNTAX_QUOTE,
+    func: |args, environment, ast, evalfn| {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
 
-        Ok(args[0].clone())
-    },
-};
+        let mut local_env = Environment::new(None, Some(environment));
+        local_env.put(&UNQUOTE.name, Value::Macro(UNQUOTE))?;
+        local_env.put(&UNQUOTE_SPLICING.name, Value::Macro(UNQUOTE_SPLICING))?;
 
-pub const BACKQUOTE: Macro = Macro {
-    name: Symbol {
-        name: Cow::Borrowed("backquote"),
-        meta: Meta {
-            doc: Cow::Borrowed("Backquote a value."),
-            mutable: false,
-        },
-    },
-    func: |args, _, _, _| {
-        if args.len() != 1 {
-            return Err(arity_error(1, args.len()));
-        }
+        let value = args[0].clone();
+        let quoted = Value::as_list(vec![Value::Symbol(SYMBOL_QUOTE), value])?;
 
-        Ok(args[0].clone())
+        ast.push(quoted);
+        let result = evalfn(&mut local_env, ast)?;
+
+        Ok(result)
     },
 };
 
@@ -468,13 +468,10 @@ pub const SWITCH: Macro = Macro {
     },
 };
 
-pub const ALL_MACROS: [Value; 14] = [
+pub const ALL_MACROS: [Value; 11] = [
     Value::Macro(DEF),
     Value::Macro(QUOTE),
-    Value::Macro(UNQUOTE),
-    Value::Macro(UNQUOTE_SPLICING),
-    Value::Macro(EXPAND),
-    Value::Macro(BACKQUOTE),
+    Value::Macro(SYNTAX_QUOTE),
     Value::Macro(TIME),
     Value::Macro(DO),
     Value::Macro(CONST),

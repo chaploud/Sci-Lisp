@@ -3,7 +3,7 @@
 use pest::iterators::Pair;
 
 use crate::core::builtin::macros::{
-    SYMBOL_EXPAND, SYMBOL_QUOTE, SYMBOL_SYNTAX_QUOTE, SYMBOL_UNQUOTE, SYMBOL_UNQUOTE_SPLICING,
+    SYMBOL_QUOTE, SYMBOL_SYNTAX_QUOTE, SYMBOL_UNQUOTE, SYMBOL_UNQUOTE_SPLICING,
 };
 use crate::core::parse::Rule;
 use crate::core::types::error::Error;
@@ -52,6 +52,10 @@ pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
         }),
         Rule::set => Value::as_set(inner_collect(ast, pair)?),
         Rule::quote => quote_to_ast(ast, pair),
+        Rule::syntax_quote => syntax_quote_to_ast(ast, pair),
+        Rule::unquote => unquote_to_ast(ast, pair),
+        Rule::unquote_splicing => unquote_splicing_to_ast(ast, pair),
+        // Rule::expand => expand_to_ast(ast, pair),
         _ => unreachable!(), // COMMENT, WHITESPACE, etc...
     };
 
@@ -66,15 +70,35 @@ pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
 
 fn quote_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
     let pair = pair.into_inner().next().unwrap();
-    // add (quote ...) to ast
     let value = read(ast, pair)?;
     Value::as_list(vec![Value::Symbol(SYMBOL_QUOTE), value])
 }
 
-// fn syntax_quote_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {}
+fn syntax_quote_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
+    let pair = pair.into_inner().next().unwrap();
+    let value = read(ast, pair)?;
+    Value::as_list(vec![Value::Symbol(SYMBOL_SYNTAX_QUOTE), value])
+}
 
-// fn unquote_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {}
+fn unquote_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
+    let pair = pair.into_inner().next().unwrap();
+    let value = read(ast, pair)?;
+    Value::as_list(vec![Value::Symbol(SYMBOL_UNQUOTE), value])
+}
 
-// fn unquote_splicing_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {}
+fn unquote_splicing_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
+    let pair = pair.into_inner().next().unwrap();
+    let value = read(ast, pair)?;
+    Value::as_list(vec![Value::Symbol(SYMBOL_UNQUOTE_SPLICING), value])
+}
 
-// fn expand_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {}
+// fn expand_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
+//     let pair = pair.into_inner().next().unwrap();
+//     match pair.as_rule() {
+//         Rule::vector => inner_collect(ast, pair),
+//         _ => Err(Error::Syntax(
+//             "'@' can be applied only for vector".to_string(),
+//         )),
+//     }?;
+//     Ok(Value::Nil)
+// }
