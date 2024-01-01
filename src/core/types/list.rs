@@ -46,14 +46,6 @@ impl Ord for List {
     }
 }
 
-impl Iterator for List {
-    type Item = Value;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.value.iter().next().cloned()
-    }
-}
-
 impl Index<usize> for List {
     type Output = Value;
 

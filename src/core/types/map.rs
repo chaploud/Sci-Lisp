@@ -71,17 +71,6 @@ impl Ord for Map {
     }
 }
 
-impl Iterator for Map {
-    type Item = (Value, Value);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.value
-            .iter()
-            .next()
-            .map(|(k, v)| (k.clone(), v.clone()))
-    }
-}
-
 impl Index<usize> for Map {
     type Output = Value;
 

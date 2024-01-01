@@ -62,14 +62,6 @@ impl fmt::Display for Set {
     }
 }
 
-impl Iterator for Set {
-    type Item = Value;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.value.iter().next().cloned()
-    }
-}
-
 impl Index<usize> for Set {
     type Output = Value;
 

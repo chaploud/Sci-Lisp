@@ -1,5 +1,6 @@
 /* core/eval.rs */
 
+use crate::core::builtin::macros::{SYMBOL_SYNTAX_QUOTING, SYMBOL_UNQUOTING};
 use crate::core::environment::Environment;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
@@ -50,6 +51,16 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
         None => Value::Nil,
     };
 
+    let in_syntax_quote = match environment.get(&SYMBOL_SYNTAX_QUOTING) {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+
+    let in_unquoting = match environment.get(&SYMBOL_UNQUOTING) {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+
     match val {
         Value::Nil => Ok(val),
         Value::Bool(_) => Ok(val),
@@ -57,7 +68,12 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
         Value::F64(_) => Ok(val),
         Value::Regex(_) => Ok(val),
         Value::String(_) => Ok(val),
-        Value::Symbol(symbol) => Ok(environment.get(&symbol)?.clone()),
+        Value::Symbol(symbol) => {
+            if in_syntax_quote && !in_unquoting {
+                return Ok(Value::Symbol(symbol));
+            }
+            Ok(environment.get(&symbol)?.clone())
+        }
         Value::Keyword(_) => Ok(val),
         Value::List(list) => eval_list(environment, ast, &list),
         Value::Vector(vector) => {

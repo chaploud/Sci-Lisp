@@ -7,9 +7,13 @@ use crate::core::environment::Environment;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
 use crate::core::types::error::{arity_error, arity_error_min, arity_error_range};
+use crate::core::types::list::List;
+use crate::core::types::map::Map;
 use crate::core::types::meta::Meta;
 use crate::core::types::r#macro::Macro;
+use crate::core::types::set::Set;
 use crate::core::types::symbol::Symbol;
+use crate::core::types::vector::Vector;
 use crate::core::value::Value;
 
 // ===== Reader macros
@@ -41,6 +45,22 @@ pub const SYMBOL_UNQUOTE_SPLICING: Symbol = Symbol {
     name: Cow::Borrowed("unquote-splicing"),
     meta: Meta {
         doc: Cow::Borrowed("Unquote-splicing a value."),
+        mutable: false,
+    },
+};
+
+pub const SYMBOL_SYNTAX_QUOTING: Symbol = Symbol {
+    name: Cow::Borrowed("*syntax-quoting*"),
+    meta: Meta {
+        doc: Cow::Borrowed("Internal variable for syntax-quoting."),
+        mutable: false,
+    },
+};
+
+pub const SYMBOL_UNQUOTING: Symbol = Symbol {
+    name: Cow::Borrowed("*unquoting*"),
+    meta: Meta {
+        doc: Cow::Borrowed("Internal variable for unquoting."),
         mutable: false,
     },
 };
@@ -103,18 +123,11 @@ pub const UNQUOTE: Macro = Macro {
             return Err(arity_error(1, args.len()));
         }
 
-        let arg = &args[0];
+        let mut local_env = Environment::new(None, Some(environment));
+        local_env.put(&SYMBOL_UNQUOTING, Value::Bool(true))?;
 
-        let val: Result<Value> = match arg {
-            Value::Symbol(symbol) => {
-                let value = environment.get(&symbol)?;
-                Ok(value.clone())
-            }
-            _ => Ok(arg.clone()),
-        };
-
-        ast.push(val?);
-        evalfn(environment, ast)
+        ast.push(args[0].clone());
+        evalfn(&mut local_env, ast)
     },
 };
 
@@ -125,6 +138,9 @@ pub const UNQUOTE_SPLICING: Macro = Macro {
             return Err(arity_error(1, args.len()));
         }
 
+        let mut local_env = Environment::new(None, Some(environment));
+        local_env.put(&SYMBOL_UNQUOTING, Value::Bool(true))?;
+
         let arg = &args[0];
 
         let value = match arg {
@@ -133,13 +149,30 @@ pub const UNQUOTE_SPLICING: Macro = Macro {
         };
 
         // if value is collectionn then splice
-        match value {
-            Value::List(list) => list.value.into_iter().for_each(|v| ast.push(v)),
-            Value::Vector(vector) => vector.value.into_iter().for_each(|v| ast.push(v)),
-            Value::Map(map) => map.value.into_iter().for_each(|(k, v)| {
-                ast.push(Value::as_vector([k, v].to_vec()).unwrap());
+        let result: Vec<Result<Value>> = match value {
+            Value::List(list) => list
+                .value
+                .into_iter()
+                .map(|v| {
+                    ast.push(v);
+                    evalfn(&mut local_env, ast)
+                })
+                .collect(),
+            Value::Vector(vector) => vector
+                .value
+                .into_iter()
+                .map(|v| {
+                    ast.push(v);
+                    evalfn(&mut local_env, ast)
+                })
+                .collect(),
+            Value::Map(map) => map.value.into_iter().map(|(k, v)| {
+                vec![ast.push(k); evalfn(&mut local_env, ast), ast.push(v); evalfn(&mut local_env, ast)]
             }),
-            Value::Set(set) => set.value.into_iter().for_each(|v| ast.push(v)),
+            Value::Set(set) => set.value.into_iter().map(|v| {
+                ast.push(v);
+                evalfn(&mut local_env, ast)
+            }),
             _ => ast.push(value),
         };
 
@@ -157,14 +190,10 @@ pub const SYNTAX_QUOTE: Macro = Macro {
         let mut local_env = Environment::new(None, Some(environment));
         local_env.put(&UNQUOTE.name, Value::Macro(UNQUOTE))?;
         local_env.put(&UNQUOTE_SPLICING.name, Value::Macro(UNQUOTE_SPLICING))?;
+        local_env.put(&SYMBOL_SYNTAX_QUOTING, Value::Bool(true))?;
 
-        let value = args[0].clone();
-        let quoted = Value::as_list(vec![Value::Symbol(SYMBOL_QUOTE), value])?;
-
-        ast.push(quoted);
-        let result = evalfn(&mut local_env, ast)?;
-
-        Ok(result)
+        ast.push(args[0].clone());
+        evalfn(&mut local_env, ast)
     },
 };
 

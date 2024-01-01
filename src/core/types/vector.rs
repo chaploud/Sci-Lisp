@@ -29,14 +29,6 @@ impl fmt::Display for Vector {
     }
 }
 
-impl Iterator for Vector {
-    type Item = Value;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.value.iter().next().cloned()
-    }
-}
-
 impl Index<usize> for Vector {
     type Output = Value;
 
