@@ -14,7 +14,6 @@ fn ast_eval_with_splice(
     environment: &mut Environment,
     ast: &mut Vec<Value>,
     value: Value,
-    parent: &mut Value,
 ) -> Vec<Result<Value>> {
     match value {
         Value::Splicing(s) => {
@@ -26,7 +25,7 @@ fn ast_eval_with_splice(
         }
         _ => {
             ast.push(value.clone());
-            vec![eval(environment, ast, parent)]
+            vec![eval(environment, ast)]
         }
     }
 }
@@ -52,7 +51,7 @@ pub fn eval_list(
         Value::Function(func) => {
             let args: Result<Vec<Value>> = rest
                 .into_iter()
-                .map(|v| ast_eval_with_splice(environment, ast, v, parent))
+                .map(|v| ast_eval_with_splice(environment, ast, v))
                 .flatten()
                 .collect();
             func.call(args?)
@@ -99,7 +98,7 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
             let result: Result<Vec<Value>> = vector
                 .value
                 .into_iter()
-                .map(|v| ast_eval_with_splice(environment, ast, v, parent))
+                .map(|v| ast_eval_with_splice(environment, ast, v))
                 .flatten()
                 .collect();
             Ok(Value::Vector(Vector::from(result?)))
@@ -110,8 +109,8 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
                 .into_iter()
                 .map(|(k, v)| {
                     (
-                        ast_eval_with_splice(environment, ast, k, parent),
-                        ast_eval_with_splice(environment, ast, v, parent),
+                        ast_eval_with_splice(environment, ast, k),
+                        ast_eval_with_splice(environment, ast, v),
                     )
                 })
                 .unzip();
@@ -129,7 +128,7 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
             let result: Result<Vec<Value>> = set
                 .value
                 .into_iter()
-                .map(|v| ast_eval_with_splice(environment, ast, v, parent))
+                .map(|v| ast_eval_with_splice(environment, ast, v))
                 .flatten()
                 .collect();
             Ok(Value::Set(Set::from(result?)))

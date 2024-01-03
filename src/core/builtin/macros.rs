@@ -5,13 +5,9 @@ use std::vec;
 
 use crate::core::environment::Environment;
 use crate::core::types::error::Error;
-use crate::core::types::error::Result;
 use crate::core::types::error::{arity_error, arity_error_min, arity_error_range};
-use crate::core::types::list::List;
-use crate::core::types::map::Map;
 use crate::core::types::meta::Meta;
 use crate::core::types::r#macro::Macro;
-use crate::core::types::set::Set;
 use crate::core::types::symbol::Symbol;
 use crate::core::types::vector::Vector;
 use crate::core::value::Value;
@@ -93,6 +89,7 @@ pub const SYMBOL_UNQUOTING: Symbol = Symbol {
 // ===== Core macros
 pub const DEF: Macro = Macro {
     name: SYMBOL_DEF,
+    func: |args, environment, ast, evalfn| {
         if args.len() != 2 {
             return Err(arity_error(2, args.len()));
         }
@@ -276,6 +273,7 @@ pub const DO: Macro = Macro {
 
 pub const CONST: Macro = Macro {
     name: SYMBOL_CONST,
+    func: |args, environment, ast, evalfn| {
         if args.len() != 2 {
             return Err(arity_error(2, args.len()));
         }
@@ -317,6 +315,7 @@ pub const CONST: Macro = Macro {
 
 pub const SET: Macro = Macro {
     name: SYMBOL_SET,
+    func: |args, environment, ast, evalfn| {
         if args.len() != 2 {
             return Err(arity_error(2, args.len()));
         }
