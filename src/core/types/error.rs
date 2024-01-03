@@ -39,7 +39,18 @@ impl fmt::Display for Error {
             ParseBool(err) => write!(f, "Parse Bool Error: {:#?}", err),
             ParseInt(err) => write!(f, "Parse Int Error: {:#?}", err),
             ParseFloat(err) => write!(f, "Parse Float Error: {:#?}", err),
-            PestParse(err) => write!(f, "Pest Parse Error: {:#?}", err),
+            PestParse(err) => match err.line_col {
+                pest::error::LineColLocation::Pos(pos) => {
+                    write!(f, "Parse Error: at {}:{}", pos.0, pos.1)
+                }
+                pest::error::LineColLocation::Span(start, end) => {
+                    write!(
+                        f,
+                        "Parse Error: at {}:{} to {}:{}",
+                        start.0, start.1, end.0, end.1
+                    )
+                }
+            },
             Regex(err) => write!(f, "Regex Error: {:#?}", err),
             IO(err) => write!(f, "IO Error: {:#?}", err),
             Readline(err) => write!(f, "Readline Error: {:#?}", err),

@@ -1,7 +1,7 @@
 /* core/value.rs */
 
 use std::cmp::Ordering;
-use std::fmt;
+use std::fmt::{self, format};
 use std::hash::Hash;
 use std::ops::{Add, Div, Mul, Rem, Sub};
 
@@ -36,6 +36,7 @@ pub enum Value {
     Set(Set),
     Function(Function),
     Macro(Macro),
+    Splicing(Vec<Value>),
 }
 
 use crate::core::value::Value::*;
@@ -80,6 +81,7 @@ impl Hash for Value {
             Set(s) => s.hash(state),
             Function(f) => f.name.hash(state),
             Macro(m) => m.name.hash(state),
+            Splicing(v) => v.hash(state),
         }
     }
 }
@@ -102,6 +104,12 @@ impl fmt::Display for Value {
             Set(s) => write!(f, "{}", s),
             Function(func) => write!(f, "{}", func),
             Macro(mac) => write!(f, "{}", mac),
+            Splicing(v) => {
+                let mut result = format!("{:?}", v);
+                result = result.replace(",", "");
+                result = result[1..result.len() - 1].to_string();
+                write!(f, "{}", result)
+            }
         }
     }
 }
@@ -129,6 +137,7 @@ impl Value {
             Value::Set(_) => TypeName::Set.to_string(),
             Value::Function(_) => TypeName::Function.to_string(),
             Value::Macro(_) => TypeName::Macro.to_string(),
+            Value::Splicing(_) => TypeName::Splicing.to_string(),
         };
 
         Ok(Value::String(result))

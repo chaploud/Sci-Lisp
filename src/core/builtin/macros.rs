@@ -150,7 +150,13 @@ pub const UNQUOTE_SPLICING: Macro = Macro {
         local_env.put(&SYMBOL_UNQUOTING, Value::Bool(true))?;
 
         let mut result: Vec<Value> = vec![];
-        match &args[0] {
+
+        let mut arg: Value = args[0].clone();
+        if let Value::Symbol(sym) = arg {
+            arg = environment.get(&sym)?.clone();
+        }
+
+        match arg {
             Value::List(l) => {
                 for v in l.value.iter() {
                     ast.push(v.clone());
@@ -186,9 +192,7 @@ pub const UNQUOTE_SPLICING: Macro = Macro {
             ))?,
         }
 
-        ast.extend(result);
-
-        Ok(Value::Nil)
+        Ok(Value::Splicing(result))
     },
 };
 
@@ -550,3 +554,4 @@ pub const ALL_MACROS: [Value; 11] = [
 // MacroMacro,
 // ClassMacro,
 // ThreadMacro,
+// AND, OR
