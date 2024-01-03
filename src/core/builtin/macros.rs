@@ -141,40 +141,44 @@ pub const UNQUOTE_SPLICING: Macro = Macro {
         let mut local_env = Environment::new(None, Some(environment));
         local_env.put(&SYMBOL_UNQUOTING, Value::Bool(true))?;
 
-        let arg = &args[0];
+        let mut result: Vec<Value> = vec![];
+        match &args[0] {
+            Value::List(l) => {
+                for v in l.value.iter() {
+                    ast.push(v.clone());
+                    result.push(evalfn(&mut local_env, ast)?);
+                }
+            }
+            Value::Vector(v) => {
+                for v in v.value.iter() {
+                    ast.push(v.clone());
+                    result.push(evalfn(&mut local_env, ast)?);
+                }
+            }
+            Value::Set(s) => {
+                for v in s.value.iter() {
+                    ast.push(v.clone());
+                    result.push(evalfn(&mut local_env, ast)?);
+                }
+            }
+            Value::Map(m) => {
+                for (k, v) in m.value.iter() {
+                    ast.push(Value::Vector(Vector::from([k.clone(), v.clone()].to_vec())));
+                    result.push(evalfn(&mut local_env, ast)?);
+                }
+            }
+            Value::String(s) => {
+                for c in s.chars() {
+                    result.push(Value::String(c.to_string()));
+                }
+            }
+            _ => Err(Error::Type(
+                "unquote-splicing: argument must be a list, vector, set, map, or string"
+                    .to_string(),
+            ))?,
+        }
 
-        let value = match arg {
-            Value::Symbol(symbol) => environment.get(&symbol)?.clone(),
-            _ => arg.clone(),
-        };
-
-        // if value is collectionn then splice
-        let result: Vec<Result<Value>> = match value {
-            Value::List(list) => list
-                .value
-                .into_iter()
-                .map(|v| {
-                    ast.push(v);
-                    evalfn(&mut local_env, ast)
-                })
-                .collect(),
-            Value::Vector(vector) => vector
-                .value
-                .into_iter()
-                .map(|v| {
-                    ast.push(v);
-                    evalfn(&mut local_env, ast)
-                })
-                .collect(),
-            Value::Map(map) => map.value.into_iter().map(|(k, v)| {
-                vec![ast.push(k); evalfn(&mut local_env, ast), ast.push(v); evalfn(&mut local_env, ast)]
-            }),
-            Value::Set(set) => set.value.into_iter().map(|v| {
-                ast.push(v);
-                evalfn(&mut local_env, ast)
-            }),
-            _ => ast.push(value),
-        };
+        ast.extend(result);
 
         Ok(Value::Nil)
     },
@@ -304,7 +308,15 @@ pub const SET: Macro = Macro {
         }
 
         let symbol = match args_for_set[0].clone() {
-            Value::Symbol(sym) => sym,
+            Value::Symbol(sym) => {
+                if sym.name.starts_with("*") {
+                    return Err(Error::Type(format!(
+                        "set!: cannot set special variable '{}'",
+                        sym.name
+                    )));
+                }
+                sym
+            }
             _ => {
                 return Err(Error::Type(
                     "set: first argument must be a symbol".to_string(),

@@ -10,6 +10,8 @@ use crate::core::types::set::Set;
 use crate::core::types::vector::Vector;
 use crate::core::value::Value;
 
+use super::builtin::macros::SYMBOL_UNQUOTE_SPLICING;
+
 pub fn eval_list(
     environment: &mut Environment,
     ast: &mut Vec<Value>,
@@ -38,7 +40,14 @@ pub fn eval_list(
                 .collect();
             func.call(args?)
         }
-        Value::Macro(mac) => mac.call(rest, environment, ast, eval),
+        Value::Macro(mac) => {
+            let res = mac.call(rest, environment, ast, eval);
+            if mac.name == SYMBOL_UNQUOTE_SPLICING {
+                eval(environment, ast)
+            } else {
+                res
+            }
+        }
         _ => Err(Error::Syntax(format!("cannot call '{}'", first))),
     };
 

@@ -11,12 +11,14 @@ use crate::core::types::error::Result;
 use crate::core::value::Value;
 
 fn inner_collect(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Vec<Value>> {
-    pair.into_inner().map(|expr| read(ast, expr)).collect()
+    pair.into_inner()
+        .map(|expr| read_scilisp(ast, expr))
+        .collect()
 }
 
-pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
+fn read_scilisp(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
     let value = match pair.as_rule() {
-        Rule::scilisp => read(ast, pair.into_inner().next().unwrap()),
+        Rule::scilisp => read_scilisp(ast, pair.into_inner().next().unwrap()),
         Rule::nil => Value::as_nil(),
         Rule::bool => Value::as_bool(pair),
         Rule::i64 => Value::as_i64(pair),
@@ -43,9 +45,9 @@ pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
                                 "map must have even number of elements".to_string(),
                             ));
                         }
-                        read(ast, p[0].clone())
+                        read_scilisp(ast, p[0].clone())
                     }
-                    .and_then(|key| read(ast, p[1].clone()).map(|value| (key, value)))
+                    .and_then(|key| read_scilisp(ast, p[1].clone()).map(|value| (key, value)))
                 })
                 .collect();
             result?
@@ -68,27 +70,39 @@ pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
     }
 }
 
+pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<()> {
+    if pair.as_rule() != Rule::scilisp {
+        return Err(Error::Syntax("expected scilisp expression".to_string()));
+    }
+    for expr in pair.into_inner() {
+        if expr.as_rule() != Rule::EOI {
+            read_scilisp(ast, expr)?;
+        }
+    }
+    Ok(())
+}
+
 fn quote_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
     let pair = pair.into_inner().next().unwrap();
-    let value = read(ast, pair)?;
+    let value = read_scilisp(ast, pair)?;
     Value::as_list(vec![Value::Symbol(SYMBOL_QUOTE), value])
 }
 
 fn syntax_quote_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
     let pair = pair.into_inner().next().unwrap();
-    let value = read(ast, pair)?;
+    let value = read_scilisp(ast, pair)?;
     Value::as_list(vec![Value::Symbol(SYMBOL_SYNTAX_QUOTE), value])
 }
 
 fn unquote_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
     let pair = pair.into_inner().next().unwrap();
-    let value = read(ast, pair)?;
+    let value = read_scilisp(ast, pair)?;
     Value::as_list(vec![Value::Symbol(SYMBOL_UNQUOTE), value])
 }
 
 fn unquote_splicing_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
     let pair = pair.into_inner().next().unwrap();
-    let value = read(ast, pair)?;
+    let value = read_scilisp(ast, pair)?;
     Value::as_list(vec![Value::Symbol(SYMBOL_UNQUOTE_SPLICING), value])
 }
 

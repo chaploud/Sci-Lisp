@@ -21,5 +21,5 @@ symbol              ; symbol
 
 ; (type [1, 2, 3])             ; show type
 ; (time (+ 1 2))               ; measure processing time
-; (print {:a 2, :b 3})         ; print any
+(print {:a 2, :b 3})         ; print any
 ; (printf "{0:02d}kg" 56)      ; print format
