@@ -16,6 +16,31 @@ use crate::core::types::symbol::Symbol;
 use crate::core::types::vector::Vector;
 use crate::core::value::Value;
 
+// ===== define macros
+pub const SYMBOL_DEF: Symbol = Symbol {
+    name: Cow::Borrowed("def"),
+    meta: Meta {
+        doc: Cow::Borrowed("Bind a value to a symbol."),
+        mutable: false,
+    },
+};
+
+pub const SYMBOL_CONST: Symbol = Symbol {
+    name: Cow::Borrowed("const"),
+    meta: Meta {
+        doc: Cow::Borrowed("Bind a value to a symbol."),
+        mutable: false,
+    },
+};
+
+pub const SYMBOL_SET: Symbol = Symbol {
+    name: Cow::Borrowed("set!"),
+    meta: Meta {
+        doc: Cow::Borrowed("Bind a value to a symbol."),
+        mutable: false,
+    },
+};
+
 // ===== Reader macros
 pub const SYMBOL_QUOTE: Symbol = Symbol {
     name: Cow::Borrowed("quote"),
@@ -67,14 +92,7 @@ pub const SYMBOL_UNQUOTING: Symbol = Symbol {
 
 // ===== Core macros
 pub const DEF: Macro = Macro {
-    name: Symbol {
-        name: Cow::Borrowed("def"),
-        meta: Meta {
-            doc: Cow::Borrowed("Bind a value to a symbol."),
-            mutable: false,
-        },
-    },
-    func: |args, environment, ast, evalfn| {
+    name: SYMBOL_DEF,
         if args.len() != 2 {
             return Err(arity_error(2, args.len()));
         }
@@ -257,14 +275,7 @@ pub const DO: Macro = Macro {
 };
 
 pub const CONST: Macro = Macro {
-    name: Symbol {
-        name: Cow::Borrowed("const"),
-        meta: Meta {
-            doc: Cow::Borrowed("Bind a value to a symbol."),
-            mutable: false,
-        },
-    },
-    func: |args, environment, ast, evalfn| {
+    name: SYMBOL_CONST,
         if args.len() != 2 {
             return Err(arity_error(2, args.len()));
         }
@@ -305,14 +316,7 @@ pub const CONST: Macro = Macro {
 };
 
 pub const SET: Macro = Macro {
-    name: Symbol {
-        name: Cow::Borrowed("set!"),
-        meta: Meta {
-            doc: Cow::Borrowed("Bind a value to a symbol."),
-            mutable: false,
-        },
-    },
-    func: |args, environment, ast, evalfn| {
+    name: SYMBOL_SET,
         if args.len() != 2 {
             return Err(arity_error(2, args.len()));
         }

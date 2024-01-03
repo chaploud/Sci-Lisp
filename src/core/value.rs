@@ -1,7 +1,7 @@
 /* core/value.rs */
 
 use std::cmp::Ordering;
-use std::fmt::{self, format};
+use std::fmt;
 use std::hash::Hash;
 use std::ops::{Add, Div, Mul, Rem, Sub};
 
@@ -104,11 +104,8 @@ impl fmt::Display for Value {
             Set(s) => write!(f, "{}", s),
             Function(func) => write!(f, "{}", func),
             Macro(mac) => write!(f, "{}", mac),
-            Splicing(v) => {
-                let mut result = format!("{:?}", v);
-                result = result.replace(",", "");
-                result = result[1..result.len() - 1].to_string();
-                write!(f, "{}", result)
+            Splicing(_) => {
+                write!(f, "splicing")
             }
         }
     }
