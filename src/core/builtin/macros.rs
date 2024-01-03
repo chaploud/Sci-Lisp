@@ -90,7 +90,15 @@ pub const DEF: Macro = Macro {
         }
 
         let symbol = match args_for_def[0].clone() {
-            Value::Symbol(sym) => sym,
+            Value::Symbol(sym) => {
+                if sym.name.starts_with("*") {
+                    return Err(Error::Type(format!(
+                        "set!: cannot set special variable '{}'",
+                        sym.name
+                    )));
+                }
+                sym
+            }
             _ => {
                 return Err(Error::Type(
                     "def: first argument must be a symbol".to_string(),
@@ -268,7 +276,15 @@ pub const CONST: Macro = Macro {
         }
 
         let mut symbol = match args_for_def[0].clone() {
-            Value::Symbol(sym) => sym,
+            Value::Symbol(sym) => {
+                if sym.name.starts_with("*") {
+                    return Err(Error::Type(format!(
+                        "set!: cannot set special variable '{}'",
+                        sym.name
+                    )));
+                }
+                sym
+            }
             _ => {
                 return Err(Error::Type(
                     "const: first argument must be a symbol".to_string(),

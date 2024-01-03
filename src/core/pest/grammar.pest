@@ -38,11 +38,11 @@ quote = { "'" ~ expr }
 syntax_quote = { "`" ~ expr }
 unquote = { "~" ~ expr }
 unquote_splicing = { "~@" ~ expr }
-expand = { "@" ~ expr }
+// expand = { "@" ~ expr }
 
 expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string
         | list | vector | map | set
-        | quote | syntax_quote | unquote | unquote_splicing | expand }
+        | quote | syntax_quote | unquote | unquote_splicing }
 
 scilisp = { SOI ~ expr* ~ EOI}
 
