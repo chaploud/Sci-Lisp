@@ -10,6 +10,28 @@ use crate::core::types::set::Set;
 use crate::core::types::vector::Vector;
 use crate::core::value::Value;
 
+pub fn splice(value: Value) -> Vec<Value> {
+    match value {
+        Value::Splicing(s) => {
+            let mut res: Vec<Value> = vec![];
+            for v in s {
+                res.push(v);
+            }
+            res
+        }
+        _ => vec![value],
+    }
+}
+
+pub fn ast_eval(
+    environment: &mut Environment,
+    ast: &mut Vec<Value>,
+    value: Value,
+) -> Result<Value> {
+    ast.push(value.clone());
+    eval(environment, ast)
+}
+
 pub fn ast_eval_with_splice(
     environment: &mut Environment,
     ast: &mut Vec<Value>,
@@ -51,8 +73,7 @@ pub fn eval_list(
         Value::Function(func) => {
             let args: Result<Vec<Value>> = rest
                 .into_iter()
-                .map(|v| ast_eval_with_splice(environment, ast, v))
-                .flatten()
+                .map(|v| ast_eval(environment, ast, v))
                 .collect();
             func.call(args?)
         }
@@ -98,28 +119,18 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
             let result: Result<Vec<Value>> = vector
                 .value
                 .into_iter()
-                .map(|v| ast_eval_with_splice(environment, ast, v))
-                .flatten()
+                .map(|v| ast_eval(environment, ast, v))
                 .collect();
             Ok(Value::Vector(Vector::from(result?)))
         }
         Value::Map(map) => {
-            let (keys, values): (Vec<_>, Vec<_>) = map
+            let result: Result<Vec<(Value, Value)>> = map
                 .value
                 .into_iter()
                 .map(|(k, v)| {
-                    (
-                        ast_eval_with_splice(environment, ast, k),
-                        ast_eval_with_splice(environment, ast, v),
-                    )
+                    { ast_eval(environment, ast, k) }
+                        .and_then(|ek| ast_eval(environment, ast, v).map(|ev| (ek, ev)))
                 })
-                .unzip();
-            let keys: Result<Vec<Value>> = keys.into_iter().flatten().collect();
-            let values: Result<Vec<Value>> = values.into_iter().flatten().collect();
-            let result: Result<Vec<(Value, Value)>> = keys?
-                .into_iter()
-                .zip(values?.into_iter())
-                .map(|(k, v)| Ok((k, v)))
                 .collect();
 
             Ok(Value::Map(Map::from(result?)))
@@ -128,8 +139,7 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
             let result: Result<Vec<Value>> = set
                 .value
                 .into_iter()
-                .map(|v| ast_eval_with_splice(environment, ast, v))
-                .flatten()
+                .map(|v| ast_eval(environment, ast, v))
                 .collect();
             Ok(Value::Set(Set::from(result?)))
         }
