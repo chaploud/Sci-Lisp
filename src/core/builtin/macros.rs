@@ -5,9 +5,7 @@ use std::vec;
 
 use crate::core::environment::Environment;
 use crate::core::types::error::Error;
-use crate::core::types::error::Result;
 use crate::core::types::error::{arity_error, arity_error_min, arity_error_range};
-use crate::core::types::list::List;
 use crate::core::types::meta::Meta;
 use crate::core::types::r#macro::Macro;
 use crate::core::types::symbol::Symbol;

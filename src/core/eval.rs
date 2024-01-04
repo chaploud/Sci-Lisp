@@ -6,8 +6,6 @@ use crate::core::types::error::Error;
 use crate::core::types::error::Result;
 use crate::core::types::list::List;
 use crate::core::types::map::Map;
-use crate::core::types::set::Set;
-use crate::core::types::vector::Vector;
 use crate::core::value::Value;
 
 pub fn is_need_eval(environment: &mut Environment) -> bool {
@@ -22,6 +20,20 @@ pub fn is_need_eval(environment: &mut Environment) -> bool {
     };
 
     return !in_syntax_quote || in_unquoting;
+}
+
+pub fn splice_args(args: Vec<Value>) -> Result<Vec<Value>> {
+    let mut ret = Vec::<Value>::new();
+    for arg in args {
+        if let Value::Splicing(spl) = arg {
+            for s in spl {
+                ret.push(s);
+            }
+            continue;
+        }
+        ret.push(arg);
+    }
+    Ok(ret)
 }
 
 pub fn ast_eval(
@@ -56,17 +68,8 @@ pub fn eval_list(
                 .into_iter()
                 .map(|v| ast_eval(environment, ast, v))
                 .collect();
-            let mut args = Vec::<Value>::new();
-            for v in ret? {
-                if let Value::Splicing(spl) = v {
-                    for s in spl {
-                        args.push(s);
-                    }
-                    continue;
-                }
-                args.push(v);
-            }
-            func.call(args)
+
+            func.call(splice_args(ret?)?)
         }
         Value::Macro(mac) => mac.call(rest, environment, ast, eval),
         f => {
@@ -78,18 +81,20 @@ pub fn eval_list(
                 .into_iter()
                 .map(|v| ast_eval(environment, ast, v))
                 .collect();
-            let mut args = Vec::<Value>::new();
-            for v in ret? {
-                if let Value::Splicing(spl) = v {
-                    for s in spl {
-                        args.push(s);
-                    }
-                    continue;
+
+            let mut args = splice_args(ret?)?;
+
+            if let Value::Splicing(spl) = fst {
+                let mut firsts = Vec::<Value>::new();
+                for s in spl {
+                    firsts.push(s);
                 }
-                args.push(v);
+                firsts.extend(args);
+                return Value::as_list(firsts);
+            } else {
+                args.insert(0, fst);
+                return Value::as_list(args);
             }
-            args.insert(0, fst);
-            Value::as_list(args)
         }
     };
 
@@ -123,17 +128,9 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
                 .into_iter()
                 .map(|v| ast_eval(environment, ast, v))
                 .collect();
-            let mut ret = Vector::new();
-            for v in result? {
-                if let Value::Splicing(spl) = v {
-                    for s in spl {
-                        ret.value.push(s);
-                    }
-                    continue;
-                }
-                ret.value.push(v);
-            }
-            Ok(Value::Vector(ret))
+
+            let ret = splice_args(result?)?;
+            Value::as_vector(ret)
         }
         Value::Map(map) => {
             let result: Result<Vec<(Value, Value)>> = map
@@ -164,17 +161,9 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
                 .into_iter()
                 .map(|v| ast_eval(environment, ast, v))
                 .collect();
-            let mut ret = Set::new();
-            for v in result? {
-                if let Value::Splicing(spl) = v {
-                    for s in spl {
-                        ret.value.insert(s);
-                    }
-                    continue;
-                }
-                ret.value.insert(v);
-            }
-            Ok(Value::Set(ret))
+
+            let ret = splice_args(result?)?;
+            Value::as_set(ret)
         }
         _ => unreachable!(),
     }
