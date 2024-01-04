@@ -5,7 +5,9 @@ use std::vec;
 
 use crate::core::environment::Environment;
 use crate::core::types::error::Error;
+use crate::core::types::error::Result;
 use crate::core::types::error::{arity_error, arity_error_min, arity_error_range};
+use crate::core::types::list::List;
 use crate::core::types::meta::Meta;
 use crate::core::types::r#macro::Macro;
 use crate::core::types::symbol::Symbol;
@@ -164,12 +166,12 @@ pub const UNQUOTE_SPLICING: Macro = Macro {
         let mut local_env = Environment::new(None, Some(environment));
         local_env.put(&SYMBOL_UNQUOTING, Value::Bool(true))?;
 
-        let mut result: Vec<Value> = vec![];
-
         let mut arg: Value = args[0].clone();
         if let Value::Symbol(sym) = arg {
             arg = environment.get(&sym)?.clone();
         }
+
+        let mut result: Vec<Value> = vec![];
 
         match arg {
             Value::List(l) => {
@@ -474,7 +476,6 @@ pub const LET: Macro = Macro {
     },
 };
 
-// TODO: performance?
 pub const SWITCH: Macro = Macro {
     name: Symbol {
         name: Cow::Borrowed("switch"),
@@ -556,5 +557,6 @@ pub const ALL_MACROS: [Value; 11] = [
 // StructMacro,
 // MacroMacro,
 // ClassMacro,
-// ThreadMacro,
+// ThreadArrowMacro,
+// DoubleThreadArrowMacro
 // AND, OR

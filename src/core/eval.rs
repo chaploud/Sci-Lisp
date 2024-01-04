@@ -1,6 +1,6 @@
 /* core/eval.rs */
 
-use crate::core::builtin::macros::{SYMBOL_SYNTAX_QUOTING, SYMBOL_UNQUOTING, UNQUOTE_SPLICING};
+use crate::core::builtin::macros::{SYMBOL_SYNTAX_QUOTING, SYMBOL_UNQUOTING};
 use crate::core::environment::Environment;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
@@ -10,13 +10,27 @@ use crate::core::types::set::Set;
 use crate::core::types::vector::Vector;
 use crate::core::value::Value;
 
+pub fn is_need_eval(environment: &mut Environment) -> bool {
+    let in_syntax_quote = match environment.get(&SYMBOL_SYNTAX_QUOTING) {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+
+    let in_unquoting = match environment.get(&SYMBOL_UNQUOTING) {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+
+    return !in_syntax_quote || in_unquoting;
+}
+
 pub fn ast_eval(
     environment: &mut Environment,
     ast: &mut Vec<Value>,
     value: Value,
 ) -> Result<Value> {
     ast.push(value.clone());
-    eval(environment, ast)
+    return eval(environment, ast);
 }
 
 pub fn eval_list(
@@ -31,7 +45,7 @@ pub fn eval_list(
 
     let first = match first {
         Value::Symbol(sym) => environment.get(sym)?.clone(),
-        _ => return Err(Error::Syntax(format!("cannot call '{}'", first))),
+        f => f.clone(),
     };
 
     let rest: Vec<Value> = list.value[1..].to_vec();
@@ -55,7 +69,28 @@ pub fn eval_list(
             func.call(args)
         }
         Value::Macro(mac) => mac.call(rest, environment, ast, eval),
-        _ => Err(Error::Syntax(format!("cannot call '{}'", first))),
+        f => {
+            if is_need_eval(environment) {
+                return Err(Error::Syntax(format!("cannot call '{}'", f)));
+            }
+            let fst: Value = ast_eval(environment, ast, f)?;
+            let ret: Result<Vec<Value>> = rest
+                .into_iter()
+                .map(|v| ast_eval(environment, ast, v))
+                .collect();
+            let mut args = Vec::<Value>::new();
+            for v in ret? {
+                if let Value::Splicing(spl) = v {
+                    for s in spl {
+                        args.push(s);
+                    }
+                    continue;
+                }
+                args.push(v);
+            }
+            args.insert(0, fst);
+            Value::as_list(args)
+        }
     };
 
     result
@@ -67,16 +102,6 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
         None => Value::Nil,
     };
 
-    let in_syntax_quote = match environment.get(&SYMBOL_SYNTAX_QUOTING) {
-        Ok(_) => true,
-        Err(_) => false,
-    };
-
-    let in_unquoting = match environment.get(&SYMBOL_UNQUOTING) {
-        Ok(_) => true,
-        Err(_) => false,
-    };
-
     match val {
         Value::Nil
         | Value::Bool(_)
@@ -85,7 +110,7 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
         | Value::Regex(_)
         | Value::String(_) => Ok(val),
         Value::Symbol(symbol) => {
-            if in_syntax_quote && !in_unquoting {
+            if !is_need_eval(environment) {
                 return Ok(Value::Symbol(symbol));
             }
             Ok(environment.get(&symbol)?.clone())
