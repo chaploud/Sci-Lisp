@@ -206,8 +206,7 @@ pub const UNQUOTE_SPLICING: Macro = Macro {
                     .to_string(),
             ))?,
         }
-
-        Ok(Value::Splicing(result))
+        Ok(Value::Nil)
     },
 };
 

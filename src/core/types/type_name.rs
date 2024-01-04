@@ -18,7 +18,6 @@ pub enum TypeName {
     Set,
     Function,
     Macro,
-    Splicing,
 }
 
 use TypeName::*;
@@ -39,7 +38,6 @@ impl fmt::Display for TypeName {
             Set => "set".to_string(),
             Function => "function".to_string(),
             Macro => "macro".to_string(),
-            Splicing => "splicing".to_string(),
         };
         write!(f, "{}", str)
     }
