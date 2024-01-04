@@ -206,7 +206,28 @@ pub const UNQUOTE_SPLICING: Macro = Macro {
                     .to_string(),
             ))?,
         }
-        Ok(Value::Nil)
+
+        if let Some(parent) = ast.last() {
+            match parent {
+                Value::List(l) => {
+                    if let Value::Symbol(sym) = l.value[0].clone() {
+                        if sym == SYMBOL_UNQUOTE_SPLICING {
+                            Err(Error::Syntax(
+                                "unquote-splicing: parent must be a list, vector or set"
+                                    .to_string(),
+                            ))?
+                        }
+                    }
+                }
+                Value::Vector(_) => {}
+                Value::Set(_) => {}
+                _ => Err(Error::Syntax(
+                    "unquote-splicing: parent must be a list, vector, or set".to_string(),
+                ))?,
+            }
+        }
+
+        Value::as_list(result)
     },
 };
 
@@ -557,3 +578,5 @@ pub const ALL_MACROS: [Value; 11] = [
 // ThreadArrowMacro,
 // DoubleThreadArrowMacro
 // AND, OR
+// GENSYM/AUTO-GENSYM
+// SEQUENCE/RANGE
