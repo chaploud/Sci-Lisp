@@ -7,7 +7,7 @@ use crate::core::types::error::Result;
 use crate::core::types::symbol::Symbol;
 use crate::core::value::Value;
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct Function {
     pub name: Symbol,
     pub func: fn(Vec<Value>) -> Result<Value>,
@@ -16,12 +16,6 @@ pub struct Function {
 impl Function {
     pub fn call(&self, args: Vec<Value>) -> Result<Value> {
         (self.func)(args)
-    }
-}
-
-impl std::fmt::Debug for Function {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "function: '{}' ", self.name)
     }
 }
 

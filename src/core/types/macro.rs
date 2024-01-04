@@ -8,6 +8,7 @@ use crate::core::types::error::Result;
 use crate::core::types::symbol::Symbol;
 use crate::core::value::Value;
 
+#[derive(Debug)]
 pub struct Macro {
     pub name: Symbol,
     pub func: fn(
@@ -26,12 +27,6 @@ impl Macro {
         evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
     ) -> Result<Value> {
         (self.func)(args, environment, ast, evalfn)
-    }
-}
-
-impl std::fmt::Debug for Macro {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "macro: '{}' ", self.name)
     }
 }
 

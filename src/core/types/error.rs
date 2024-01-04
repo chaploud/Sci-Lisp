@@ -36,9 +36,9 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use Error::*;
         match self {
-            ParseBool(err) => write!(f, "Parse Bool Error: {:#?}", err),
-            ParseInt(err) => write!(f, "Parse Int Error: {:#?}", err),
-            ParseFloat(err) => write!(f, "Parse Float Error: {:#?}", err),
+            ParseBool(err) => write!(f, "Parse Bool Error: {}", err),
+            ParseInt(err) => write!(f, "Parse Int Error: {}", err),
+            ParseFloat(err) => write!(f, "Parse Float Error: {}", err),
             PestParse(err) => match err.line_col {
                 pest::error::LineColLocation::Pos(pos) => {
                     write!(f, "Parse Error: at {}:{}", pos.0, pos.1)
@@ -51,9 +51,9 @@ impl fmt::Display for Error {
                     )
                 }
             },
-            Regex(err) => write!(f, "Regex Error: {:#?}", err),
-            IO(err) => write!(f, "IO Error: {:#?}", err),
-            Readline(err) => write!(f, "Readline Error: {:#?}", err),
+            Regex(err) => write!(f, "Regex Error: {}", err),
+            IO(err) => write!(f, "IO Error: {}", err),
+            Readline(err) => write!(f, "Readline Error: {}", err),
             Name(msg) => write!(f, "Name Error: '{}' is not defined", msg),
             Type(msg) => write!(f, "Type Error: {}", msg),
             NotCallable(msg) => write!(f, "Not Callable Error: '{}' is not callable", msg),

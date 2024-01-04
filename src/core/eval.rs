@@ -10,7 +10,7 @@ use crate::core::types::set::Set;
 use crate::core::types::vector::Vector;
 use crate::core::value::Value;
 
-fn ast_eval_with_splice(
+pub fn ast_eval_with_splice(
     environment: &mut Environment,
     ast: &mut Vec<Value>,
     value: Value,
@@ -40,12 +40,12 @@ pub fn eval_list(
         Some(first) => first,
     };
 
-    let rest = list.value[1..].to_vec();
-
     let first = match first {
         Value::Symbol(sym) => environment.get(sym)?.clone(),
         _ => return Err(Error::Syntax(format!("cannot call '{}'", first))),
     };
+
+    let rest: Vec<Value> = list.value[1..].to_vec();
 
     let result: Result<Value> = match first {
         Value::Function(func) => {

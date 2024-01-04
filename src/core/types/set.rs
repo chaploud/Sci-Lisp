@@ -58,7 +58,14 @@ impl Ord for Set {
 
 impl fmt::Display for Set {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "#{:?}", self.value)
+        let mut result = String::new();
+        for (n, val) in self.value.iter().enumerate() {
+            if n > 0 {
+                result += ", ";
+            }
+            result += format!("{}", val).as_str();
+        }
+        write!(f, "#{{{}}}", result)
     }
 }
 

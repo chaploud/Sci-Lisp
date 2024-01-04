@@ -26,11 +26,14 @@ impl List {
 
 impl fmt::Display for List {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut result = format!("{:?}", self.value);
-        result = result.replace(",", "");
-        result = result[1..result.len() - 1].to_string();
-        result = format!("({})", result);
-        write!(f, "{}", result)
+        let mut result = String::new();
+        for (n, val) in self.value.iter().enumerate() {
+            if n > 0 {
+                result += " ";
+            }
+            result += format!("{}", val).as_str();
+        }
+        write!(f, "({})", result)
     }
 }
 
