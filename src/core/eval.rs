@@ -1,6 +1,6 @@
 /* core/eval.rs */
 
-use crate::core::builtin::macros::{SYMBOL_SYNTAX_QUOTING, SYMBOL_UNQUOTING};
+use crate::core::builtin::macros::{SYMBOL_SYNTAX_QUOTING, SYMBOL_UNQUOTING, UNQUOTE_SPLICING};
 use crate::core::environment::Environment;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
@@ -10,19 +10,6 @@ use crate::core::types::set::Set;
 use crate::core::types::vector::Vector;
 use crate::core::value::Value;
 
-pub fn splice(value: Value) -> Vec<Value> {
-    match value {
-        Value::Splicing(s) => {
-            let mut res: Vec<Value> = vec![];
-            for v in s {
-                res.push(v);
-            }
-            res
-        }
-        _ => vec![value],
-    }
-}
-
 pub fn ast_eval(
     environment: &mut Environment,
     ast: &mut Vec<Value>,
@@ -30,26 +17,6 @@ pub fn ast_eval(
 ) -> Result<Value> {
     ast.push(value.clone());
     eval(environment, ast)
-}
-
-pub fn ast_eval_with_splice(
-    environment: &mut Environment,
-    ast: &mut Vec<Value>,
-    value: Value,
-) -> Vec<Result<Value>> {
-    match value {
-        Value::Splicing(s) => {
-            let mut res: Vec<Result<Value>> = vec![];
-            for v in s {
-                res.push(Ok(v));
-            }
-            res
-        }
-        _ => {
-            ast.push(value.clone());
-            vec![eval(environment, ast)]
-        }
-    }
 }
 
 pub fn eval_list(
@@ -71,11 +38,21 @@ pub fn eval_list(
 
     let result: Result<Value> = match first {
         Value::Function(func) => {
-            let args: Result<Vec<Value>> = rest
+            let ret: Result<Vec<Value>> = rest
                 .into_iter()
                 .map(|v| ast_eval(environment, ast, v))
                 .collect();
-            func.call(args?)
+            let mut args = Vec::<Value>::new();
+            for v in ret? {
+                if let Value::Splicing(spl) = v {
+                    for s in spl {
+                        args.push(s);
+                    }
+                    continue;
+                }
+                args.push(v);
+            }
+            func.call(args)
         }
         Value::Macro(mac) => mac.call(rest, environment, ast, eval),
         _ => Err(Error::Syntax(format!("cannot call '{}'", first))),
@@ -121,7 +98,17 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
                 .into_iter()
                 .map(|v| ast_eval(environment, ast, v))
                 .collect();
-            Ok(Value::Vector(Vector::from(result?)))
+            let mut ret = Vector::new();
+            for v in result? {
+                if let Value::Splicing(spl) = v {
+                    for s in spl {
+                        ret.value.push(s);
+                    }
+                    continue;
+                }
+                ret.value.push(v);
+            }
+            Ok(Value::Vector(ret))
         }
         Value::Map(map) => {
             let result: Result<Vec<(Value, Value)>> = map
@@ -133,7 +120,18 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
                 })
                 .collect();
 
-            Ok(Value::Map(Map::from(result?)))
+            let mut ret = Map::new();
+            for (k, v) in result? {
+                if let Value::Splicing(_) = k {
+                    return Err(Error::Syntax(format!("cannot splice as a key in a map",)));
+                }
+                if let Value::Splicing(_) = v {
+                    return Err(Error::Syntax(format!("cannot splice as a value in a map",)));
+                }
+                ret.value.insert(k, v);
+            }
+
+            Ok(Value::Map(ret))
         }
         Value::Set(set) => {
             let result: Result<Vec<Value>> = set
@@ -141,7 +139,17 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
                 .into_iter()
                 .map(|v| ast_eval(environment, ast, v))
                 .collect();
-            Ok(Value::Set(Set::from(result?)))
+            let mut ret = Set::new();
+            for v in result? {
+                if let Value::Splicing(spl) = v {
+                    for s in spl {
+                        ret.value.insert(s);
+                    }
+                    continue;
+                }
+                ret.value.insert(v);
+            }
+            Ok(Value::Set(ret))
         }
         _ => unreachable!(),
     }
