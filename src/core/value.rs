@@ -35,7 +35,7 @@ pub enum Value {
     Map(Map),
     Set(Set),
     Function(Function),
-    Macro(Macro),
+    Macro(dyn Macro),
 }
 
 use crate::core::value::Value::*;

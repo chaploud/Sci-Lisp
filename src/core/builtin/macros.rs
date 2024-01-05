@@ -5,6 +5,7 @@ use std::vec;
 
 use crate::core::environment::Environment;
 use crate::core::types::error::Error;
+use crate::core::types::error::Result;
 use crate::core::types::error::{arity_error, arity_error_min, arity_error_range};
 use crate::core::types::meta::Meta;
 use crate::core::types::r#macro::Macro;
@@ -12,7 +13,7 @@ use crate::core::types::symbol::Symbol;
 use crate::core::types::vector::Vector;
 use crate::core::value::Value;
 
-// ===== define macros
+// def
 pub const SYMBOL_DEF: Symbol = Symbol {
     name: Cow::Borrowed("def"),
     meta: Meta {
@@ -21,75 +22,20 @@ pub const SYMBOL_DEF: Symbol = Symbol {
     },
 };
 
-pub const SYMBOL_CONST: Symbol = Symbol {
-    name: Cow::Borrowed("const"),
-    meta: Meta {
-        doc: Cow::Borrowed("Bind a value to a symbol."),
-        mutable: false,
-    },
-};
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DefMacro;
 
-pub const SYMBOL_SET: Symbol = Symbol {
-    name: Cow::Borrowed("set!"),
-    meta: Meta {
-        doc: Cow::Borrowed("Bind a value to a symbol."),
-        mutable: false,
-    },
-};
-
-// ===== Reader macros
-pub const SYMBOL_QUOTE: Symbol = Symbol {
-    name: Cow::Borrowed("quote"),
-    meta: Meta {
-        doc: Cow::Borrowed("Quote a value."),
-        mutable: false,
-    },
-};
-
-pub const SYMBOL_SYNTAX_QUOTE: Symbol = Symbol {
-    name: Cow::Borrowed("syntax-quote"),
-    meta: Meta {
-        doc: Cow::Borrowed("Syntax-quote a value."),
-        mutable: false,
-    },
-};
-
-pub const SYMBOL_UNQUOTE: Symbol = Symbol {
-    name: Cow::Borrowed("unquote"),
-    meta: Meta {
-        doc: Cow::Borrowed("Unquote a value."),
-        mutable: false,
-    },
-};
-
-pub const SYMBOL_UNQUOTE_SPLICING: Symbol = Symbol {
-    name: Cow::Borrowed("unquote-splicing"),
-    meta: Meta {
-        doc: Cow::Borrowed("Unquote-splicing a value."),
-        mutable: false,
-    },
-};
-
-pub const SYMBOL_SYNTAX_QUOTING: Symbol = Symbol {
-    name: Cow::Borrowed("*syntax-quoting*"),
-    meta: Meta {
-        doc: Cow::Borrowed("Internal variable for syntax-quoting."),
-        mutable: false,
-    },
-};
-
-pub const SYMBOL_UNQUOTING: Symbol = Symbol {
-    name: Cow::Borrowed("*unquoting*"),
-    meta: Meta {
-        doc: Cow::Borrowed("Internal variable for unquoting."),
-        mutable: false,
-    },
-};
-
-// ===== Core macros
-pub const DEF: Macro = Macro {
-    name: SYMBOL_DEF,
-    func: |args, environment, ast, evalfn| {
+impl Macro for DefMacro {
+    fn name(&self) -> Symbol {
+        SYMBOL_DEF
+    }
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &mut Environment,
+        ast: &mut Vec<Value>,
+        evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
         if args.len() != 2 {
             return Err(arity_error(2, args.len()));
         }
@@ -125,23 +71,292 @@ pub const DEF: Macro = Macro {
 
         environment.put(&symbol, value)?;
         Ok(Value::Symbol(symbol))
+    }
+}
+
+// const
+pub const SYMBOL_CONST: Symbol = Symbol {
+    name: Cow::Borrowed("const"),
+    meta: Meta {
+        doc: Cow::Borrowed("Bind a value to a symbol."),
+        mutable: false,
     },
 };
 
-pub const QUOTE: Macro = Macro {
-    name: SYMBOL_QUOTE,
-    func: |args, _, _, _| {
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ConstMacro;
+
+impl Macro for ConstMacro {
+    fn name(&self) -> Symbol {
+        SYMBOL_CONST
+    }
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &mut Environment,
+        ast: &mut Vec<Value>,
+        evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        let mut args_for_def: Vec<Value> = vec![];
+        for (i, v) in args.into_iter().enumerate() {
+            if i == 0 {
+                args_for_def.push(v);
+            } else {
+                ast.push(v.clone()); // NOTE: need to clone here
+                args_for_def.push(evalfn(environment, ast)?);
+            }
+        }
+
+        let mut symbol = match args_for_def[0].clone() {
+            Value::Symbol(sym) => {
+                if sym.name.starts_with("*") {
+                    return Err(Error::Type(format!(
+                        "set!: cannot set special variable '{}'",
+                        sym.name
+                    )));
+                }
+                sym
+            }
+            _ => {
+                return Err(Error::Type(
+                    "const: first argument must be a symbol".to_string(),
+                ))
+            }
+        };
+
+        let value = args_for_def[1].clone();
+        symbol.meta.mutable = false;
+
+        environment.put(&symbol, value)?;
+        Ok(Value::Symbol(symbol))
+    }
+}
+
+// set!
+pub const SYMBOL_SET: Symbol = Symbol {
+    name: Cow::Borrowed("set!"),
+    meta: Meta {
+        doc: Cow::Borrowed("Bind a value to a symbol."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SetMacro;
+
+impl Macro for SetMacro {
+    fn name(&self) -> Symbol {
+        SYMBOL_SET
+    }
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &mut Environment,
+        ast: &mut Vec<Value>,
+        evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        let mut args_for_set: Vec<Value> = vec![];
+        for (i, v) in args.into_iter().enumerate() {
+            if i == 0 {
+                args_for_set.push(v);
+            } else {
+                ast.push(v.clone()); // NOTE: need to clone here
+                args_for_set.push(evalfn(environment, ast)?);
+            }
+        }
+
+        let symbol = match args_for_set[0].clone() {
+            Value::Symbol(sym) => {
+                if sym.name.starts_with("*") {
+                    return Err(Error::Type(format!(
+                        "set!: cannot set special variable '{}'",
+                        sym.name
+                    )));
+                }
+                sym
+            }
+            _ => {
+                return Err(Error::Type(
+                    "set: first argument must be a symbol".to_string(),
+                ))
+            }
+        };
+
+        let value = args_for_set[1].clone();
+
+        environment.get(&symbol)?;
+        environment.put(&symbol, value)?;
+        Ok(Value::Symbol(symbol))
+    }
+}
+
+// let
+pub const SYMBOL_LET: Symbol = Symbol {
+    name: Cow::Borrowed("let"),
+    meta: Meta {
+        doc: Cow::Borrowed("Bind a value to a symbol in a local scope."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LetMacro;
+
+impl Macro for LetMacro {
+    fn name(&self) -> Symbol {
+        SYMBOL_LET
+    }
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &mut Environment,
+        ast: &mut Vec<Value>,
+        evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
+        if args.len() < 1 {
+            return Err(arity_error_min(1, args.len()));
+        }
+
+        let mut local_env = Environment::new(None, Some(environment));
+
+        let bind_form = match &args[0] {
+            Value::Vector(v) => v,
+            _ => {
+                return Err(Error::Syntax(
+                    "let: first argument must be a vector".to_string(),
+                ))
+            }
+        };
+
+        if bind_form.value.len() % 2 != 0 {
+            return Err(Error::Syntax(
+                "let: first argument must be a vector of even length".to_string(),
+            ));
+        }
+
+        bind_form.value.chunks(2).for_each(|chunk| {
+            let symbol = match &chunk[0] {
+                Value::Symbol(sym) => sym,
+                _ => Err(Error::Type(
+                    "let: first element of each pair must be a symbol".to_string(),
+                )),
+            };
+
+            let value = chunk[1].clone();
+
+            local_env.put(symbol, value).unwrap();
+        });
+
+        let mut result = Value::Nil;
+        for arg in args.into_iter().skip(1) {
+            ast.push(arg.clone());
+            result = evalfn(&mut local_env, ast)?;
+        }
+
+        Ok(result)
+    }
+}
+
+// quote(')
+pub const SYMBOL_QUOTE: Symbol = Symbol {
+    name: Cow::Borrowed("quote"),
+    meta: Meta {
+        doc: Cow::Borrowed("Quote a value."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct QuoteMacro;
+
+impl Macro for QuoteMacro {
+    fn name(&self) -> Symbol {
+        SYMBOL_QUOTE
+    }
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &mut Environment,
+        ast: &mut Vec<Value>,
+        evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
 
         Ok(args[0].clone())
+    }
+}
+
+// syntax-quote(`)
+pub const SYMBOL_SYNTAX_QUOTE: Symbol = Symbol {
+    name: Cow::Borrowed("syntax-quote"),
+    meta: Meta {
+        doc: Cow::Borrowed("Syntax-quote a value."),
+        mutable: false,
     },
 };
 
-pub const UNQUOTE: Macro = Macro {
-    name: SYMBOL_UNQUOTE,
-    func: |args, environment, ast, evalfn| {
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SyntaxQuoteMacro;
+
+impl Macro for SyntaxQuoteMacro {
+    fn name(&self) -> Symbol {
+        SYMBOL_SYNTAX_QUOTE
+    }
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &mut Environment,
+        ast: &mut Vec<Value>,
+        evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        // TODO:
+        let mut local_env = Environment::new(None, Some(environment));
+        // local_env.put(&UNQUOTE.name, Value::Macro(UNQUOTE))?;
+        // local_env.put(&UNQUOTE_SPLICING.name, Value::Macro(UNQUOTE_SPLICING))?;
+        // local_env.put(&SYMBOL_SYNTAX_QUOTING, Value::Bool(true))?;
+
+        ast.push(args[0].clone());
+        evalfn(&mut local_env, ast)
+    }
+}
+
+// unquote(~)
+pub const SYMBOL_UNQUOTE: Symbol = Symbol {
+    name: Cow::Borrowed("unquote"),
+    meta: Meta {
+        doc: Cow::Borrowed("Unquote a value."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UnquoteMacro;
+
+impl Macro for UnquoteMacro {
+    fn name(&self) -> Symbol {
+        SYMBOL_UNQUOTE
+    }
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &mut Environment,
+        ast: &mut Vec<Value>,
+        evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -151,12 +366,32 @@ pub const UNQUOTE: Macro = Macro {
 
         ast.push(args[0].clone());
         evalfn(&mut local_env, ast)
+    }
+}
+
+// unquote-splicing(~@)
+pub const SYMBOL_UNQUOTE_SPLICING: Symbol = Symbol {
+    name: Cow::Borrowed("unquote-splicing"),
+    meta: Meta {
+        doc: Cow::Borrowed("Unquote-splicing a value."),
+        mutable: false,
     },
 };
 
-pub const UNQUOTE_SPLICING: Macro = Macro {
-    name: SYMBOL_UNQUOTE_SPLICING,
-    func: |args, environment, ast, evalfn| {
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UnquoteSplicingMacro;
+
+impl Macro for UnquoteSplicingMacro {
+    fn name(&self) -> Symbol {
+        SYMBOL_UNQUOTE_SPLICING
+    }
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &mut Environment,
+        ast: &mut Vec<Value>,
+        evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -228,59 +463,32 @@ pub const UNQUOTE_SPLICING: Macro = Macro {
         }
 
         Value::as_list(result)
+    }
+}
+
+// do
+pub const SYMBOL_DO: Symbol = Symbol {
+    name: Cow::Borrowed("do"),
+    meta: Meta {
+        doc: Cow::Borrowed("Evaluate a series of expressions and return the last result."),
+        mutable: false,
     },
 };
 
-pub const SYNTAX_QUOTE: Macro = Macro {
-    name: SYMBOL_SYNTAX_QUOTE,
-    func: |args, environment, ast, evalfn| {
-        if args.len() != 1 {
-            return Err(arity_error(1, args.len()));
-        }
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DoMacro;
 
-        let mut local_env = Environment::new(None, Some(environment));
-        local_env.put(&UNQUOTE.name, Value::Macro(UNQUOTE))?;
-        local_env.put(&UNQUOTE_SPLICING.name, Value::Macro(UNQUOTE_SPLICING))?;
-        local_env.put(&SYMBOL_SYNTAX_QUOTING, Value::Bool(true))?;
-
-        ast.push(args[0].clone());
-        evalfn(&mut local_env, ast)
-    },
-};
-
-pub const TIME: Macro = Macro {
-    name: Symbol {
-        name: Cow::Borrowed("time"),
-        meta: Meta {
-            doc: Cow::Borrowed("Time the evaluation of an expression."),
-            mutable: false,
-        },
-    },
-    func: |args, environment, ast, evalfn| {
-        if args.len() != 1 {
-            return Err(arity_error(1, args.len()));
-        }
-
-        let start = std::time::Instant::now();
-        ast.push(args[0].clone());
-        let result = evalfn(environment, ast)?;
-
-        let end = std::time::Instant::now();
-        println!("Elapsed time: {:?}", end - start);
-
-        Ok(result)
-    },
-};
-
-pub const DO: Macro = Macro {
-    name: Symbol {
-        name: Cow::Borrowed("do"),
-        meta: Meta {
-            doc: Cow::Borrowed("Evaluate a series of expressions and return the last result."),
-            mutable: false,
-        },
-    },
-    func: |args, environment, ast, evalfn| {
+impl Macro for DoMacro {
+    fn name(&self) -> Symbol {
+        SYMBOL_DO
+    }
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &mut Environment,
+        ast: &mut Vec<Value>,
+        evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
         let mut result = Value::Nil;
         for arg in args {
             ast.push(arg.clone());
@@ -288,102 +496,32 @@ pub const DO: Macro = Macro {
         }
 
         Ok(result)
+    }
+}
+
+// if
+pub const SYMBOL_IF: Symbol = Symbol {
+    name: Cow::Borrowed("if"),
+    meta: Meta {
+        doc: Cow::Borrowed("If the first argument is true, evaluate the second argument. Otherwise, evaluate the third argument."),
+        mutable: false,
     },
 };
 
-pub const CONST: Macro = Macro {
-    name: SYMBOL_CONST,
-    func: |args, environment, ast, evalfn| {
-        if args.len() != 2 {
-            return Err(arity_error(2, args.len()));
-        }
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct IfMacro;
 
-        let mut args_for_def: Vec<Value> = vec![];
-        for (i, v) in args.into_iter().enumerate() {
-            if i == 0 {
-                args_for_def.push(v);
-            } else {
-                ast.push(v.clone()); // NOTE: need to clone here
-                args_for_def.push(evalfn(environment, ast)?);
-            }
-        }
-
-        let mut symbol = match args_for_def[0].clone() {
-            Value::Symbol(sym) => {
-                if sym.name.starts_with("*") {
-                    return Err(Error::Type(format!(
-                        "set!: cannot set special variable '{}'",
-                        sym.name
-                    )));
-                }
-                sym
-            }
-            _ => {
-                return Err(Error::Type(
-                    "const: first argument must be a symbol".to_string(),
-                ))
-            }
-        };
-
-        let value = args_for_def[1].clone();
-        symbol.meta.mutable = false;
-
-        environment.put(&symbol, value)?;
-        Ok(Value::Symbol(symbol))
-    },
-};
-
-pub const SET: Macro = Macro {
-    name: SYMBOL_SET,
-    func: |args, environment, ast, evalfn| {
-        if args.len() != 2 {
-            return Err(arity_error(2, args.len()));
-        }
-
-        let mut args_for_set: Vec<Value> = vec![];
-        for (i, v) in args.into_iter().enumerate() {
-            if i == 0 {
-                args_for_set.push(v);
-            } else {
-                ast.push(v.clone()); // NOTE: need to clone here
-                args_for_set.push(evalfn(environment, ast)?);
-            }
-        }
-
-        let symbol = match args_for_set[0].clone() {
-            Value::Symbol(sym) => {
-                if sym.name.starts_with("*") {
-                    return Err(Error::Type(format!(
-                        "set!: cannot set special variable '{}'",
-                        sym.name
-                    )));
-                }
-                sym
-            }
-            _ => {
-                return Err(Error::Type(
-                    "set: first argument must be a symbol".to_string(),
-                ))
-            }
-        };
-
-        let value = args_for_set[1].clone();
-
-        environment.get(&symbol)?;
-        environment.put(&symbol, value)?;
-        Ok(Value::Symbol(symbol))
-    },
-};
-
-pub const IF: Macro = Macro {
-    name: Symbol {
-        name: Cow::Borrowed("if"),
-        meta: Meta {
-            doc: Cow::Borrowed("If the first argument is true, evaluate the second argument. Otherwise, evaluate the third argument."),
-            mutable: false,
-        },
-    },
-    func: |args, environment, ast, evalfn| {
+impl Macro for IfMacro {
+    fn name(&self) -> Symbol {
+        SYMBOL_IF
+    }
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &mut Environment,
+        ast: &mut Vec<Value>,
+        evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
         if args.len() < 2 || args.len() > 3 {
             return Err(arity_error_range(2, 3, args.len()));
         }
@@ -405,20 +543,32 @@ pub const IF: Macro = Macro {
         }
         let result = evalfn(environment, ast)?;
         Ok(result)
+    }
+}
+
+// while
+pub const SYMBOL_WHILE: Symbol = Symbol {
+    name: Cow::Borrowed("while"),
+    meta: Meta {
+        doc: Cow::Borrowed("While the first expression is true, evaluate the second expression."),
+        mutable: false,
     },
 };
 
-pub const WHILE: Macro = Macro {
-    name: Symbol {
-        name: Cow::Borrowed("while"),
-        meta: Meta {
-            doc: Cow::Borrowed(
-                "While the first expression is true, evaluate the second expression.",
-            ),
-            mutable: false,
-        },
-    },
-    func: |args, environment, ast, evalfn| {
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WhileMacro;
+
+impl Macro for WhileMacro {
+    fn name(&self) -> Symbol {
+        SYMBOL_WHILE
+    }
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &mut Environment,
+        ast: &mut Vec<Value>,
+        evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
         if args.len() != 2 {
             return Err(arity_error(2, args.len()));
         }
@@ -440,69 +590,32 @@ pub const WHILE: Macro = Macro {
         };
 
         Ok(result)
+    }
+}
+
+// switch
+pub const SYMBOL_SWITCH: Symbol = Symbol {
+    name: Cow::Borrowed("switch"),
+    meta: Meta {
+        doc: Cow::Borrowed("Switch macro."),
+        mutable: false,
     },
 };
 
-pub const LET: Macro = Macro {
-    name: Symbol {
-        name: Cow::Borrowed("let"),
-        meta: Meta {
-            doc: Cow::Borrowed("Bind a value to a symbol in a local scope."),
-            mutable: false,
-        },
-    },
-    func: |args, environment, ast, evalfn| {
-        if args.len() < 1 {
-            return Err(arity_error_min(1, args.len()));
-        }
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SwitchMacro;
 
-        let mut local_env = Environment::new(None, Some(environment));
-
-        let bind_form = match &args[0] {
-            Value::Vector(v) => v,
-            _ => {
-                return Err(Error::Syntax(
-                    "let: first argument must be a vector".to_string(),
-                ))
-            }
-        };
-
-        if bind_form.value.len() % 2 != 0 {
-            return Err(Error::Syntax(
-                "let: first argument must be a vector of even length".to_string(),
-            ));
-        }
-
-        bind_form.value.chunks(2).for_each(|chunk| {
-            let symbol = match &chunk[0] {
-                Value::Symbol(sym) => sym,
-                _ => todo!(),
-            };
-
-            let value = chunk[1].clone();
-
-            local_env.put(symbol, value).unwrap();
-        });
-
-        let mut result = Value::Nil;
-        for arg in args.into_iter().skip(1) {
-            ast.push(arg.clone());
-            result = evalfn(&mut local_env, ast)?;
-        }
-
-        Ok(result)
-    },
-};
-
-pub const SWITCH: Macro = Macro {
-    name: Symbol {
-        name: Cow::Borrowed("switch"),
-        meta: Meta {
-            doc: Cow::Borrowed("Switch macro."),
-            mutable: false,
-        },
-    },
-    func: |args, environment, ast, evalfn| {
+impl Macro for SwitchMacro {
+    fn name(&self) -> Symbol {
+        SYMBOL_SWITCH
+    }
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &mut Environment,
+        _ast: &mut Vec<Value>,
+        _evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
         if args.len() < 1 {
             return Err(arity_error_min(1, args.len()));
         }
@@ -513,8 +626,7 @@ pub const SWITCH: Macro = Macro {
             ));
         }
 
-        ast.push(args[0].clone());
-        let val = evalfn(environment, ast)?;
+        let val = args[0].clone();
         let mut result = Value::Nil;
 
         for chunk in args[1..].chunks(2) {
@@ -524,15 +636,13 @@ pub const SWITCH: Macro = Macro {
             match case {
                 Value::Vector(case) => {
                     if case.value.iter().any(|v| *v == val) {
-                        ast.push(expr.clone());
-                        result = evalfn(environment, ast)?;
+                        result = expr.clone();
                         break;
                     }
                 }
                 Value::Keyword(case) => {
                     if case.name == ":default" {
-                        ast.push(expr.clone());
-                        result = evalfn(environment, ast)?;
+                        result = expr.clone();
                         break;
                     } else {
                         return Err(Error::Syntax(
@@ -548,22 +658,44 @@ pub const SWITCH: Macro = Macro {
             }
         }
         Ok(result)
+    }
+}
+
+// time
+pub const SYMBOL_TIME: Symbol = Symbol {
+    name: Cow::Borrowed("time"),
+    meta: Meta {
+        doc: Cow::Borrowed("Time the evaluation of an expression."),
+        mutable: false,
     },
 };
 
-pub const ALL_MACROS: [Value; 11] = [
-    Value::Macro(DEF),
-    Value::Macro(QUOTE),
-    Value::Macro(SYNTAX_QUOTE),
-    Value::Macro(TIME),
-    Value::Macro(DO),
-    Value::Macro(CONST),
-    Value::Macro(SET),
-    Value::Macro(IF),
-    Value::Macro(WHILE),
-    Value::Macro(LET),
-    Value::Macro(SWITCH),
-];
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TimeMacro;
+
+impl Macro for TimeMacro {
+    fn name(&self) -> Symbol {
+        SYMBOL_TIME
+    }
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &mut Environment,
+        _ast: &mut Vec<Value>,
+        _evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        let start = std::time::Instant::now();
+        let result = args[0].clone();
+        let end = std::time::Instant::now();
+        println!("Elapsed time: {:?}", end - start);
+
+        Ok(result)
+    }
+}
 
 // TODO:
 // SliceMacro,
@@ -580,3 +712,19 @@ pub const ALL_MACROS: [Value; 11] = [
 // AND, OR
 // GENSYM/AUTO-GENSYM
 // SEQUENCE/RANGE
+
+pub const SYMBOL_SYNTAX_QUOTING: Symbol = Symbol {
+    name: Cow::Borrowed("*syntax-quoting*"),
+    meta: Meta {
+        doc: Cow::Borrowed("Internal variable for syntax-quoting."),
+        mutable: false,
+    },
+};
+
+pub const SYMBOL_UNQUOTING: Symbol = Symbol {
+    name: Cow::Borrowed("*unquoting*"),
+    meta: Meta {
+        doc: Cow::Borrowed("Internal variable for unquoting."),
+        mutable: false,
+    },
+};
