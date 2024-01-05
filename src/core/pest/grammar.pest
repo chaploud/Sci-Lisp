@@ -1,19 +1,20 @@
 COMMENT = _{ ";" ~ (!NEWLINE ~ ANY)* ~ NEWLINE }
-WHITESPACE = _{ " " | "\t" | "\r" | "\n" | "," }
+ws = _{ " " | "\t" | "\r" | "\n" | "," }
 
-prefix_char = _{ "#" | "'" | "`" | "~" | "~@" | ":" | "@" | "\\" }
-special_char = _{ "!" | "$" | "%" | "&" | "-" | "=" | "^" | "|" | "+" | "*" | "<" | ">" | "?" | "_" | "/" }
+prefix_char = _{ "#" | "'" | "`" | "~" | "~@" | "@" | "\\" | ":" }
+special_char = _{ "!" | "$" | "%" | "&" | "-" | "=" | "^" | "|" | "+" | "*" | "<" | ">" | "?" | "_" | "/"}
 separation_char = _{ "." }
 
 identifier = _{ ( ASCII_ALPHA | special_char) ~ (ASCII_ALPHANUMERIC | special_char)* }
 
+// atom
 nil = @{ "nil" }
 bool = @{ "true" | "false" }
-f64 = @{int ~ "." ~ int? ~ exp? |                    // +0_2.0_2e-2, 2.
-        int ~ exp |                                  // -0_2e+02
-        pm? ~ "." ~ digit ~ (digit | "_")* ~ exp? |  // -.0_0e5
-        nan |
-        inf }
+f64 = @{ int ~ "." ~ int? ~ exp?
+       | int ~ exp                                  // -0_2e+02
+       | pm? ~ "." ~ digit ~ (digit | "_")* ~ exp?  // -.0_0e5
+       | nan
+       | inf }
 i64 = @{ int ~ !("." | ^"e") }
   int = _{ pm? ~ digit ~ (digit | "_")* }
   digit = _{ ASCII_DIGIT }
@@ -23,17 +24,25 @@ i64 = @{ int ~ !("." | ^"e") }
   inf = _{ pm? ~ "inf" }
 symbol = @{ identifier }
 keyword = @{ ":" ~ identifier}
+
+// string
 regex = { "#\"" ~ string_inner ~ "\"" }
-string = ${ "\"" ~ string_inner ~ "\"" }
-  string_inner = @{ char* }
-  char = { !("\"" | "\\") ~ ANY | "\\" ~ ANY }
+string = { "\"" ~ string_inner ~ "\"" }
+  string_inner = { char* }
+  char = _{ !("\"" | "\\") ~ ANY | "\\" ~ ANY }
 
-list = { "(" ~ expr* ~ ")" }
-vector = { "[" ~ expr* ~ "]" }
-map = { "{" ~ map_inner ~ "}" }
-  map_inner = { expr* ~ expr* }
-set = { "#{" ~ expr* ~ "}" }
+// collection
+list = { "(" ~ collection_inner ~ ")" | empty_list }
+vector = { "[" ~ collection_inner ~ "]" | empty_vector }
+map = { "{" ~ collection_inner ~ "}" | empty_map }
+set = { "#{" ~ collection_inner ~ "}" | empty_set }
+  collection_inner = _{ expr ~ (ws+ ~ expr)* }
+  empty_list = _{ "(" ~ ws* ~ ")" }
+  empty_vector = _{ "[" ~ ws* ~ "]" }
+  empty_map = _{ "{" ~ ws* ~ "}" }
+  empty_set = _{ "#{" ~ ws* ~ "}" }
 
+// quotes
 quote = { "'" ~ expr }
 syntax_quote = { "`" ~ expr }
 unquote = { "~" ~ expr }
@@ -43,8 +52,11 @@ expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string
         | list | vector | map | set
         | quote | syntax_quote | unquote | unquote_splicing }
 
-scilisp = { SOI ~ expr* ~ EOI}
+// top level
+scilisp = { SOI ~ scilisp_inner ~ EOI}
+  scilisp_inner = _{ expr ~ (ws+ ~ expr)* }
+  empty_scilisp = _{ SOI ~ ws* ~ EOI }
 
 // TODO:
-// (.)dot
-// ([0:2])([-1])slice
+// (symbol.member) dot
+// ([0:2] expr)([-1] expr) slice / at

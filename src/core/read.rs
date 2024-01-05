@@ -30,12 +30,7 @@ fn read_scilisp(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
         Rule::list => Value::as_list(inner_collect(ast, pair)?),
         Rule::vector => Value::as_vector(inner_collect(ast, pair)?),
         Rule::map => Value::as_map({
-            let pairs = pair
-                .into_inner()
-                .next()
-                .unwrap()
-                .into_inner()
-                .collect::<Vec<_>>();
+            let pairs = pair.into_inner().collect::<Vec<_>>();
             let result: Result<Vec<(Value, Value)>> = pairs
                 .chunks(2)
                 .map(|p| {
@@ -46,12 +41,17 @@ fn read_scilisp(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
                             ));
                         }
                         let key = match p[0].as_rule() {
-                            Rule::symbol | Rule::keyword | Rule::string | Rule::i64 => p[0].clone(),
+                            Rule::symbol
+                            | Rule::keyword
+                            | Rule::string
+                            | Rule::i64
+                            | Rule::list => p[0].clone(),
                             _ => {
                                 return Err(Error::Syntax(
-                                    "map keys must be symbol, keyword, string or i64".to_string(),
+                                    "map keys must be keyword, string or i64 after evaluated"
+                                        .to_string(),
                                 ))
-                            }
+                            } // TODO: check in eval
                         };
                         read_scilisp(ast, key)
                     }
