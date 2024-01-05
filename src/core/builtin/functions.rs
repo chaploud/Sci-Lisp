@@ -4,8 +4,7 @@ use std::borrow::Cow;
 use std::ptr;
 
 use crate::core::types::error::Result;
-#[allow(unused_imports)]
-use crate::core::types::error::{arity_error, arity_error_min, arity_error_range, Error};
+use crate::core::types::error::{arity_error, arity_error_min, type_error};
 use crate::core::types::function::Function;
 use crate::core::types::meta::Meta;
 use crate::core::types::symbol::Symbol;
@@ -15,7 +14,7 @@ use crate::core::value::Value;
 pub const SYMBOL_TYPE: Symbol = Symbol {
     name: Cow::Borrowed("type"),
     meta: Meta {
-        doc: Cow::Borrowed("Get the type of a value"),
+        doc: Cow::Borrowed("Get the type of a value."),
         mutable: false,
     },
 };
@@ -33,7 +32,7 @@ impl Function for TypeFn {
             return Err(arity_error(1, args.len()));
         }
 
-        Value::type_name(&args[0])
+        Ok(Value::String(Value::type_name(&args[0])))
     }
 }
 
@@ -41,7 +40,7 @@ impl Function for TypeFn {
 pub const SYMBOL_PRINT: Symbol = Symbol {
     name: Cow::Borrowed("print"),
     meta: Meta {
-        doc: Cow::Borrowed("Print a value."),
+        doc: Cow::Borrowed("Print value(s) to stdout."),
         mutable: false,
     },
 };
@@ -66,11 +65,19 @@ impl Function for PrintFn {
     }
 }
 
+fn helper_is_number(arg: Value) -> Result<Value> {
+    match arg {
+        Value::I64(i) => Ok(Value::I64(i)),
+        Value::F64(f) => Ok(Value::F64(f)),
+        _ => Err(type_error("i64 or f64", arg.type_name().as_str())),
+    }
+}
+
 // add(+)
 pub const SYMBOL_ADD: Symbol = Symbol {
     name: Cow::Borrowed("+"),
     meta: Meta {
-        doc: Cow::Borrowed("Add all arguments."),
+        doc: Cow::Borrowed("Adds all values. (+) returns 0."),
         mutable: false,
     },
 };
@@ -86,6 +93,7 @@ impl Function for AddFn {
     fn call(&self, args: Vec<Value>) -> Result<Value> {
         let mut result: Value = Value::I64(0);
         for arg in args {
+            helper_is_number(arg.clone())?;
             result = result + arg;
         }
         Ok(result)
@@ -96,7 +104,9 @@ impl Function for AddFn {
 pub const SYMBOL_SUB: Symbol = Symbol {
     name: Cow::Borrowed("-"),
     meta: Meta {
-        doc: Cow::Borrowed("Subtract all arguments."),
+        doc: Cow::Borrowed(
+            "Subtracts all remaining values from the first value. (- x) returns -x.",
+        ),
         mutable: false,
     },
 };
@@ -110,9 +120,19 @@ impl Function for SubFn {
     }
 
     fn call(&self, args: Vec<Value>) -> Result<Value> {
-        let mut result: Value = Value::I64(0);
-        for arg in args {
-            result = result - arg;
+        if args.len() < 1 {
+            return Err(arity_error_min(1, args.len()));
+        }
+
+        if args.len() == 1 {
+            helper_is_number(args[0].clone())?;
+            return Ok(-args[0].clone());
+        }
+
+        let mut result = args[0].clone();
+        for arg in args[1..].iter() {
+            helper_is_number(arg.clone())?;
+            result = result - arg.clone();
         }
         Ok(result)
     }
@@ -122,7 +142,7 @@ impl Function for SubFn {
 pub const SYMBOL_MUL: Symbol = Symbol {
     name: Cow::Borrowed("*"),
     meta: Meta {
-        doc: Cow::Borrowed("Multiply all arguments."),
+        doc: Cow::Borrowed("Multiplies all values. (*) returns 1."),
         mutable: false,
     },
 };
@@ -138,6 +158,7 @@ impl Function for MulFn {
     fn call(&self, args: Vec<Value>) -> Result<Value> {
         let mut result: Value = Value::I64(1);
         for arg in args {
+            helper_is_number(arg.clone())?;
             result = result * arg;
         }
         Ok(result)
@@ -148,7 +169,7 @@ impl Function for MulFn {
 pub const SYMBOL_DIV: Symbol = Symbol {
     name: Cow::Borrowed("/"),
     meta: Meta {
-        doc: Cow::Borrowed("Divide all arguments."),
+        doc: Cow::Borrowed("Divide the first value by all remaining values."),
         mutable: false,
     },
 };
@@ -162,9 +183,15 @@ impl Function for DivFn {
     }
 
     fn call(&self, args: Vec<Value>) -> Result<Value> {
-        let mut result: Value = Value::F64(1.0);
-        for arg in args {
-            result = result / arg;
+        if args.len() < 2 {
+            return Err(arity_error_min(2, args.len()));
+        }
+
+        let mut result = args[0].clone();
+        helper_is_number(result.clone())?;
+        for arg in args[1..].iter() {
+            helper_is_number(arg.clone())?;
+            result = result / arg.clone();
         }
         Ok(result)
     }
@@ -174,7 +201,7 @@ impl Function for DivFn {
 pub const SYMBOL_FLOORDIV: Symbol = Symbol {
     name: Cow::Borrowed("//"),
     meta: Meta {
-        doc: Cow::Borrowed("Divide and floor all arguments."),
+        doc: Cow::Borrowed("Divide the first value by all remaining values and floor."),
         mutable: false,
     },
 };
@@ -188,9 +215,15 @@ impl Function for FloorDivFn {
     }
 
     fn call(&self, args: Vec<Value>) -> Result<Value> {
-        let mut result: Value = Value::I64(1);
-        for arg in args {
-            result = result.floor_div(arg);
+        if args.len() < 2 {
+            return Err(arity_error_min(2, args.len()));
+        }
+
+        let mut result = args[0].clone();
+        helper_is_number(result.clone())?;
+        for arg in args[1..].iter() {
+            helper_is_number(arg.clone())?;
+            result = result.floor_div(arg.clone());
         }
         Ok(result)
     }
@@ -200,7 +233,7 @@ impl Function for FloorDivFn {
 pub const SYMBOL_REM: Symbol = Symbol {
     name: Cow::Borrowed("%"),
     meta: Meta {
-        doc: Cow::Borrowed("Remainder of two arguments."),
+        doc: Cow::Borrowed("Remainder of the first value divided by the second value."),
         mutable: false,
     },
 };
@@ -217,6 +250,10 @@ impl Function for RemFn {
         if args.len() < 2 || args.len() > 2 {
             return Err(arity_error(2, args.len()));
         }
+
+        helper_is_number(args[0].clone())?;
+        helper_is_number(args[1].clone())?;
+
         let result = args[0].clone() % args[1].clone();
         Ok(result)
     }
@@ -226,7 +263,9 @@ impl Function for RemFn {
 pub const SYMBOL_EQUAL: Symbol = Symbol {
     name: Cow::Borrowed("="),
     meta: Meta {
-        doc: Cow::Borrowed("Check if all arguments are equal."),
+        doc: Cow::Borrowed(
+            "Returns true if all values are equal to each other and false otherwise. (= x) returns true.",
+        ),
         mutable: false,
     },
 };
@@ -261,7 +300,9 @@ impl Function for EqualFn {
 pub const SYMBOL_NOTEQUAL: Symbol = Symbol {
     name: Cow::Borrowed("!="),
     meta: Meta {
-        doc: Cow::Borrowed("Check if all arguments are not equal."),
+        doc: Cow::Borrowed(
+            "Returns false if all values are equal to each other and true otherwise. (!= x) returns false.",
+        ),
         mutable: false,
     },
 };
@@ -313,6 +354,8 @@ impl Function for IsFn {
         if args.len() != 2 {
             return Err(arity_error(2, args.len()));
         }
+        // TODO: This returns almost always false
+        // Pythonic 'is' would be better
         Ok(Value::Bool(ptr::eq(&args[0], &args[1])))
     }
 }
@@ -321,7 +364,7 @@ impl Function for IsFn {
 pub const SYMBOL_GE: Symbol = Symbol {
     name: Cow::Borrowed(">="),
     meta: Meta {
-        doc: Cow::Borrowed("Greater than or equal to."),
+        doc: Cow::Borrowed("Returns true if all left values are greater than or equal to the right value. (>= x) returns true."),
         mutable: false,
     },
 };
@@ -356,7 +399,9 @@ impl Function for GeFn {
 pub const SYMBOL_GT: Symbol = Symbol {
     name: Cow::Borrowed(">"),
     meta: Meta {
-        doc: Cow::Borrowed("Greater than."),
+        doc: Cow::Borrowed(
+            "Returns true if all left values are greater than the right value. (> x) returns true.",
+        ),
         mutable: false,
     },
 };
@@ -391,7 +436,7 @@ impl Function for GtFn {
 pub const SYMBOL_LE: Symbol = Symbol {
     name: Cow::Borrowed("<="),
     meta: Meta {
-        doc: Cow::Borrowed("Less than or equal to."),
+        doc: Cow::Borrowed("Returns true if all left values are less than or equal to the right value. (<= x) returns true."),
         mutable: false,
     },
 };
@@ -426,7 +471,9 @@ impl Function for LeFn {
 pub const SYMBOL_LT: Symbol = Symbol {
     name: Cow::Borrowed("<"),
     meta: Meta {
-        doc: Cow::Borrowed("Less than."),
+        doc: Cow::Borrowed(
+            "Returns true if all left values are less than the right value. (< x) returns true.",
+        ),
         mutable: false,
     },
 };
@@ -483,11 +530,95 @@ impl Function for DocFn {
             Value::Function(func) => func.name().meta.doc.clone(),
             Value::Macro(mac) => mac.name().meta.doc.clone(),
             Value::Symbol(sym) => sym.meta.doc.clone(),
-            _ => Cow::from(format!("{} has no documentation.", args[0].type_name()?)),
+            v => Cow::from(format!("{}: {} has no documentation.", v.type_name(), v)),
         };
 
-        println!("{}", result);
+        println!("------------------------------\n{}", result);
 
         Ok(Value::Nil)
     }
 }
+
+// str
+pub const SYMBOL_STR: Symbol = Symbol {
+    name: Cow::Borrowed("str"),
+    meta: Meta {
+        doc: Cow::Borrowed("Convert a value to a string."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StrFn;
+
+impl Function for StrFn {
+    fn name(&self) -> Symbol {
+        SYMBOL_STR
+    }
+
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        Value::to_str(&args[0])
+    }
+}
+
+// i64
+pub const SYMBOL_I64: Symbol = Symbol {
+    name: Cow::Borrowed("i64"),
+    meta: Meta {
+        doc: Cow::Borrowed("Convert a value to an i64."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct I64Fn;
+
+impl Function for I64Fn {
+    fn name(&self) -> Symbol {
+        SYMBOL_I64
+    }
+
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        Value::to_i64(&args[0])
+    }
+}
+
+// f64
+pub const SYMBOL_F64: Symbol = Symbol {
+    name: Cow::Borrowed("f64"),
+    meta: Meta {
+        doc: Cow::Borrowed("Convert a value to an f64."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct F64Fn;
+
+impl Function for F64Fn {
+    fn name(&self) -> Symbol {
+        SYMBOL_F64
+    }
+
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        Value::to_f64(&args[0])
+    }
+}
+
+// TODO:
+// isinstance
+// format
+// read
+// write

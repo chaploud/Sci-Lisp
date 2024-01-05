@@ -89,6 +89,9 @@ fn put_builtin_functions(env: &mut Environment) {
     let _ = env.put(&LeFn.name(), Value::Function(Rc::new(LeFn)));
     let _ = env.put(&LtFn.name(), Value::Function(Rc::new(LtFn)));
     let _ = env.put(&DocFn.name(), Value::Function(Rc::new(DocFn)));
+    let _ = env.put(&StrFn.name(), Value::Function(Rc::new(StrFn)));
+    let _ = env.put(&I64Fn.name(), Value::Function(Rc::new(I64Fn)));
+    let _ = env.put(&F64Fn.name(), Value::Function(Rc::new(F64Fn)));
 }
 
 fn put_builtin_macros(env: &mut Environment) {

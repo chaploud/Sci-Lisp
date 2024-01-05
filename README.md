@@ -13,25 +13,21 @@ A Lisp for Scientific Computing written in Rust
 </p>
 
 
-## Features (Plan)
+## Features (WIP)
 
-- [ ] S-expression
-- [ ] REPL
-- [ ] Run as script
+- [x] S-expression
+- [x] REPL
+- [x] Run as script
 - [ ] Compile to signle binary
 - [ ] Easy installation (Cross Platform)
 - [ ] Well documented
 - [ ] Great developer experience with VSCode extension
 - [ ] Multiparadigm (Functional, Object-Oriented and Procedural)
-- [ ] Typed and powerful type inference like Rust/TypeScript
 - [ ] Clojure-like syntax (), [], {}, etc...
 - [ ] Supports exception handling
-
-### Optional
-
 - [ ] Numpy-like array slice `([2:-1, -3:] array2d)`
 - [ ] Functionality of IPython, numpy, matplotlib, pandas, scipy
-- [ ] Digital Signal Processing (DSP) and Time Series Analysis (TSA) included
+- [ ] Digital Signal Processing (DSP) and Time Series Analysis (TSA) included as standard library
 
 ## Philosophy
 
@@ -113,66 +109,44 @@ inf                 ; positive infinity
 -inf                ; negative infinity
 -0.0                ; negative zero
 :keyword            ; keyword symbol
-'symbol             ; symbol
+'symbol             ; quoted symbol
 
-;; falsy value is only false and nil
+;; falsy value is only 'false' and 'nil'
 ;; "", '(), [], {}, #{}, 0, nan => all truthy
-
-;; ===== Type
-; str               ; string
-; regex             ; regular expression
-; bool              ; boolean
-; nil               ; nil
-; i64               ; integer 64bit
-; f64               ; float 64bit
-; key               ; keyword symbol
-; list              ; list
-; v[T]              ; vector
-; m[K,V]            ; hashmap
-; s[T]              ; hashset
-; fn                ; function
-; class             ; class
-; struct            ; struct
-; enum              ; enum
-; macro             ; macro
-; special           ; special form
 
 ;; ===== Collection
 ; comma is treated as whitespace
-'(1, "a", :b)       ; list (can contain any type)
+'(1, "a", :b)       ; list
 [1.0, 2.0, 3.0]     ; vector
-{:a "a", :b "a"}    ; hashmap
-#{:a, :b, :c}       ; hashset
+{:a "a", :b "a"}    ; map (holds the insersion order)
+#{:a, :b, :c}       ; set (holds the insersion order)
 
-;; ===== Utility
+;; ===== Function Call
 (type [1, 2, 3])             ; show type
 (time (+ 1 2))               ; measure processing time
 (print {:a 2, :b 3})         ; print any
-(printf "{0:02d}kg" 56)      ; print format
 
 ;; ===== Variable Binding
-(def a :str "abcde")         ; variable
-(const C :v[i64] [1, 2, 3])  ; constant value (can't assgin after)
+(def a "abcde")              ; variable (mutable, global scope)
+(const C [1, 2, 3])          ; constant value (immutable)
 
 ([0:2] a)                    ; slicing => "ab"
 ([-1] C)                     ; back => 3
 
-(let [a :i64 2]              ; bind variable (lexical scope)
+(let [a 2]                   ; bind variable (local scope)
   (set! a 3)                 ; assign(destructive)
   a)                         ; => 3
 
 ;; ===== Function
-(defn sum [a :i64,           ; define function
-           b :i64]           ; must arguments types
-           -> i64            ; must return value typs
+(defn sum [a b]              ; define function
+ "sum two value"             ; docstring
   (print a b)
   (+ a b))
 
-(def sum :fn                 ; bind function using def
-  (fn [a :f64,
-       b :f64]               ; lambda/anonymous function
-       -> f64
-    (return (+ a b))))       ; can use return
+(def sum                     ; bind function using def
+  (fn [a b]                  ; anonymous/lambda function
+    (return (+ a b)          ; can use early return
+    (- a b))))
 
 ;; ===== Control Flow
 (if (< 2 3)                  ; if
@@ -189,7 +163,7 @@ inf                 ; positive infinity
   (> n 0) "positive"
   :else "default")           ; :else (expression)
 
-(def val :str "hoge")
+(def val "hoge")
 (switch val                  ; switch
   ["a"]                      ; match "a"
     (print "A")
@@ -209,63 +183,67 @@ inf                 ; positive infinity
      (break)                 ; break
      (continue)))            ; continue
 
+;; ******************* WIP **********************
 ;; ===== enum
-(enum Grade
-  [ECONOMY,                  ; => 0
-   BUSINESS,                 ; => 1
-   FIRST])                   ; => 2
+(enum Grade                       ; define enum
+  "Grade Enum"                    ; docstring
+  [ECONOMY,
+   BUSINESS,
+   FIRST])
 
-(def your-grade :Grade FIRST)
+(def your-grade Grade.FIRST)      ; allow this style
 
 ;; ===== struct
-(struct Enemy
-  [hp :i64 100,
-   attack :f64 200])
+(struct Enemy                     ; define struct
+  "Enemy Struct"                  ; docstring
+  [hp,
+   attack])
 
-(def slime :Enemy {:attack 2, :hp 20})
-([:attack] slime)       ; => 2
-(print slime.attack)    ; allow this style
+(def slime
+  (Enemy {:attack 2, :hp 20}))    ; using struct
+([:attack] slime)                 ; => 2
+(print slime.attack)              ; allow this style
 
 ;; ===== class
-(class Animal
-  "Animal Class"        ; docstring
+(class Animal                     ; define class
+  "Animal Class"                  ; docstring
 
   ;; constructor
-  (defn Animal [hp :i32,
-                weight :i32]
-                -> nil
+  (defn Animal [hp, weight]
     "constructor of Animal"
     (set! self.hp hp)
     (set! self.weight weight))
 
   ;; member
-  (def hp :i32)
-  (def weight :i32 32)
-  (defn walk [dist :i32] -> str
+  (def hp)
+  (def weight)
+  (defn walk [dist]
     (set! self.hp (- self.hp dist)))
-    (format "walk {0}km, HP: {1}", dist, self.hp))
+    (format "walk {0}km, HP: {1}",
+      dist, self.hp))
 
-(class Dog [Animal]     ; inherit from Animal class
+(class Dog [Animal]               ; inherit from Animal class
   (defn bow []
     (print "bow!")))
 
-(def dog1 :Dog (new Dog [100, 200]))
-(dog1.walk 2)           ; => "walk 2km, HP: 30"
-(dog1.bow)              ; => nil
+(def dog1 (Dog [100, 200]))       ; instanciate class
+(dog1.walk 2)                     ; => "walk 2km, HP: 98"
+(dog1.bow)                        ; => nil
 
 ;; ===== macro
-(macro my-and
+(macro my-and                     ; define macro
   "Evaluates exprs one at time,
    from left to right."           ; docstring
-  ([] true)                       ; arguments
-  ([x :str] x)                    ; multi arity
+  ([] true)                       ; multi arity
+  ([x :str] x)
   ([x :str & next]                ; variable length argument (& rest)
     `(let [and# :str ~x]          ; quote(`) and unquote(~)
-       (if and#
-         (my-and ~@next)          ; unquote splicing
+       (if and#                   ; auto-gensym(xxx#)
+         (my-and ~@next)          ; unquote splicing(~@)
          and#))))
 
 (my-and "a" "b" "c")              ; => "c"
+;; ******************************************
 
 ;; ===== Built-in Functions
 
@@ -311,12 +289,12 @@ inf                 ; positive infinity
 (type [1, 2, 3])              ; show type
 (time (+ 1 2))                ; measure processing time
 (print {:a 2, :b 3})          ; print any
-(printf "{0:02d}kg" 56)       ; print format
+(printf "{0:03}kg" 56)        ; print format
 
 ;; String
-(format "{0:03d} kg" 56)      ; format string
+(format "π: {:.2}" 3.1415)    ; format string
 (len "abcde")                 ; length of string
-(join ["1", "2", "3"] ",")    ; join (=> "1,2,3")
+(join [1, 2, 3] ",")          ; join (=> "1,2,3")
 (in? "a" "12aabc32")          ; is string in string?
 (upper "abc")                 ; upper-case
 (lower "DEF")                 ; lower-case
@@ -346,4 +324,20 @@ inf                 ; positive infinity
 (push! v 4)                           ; push_back (destructive)
 (cons! v 4)                           ; push_front (destructive)
 ```
+
+## Pronunciation
+
+`/sai lisp/`
+
+## Pull requests are welcome!
+
+Especially, please fix mistakes in English in source codes.
+
+## VSCode Extension
+
+Currently only syntax highlight supported.
+
+- [GitHub](https://github.com/chaploud/Sci-Lisp-vscode-extension)
+- [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=chaploud.sci-lisp)
+
 

@@ -3,7 +3,7 @@
 use std::cmp::Ordering;
 use std::fmt;
 use std::hash::Hash;
-use std::ops::{Add, Div, Mul, Rem, Sub};
+use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 use std::rc::Rc;
 
 use pest::iterators::Pair;
@@ -108,25 +108,24 @@ impl fmt::Display for Value {
 }
 
 impl Value {
-    pub fn type_name(&self) -> Result<Value> {
+    pub fn type_name(&self) -> std::string::String {
         let result = match self {
-            Value::Nil => TypeName::Nil.to_string(),
-            Value::Bool(_) => TypeName::Bool.to_string(),
-            Value::I64(_) => TypeName::I64.to_string(),
-            Value::F64(_) => TypeName::F64.to_string(),
-            Value::Symbol(_) => TypeName::Symbol.to_string(),
-            Value::Keyword(_) => TypeName::Keyword.to_string(),
-            Value::Regex(_) => TypeName::Regex.to_string(),
-            Value::String(_) => TypeName::String.to_string(),
-            Value::List(_) => TypeName::List.to_string(),
-            Value::Vector(_) => TypeName::Vector.to_string(),
-            Value::Map(_) => TypeName::Map.to_string(),
-            Value::Set(_) => TypeName::Set.to_string(),
-            Value::Function(_) => TypeName::Function.to_string(),
-            Value::Macro(_) => TypeName::Macro.to_string(),
+            Value::Nil => TypeName::Nil,
+            Value::Bool(_) => TypeName::Bool,
+            Value::I64(_) => TypeName::I64,
+            Value::F64(_) => TypeName::F64,
+            Value::Symbol(_) => TypeName::Symbol,
+            Value::Keyword(_) => TypeName::Keyword,
+            Value::Regex(_) => TypeName::Regex,
+            Value::String(_) => TypeName::String,
+            Value::List(_) => TypeName::List,
+            Value::Vector(_) => TypeName::Vector,
+            Value::Map(_) => TypeName::Map,
+            Value::Set(_) => TypeName::Set,
+            Value::Function(_) => TypeName::Function,
+            Value::Macro(_) => TypeName::Macro,
         };
-
-        Ok(Value::String(result))
+        result.to_string()
     }
 }
 
@@ -221,7 +220,6 @@ impl Value {
 }
 
 impl Value {
-    #[allow(dead_code)]
     pub fn to_i64(&self) -> Result<Value> {
         match self {
             Value::I64(i) => Ok(Value::I64(*i)),
@@ -234,8 +232,8 @@ impl Value {
                 }
             }
             _ => Err(Error::Type(format!(
-                "Cannot convert {} to i64",
-                self.type_name()?
+                "Cannot convert {} to i64.",
+                self.type_name()
             ))),
         }
     }
@@ -252,8 +250,21 @@ impl Value {
                 }
             }
             _ => Err(Error::Type(format!(
-                "Cannot convert {} to f64",
-                self.type_name()?
+                "Cannot convert {} to f64.",
+                self.type_name()
+            ))),
+        }
+    }
+
+    pub fn to_str(&self) -> Result<Value> {
+        match self {
+            Value::I64(i) => Ok(Value::String(i.to_string())),
+            Value::F64(f) => Ok(Value::String(f.to_string())),
+            Value::String(s) => Ok(Value::String(s.to_string())),
+            Value::Symbol(s) => Ok(Value::String(s.name.to_string())),
+            _ => Err(Error::Type(format!(
+                "Cannot convert {} to string.",
+                self.type_name()
             ))),
         }
     }
@@ -283,6 +294,18 @@ impl Sub for Value {
             (Value::F64(f1), Value::I64(i2)) => Value::F64(f1 - i2 as f64),
             (Value::F64(f1), Value::F64(f2)) => Value::F64(f1 - f2),
             (s, o) => panic!("Cannot subtract {} and {}", s, o),
+        }
+    }
+}
+
+impl Neg for Value {
+    type Output = Value;
+
+    fn neg(self) -> Value {
+        match self {
+            Value::I64(i) => Value::I64(-i),
+            Value::F64(f) => Value::F64(-f),
+            s => panic!("Cannot negate {}", s),
         }
     }
 }

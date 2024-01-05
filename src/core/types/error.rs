@@ -23,10 +23,7 @@ pub enum Error {
     // custom errors
     Name(String),
     Type(String),
-    #[allow(dead_code)]
-    NotCallable(String),
     Syntax(String),
-    #[allow(dead_code)]
     Cast(String, String),
     Arity(String),
     Immutable(String),
@@ -56,7 +53,6 @@ impl fmt::Display for Error {
             Readline(err) => write!(f, "Readline Error: {}", err),
             Name(msg) => write!(f, "Name Error: '{}' is not defined", msg),
             Type(msg) => write!(f, "Type Error: {}", msg),
-            NotCallable(msg) => write!(f, "Not Callable Error: '{}' is not callable", msg),
             Syntax(msg) => write!(f, "Syntax Error: {}", msg),
             Cast(src, dest) => write!(f, "Cast Error: cannot cast {} to {}", src, dest),
             Arity(msg) => write!(f, "Arity Error: {}", msg),
@@ -78,7 +74,6 @@ impl std::error::Error for Error {
             Readline(ref err) => Some(err),
             Type(_) => None,
             Name(_) => None,
-            NotCallable(_) => None,
             Syntax(_) => None,
             Cast(_, _) => None,
             Arity(_) => None,
@@ -132,7 +127,6 @@ impl From<regex::Error> for Error {
 }
 
 // error helpers
-
 pub fn arity_error(expected: usize, actual: usize) -> Error {
     Error::Arity(format!("expected {} arguments, got {}", expected, actual))
 }
@@ -151,7 +145,6 @@ pub fn arity_error_min(expected_min: usize, actual: usize) -> Error {
     ))
 }
 
-#[allow(dead_code)]
 pub fn type_error(expected: &str, actual: &str) -> Error {
     Error::Type(format!("expected type: '{}', got: '{}'", expected, actual))
 }
