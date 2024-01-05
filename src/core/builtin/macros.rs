@@ -697,6 +697,8 @@ impl Macro for TimeMacro {
     }
 }
 
+// slice [-1:3, :3]
+
 // TODO:
 // SliceMacro,
 // FnMacro,

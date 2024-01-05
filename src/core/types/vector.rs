@@ -30,7 +30,7 @@ impl fmt::Display for Vector {
             if n > 0 {
                 result += ", ";
             }
-            result += format!("{}", val).as_str();
+            result += format!("{:?}", val).as_str();
         }
         write!(f, "[{}]", result)
     }

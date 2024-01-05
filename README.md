@@ -16,18 +16,17 @@ A Lisp for Scientific Computing written in Rust
 ## Features (WIP)
 
 - [x] S-expression
+- [x] Clojure-like syntax (), [], {}, etc...
+- [x] Numpy-like array slice `([2:-1, -3:] array2d)`
+- [ ] Multiparadigm (Functional, Object-Oriented and Procedural)
 - [x] REPL
 - [x] Run as script
-- [ ] Compile to signle binary
-- [ ] Easy installation (Cross Platform)
-- [ ] Well documented
-- [ ] Great developer experience with VSCode extension
-- [ ] Multiparadigm (Functional, Object-Oriented and Procedural)
-- [ ] Clojure-like syntax (), [], {}, etc...
 - [ ] Supports exception handling
-- [ ] Numpy-like array slice `([2:-1, -3:] array2d)`
 - [ ] Functionality of IPython, numpy, matplotlib, pandas, scipy
 - [ ] Digital Signal Processing (DSP) and Time Series Analysis (TSA) included as standard library
+- [ ] Well documented
+- [ ] Easy installation (Cross Platform)
+- [ ] Great developer experience with VSCode extension
 
 ## Philosophy
 
@@ -39,9 +38,7 @@ Let's use **Lisp easily** without thinking too hard!
 - Clojure (https://github.com/clojure/clojure)
 - Hy (https://github.com/hylang/hy)
 - Python (https://github.com/python/cpython)
-- C++
 - Rust (https://github.com/rust-lang/rust)
-- TypeScript (https://github.com/microsoft/TypeScript)
 
 ## Installation
 
@@ -85,8 +82,6 @@ Not distributed yet.
 ```bash
 scilisp  # launch REPL
 scilisp xxx.lisp  # run as script
-scilisp -c xxx.lisp  # compile code
-scilisp -l xxx.lisp  # lint code
 ```
 
 ## Sci-Lisp code examples
@@ -175,7 +170,7 @@ inf                 ; positive infinity
 (for [i (range 5)]           ; for loop, range
   (print i))
 
-(def a :i64 0)
+(def a 0)
 (while (< a 100)             ; while loop
   (print a)
   (set! a (+ a 1))
@@ -201,7 +196,7 @@ inf                 ; positive infinity
 
 (def slime
   (Enemy {:attack 2, :hp 20}))    ; using struct
-([:attack] slime)                 ; => 2
+([:attack] slime)                 ; access member => 2
 (print slime.attack)              ; allow this style
 
 ;; ===== class
@@ -235,9 +230,9 @@ inf                 ; positive infinity
   "Evaluates exprs one at time,
    from left to right."           ; docstring
   ([] true)                       ; multi arity
-  ([x :str] x)
-  ([x :str & next]                ; variable length argument (& rest)
-    `(let [and# :str ~x]          ; quote(`) and unquote(~)
+  ([x] x)
+  ([x & next]                ; variable length argument (& rest)
+    `(let [and# ~x]          ; quote(`) and unquote(~)
        (if and#                   ; auto-gensym(xxx#)
          (my-and ~@next)          ; unquote splicing(~@)
          and#))))

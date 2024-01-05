@@ -22,7 +22,6 @@ impl Hash for Set {
 }
 
 impl Set {
-    #[allow(dead_code)]
     pub fn new() -> Self {
         Set {
             value: IndexSet::<Value>::new(),
@@ -63,7 +62,7 @@ impl fmt::Display for Set {
             if n > 0 {
                 result += ", ";
             }
-            result += format!("{}", val).as_str();
+            result += format!("{:?}", val).as_str();
         }
         write!(f, "#{{{}}}", result)
     }

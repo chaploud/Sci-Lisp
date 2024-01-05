@@ -38,7 +38,6 @@ quote = { "'" ~ expr }
 syntax_quote = { "`" ~ expr }
 unquote = { "~" ~ expr }
 unquote_splicing = { "~@" ~ expr }
-// expand = { "@" ~ expr }
 
 expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string
         | list | vector | map | set
@@ -47,10 +46,5 @@ expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string
 scilisp = { SOI ~ expr* ~ EOI}
 
 // TODO:
-// (')quote
-// (`)backquote
-// (~)unquote
-// (~@)unquote-splicing
-// (@)expand
 // (.)dot
 // ([0:2])([-1])slice

@@ -124,6 +124,7 @@ syntax-quoteの内部のみ、unquoteとunquote-splicingが定義される
 - [ ] 数学関数の列挙
 - [ ] Vector関数の列挙(MQL5参考かな)
 - [ ] エラーの発生箇所
+  - [ ] パースの場所を持ちまわらなければならない
 - [ ] functionやmacroをREPLで評価できることに関してはどうしようか
 
 ## cargo

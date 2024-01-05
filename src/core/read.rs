@@ -45,7 +45,15 @@ fn read_scilisp(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
                                 "map must have even number of elements".to_string(),
                             ));
                         }
-                        read_scilisp(ast, p[0].clone())
+                        let key = match p[0].as_rule() {
+                            Rule::symbol | Rule::keyword | Rule::string | Rule::i64 => p[0].clone(),
+                            _ => {
+                                return Err(Error::Syntax(
+                                    "map keys must be symbol, keyword, string or i64".to_string(),
+                                ))
+                            }
+                        };
+                        read_scilisp(ast, key)
                     }
                     .and_then(|key| read_scilisp(ast, p[1].clone()).map(|value| (key, value)))
                 })
@@ -57,8 +65,10 @@ fn read_scilisp(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
         Rule::syntax_quote => syntax_quote_to_ast(ast, pair),
         Rule::unquote => unquote_to_ast(ast, pair),
         Rule::unquote_splicing => unquote_splicing_to_ast(ast, pair),
-        // Rule::expand => expand_to_ast(ast, pair),
-        _ => unreachable!(), // COMMENT, WHITESPACE, etc...
+        _ => {
+            println!("pair: {:?}", pair.as_str());
+            Err(Error::Syntax("unexpected token".to_string()))
+        }
     };
 
     match value {
@@ -105,14 +115,3 @@ fn unquote_splicing_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Val
     let value = read_scilisp(ast, pair)?;
     Value::as_list(vec![Value::Symbol(SYMBOL_UNQUOTE_SPLICING), value])
 }
-
-// fn expand_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
-//     let pair = pair.into_inner().next().unwrap();
-//     match pair.as_rule() {
-//         Rule::vector => inner_collect(ast, pair),
-//         _ => Err(Error::Syntax(
-//             "'@' can be applied only for vector".to_string(),
-//         )),
-//     }?;
-//     Ok(Value::Nil)
-// }

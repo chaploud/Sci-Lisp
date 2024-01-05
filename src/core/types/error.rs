@@ -38,12 +38,12 @@ impl fmt::Display for Error {
             ParseFloat(err) => write!(f, "Parse Float Error: {}", err),
             PestParse(err) => match err.line_col {
                 pest::error::LineColLocation::Pos(pos) => {
-                    write!(f, "Parse Error: at {}:{}", pos.0, pos.1)
+                    write!(f, "Syntax Error: at {}:{}", pos.0, pos.1)
                 }
                 pest::error::LineColLocation::Span(start, end) => {
                     write!(
                         f,
-                        "Parse Error: at {}:{} to {}:{}",
+                        "Syntax Error: at {}:{} to {}:{}",
                         start.0, start.1, end.0, end.1
                     )
                 }

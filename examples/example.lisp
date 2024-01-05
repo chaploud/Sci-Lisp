@@ -79,7 +79,7 @@ inf                 ; positive infinity
 (for [i (range 5)]           ; for loop, range
   (print i))
 
-(def a :i64 0)
+(def a 0)
 (while (< a 100)             ; while loop
   (print a)
   (set! a (+ a 1))
@@ -105,7 +105,7 @@ inf                 ; positive infinity
 
 (def slime
   (Enemy {:attack 2, :hp 20}))    ; using struct
-([:attack] slime)                 ; => 2
+([:attack] slime)                 ; access member => 2
 (print slime.attack)              ; allow this style
 
 ;; ===== class
@@ -139,9 +139,9 @@ inf                 ; positive infinity
   "Evaluates exprs one at time,
    from left to right."           ; docstring
   ([] true)                       ; multi arity
-  ([x :str] x)
-  ([x :str & next]                ; variable length argument (& rest)
-    `(let [and# :str ~x]          ; quote(`) and unquote(~)
+  ([x] x)
+  ([x & next]                ; variable length argument (& rest)
+    `(let [and# ~x]          ; quote(`) and unquote(~)
        (if and#                   ; auto-gensym(xxx#)
          (my-and ~@next)          ; unquote splicing(~@)
          and#))))

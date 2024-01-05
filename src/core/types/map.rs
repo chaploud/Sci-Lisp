@@ -22,7 +22,6 @@ impl Hash for Map {
 }
 
 impl Map {
-    #[allow(dead_code)]
     pub fn new() -> Self {
         Map {
             value: IndexMap::<Value, Value>::new(),
@@ -44,7 +43,7 @@ impl fmt::Display for Map {
             if n > 0 {
                 result += ", ";
             }
-            result += format!("{} {}", key, val).as_str();
+            result += format!("{:?} {:?}", key, val).as_str();
         }
         write!(f, "{{{}}}", result)
     }

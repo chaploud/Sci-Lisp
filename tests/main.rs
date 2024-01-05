@@ -31,3 +31,5 @@ fn execute_fail() -> Result<(), Box<dyn std::error::Error>> {
         .stderr(predicate::str::contains("IO Error"));
     Ok(())
 }
+
+// TODO: repl test
