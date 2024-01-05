@@ -11,7 +11,6 @@ pub struct Vector {
 }
 
 impl Vector {
-    #[allow(dead_code)]
     pub fn new() -> Self {
         Vector {
             value: Vec::<Value>::new(),

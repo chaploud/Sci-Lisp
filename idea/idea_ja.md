@@ -154,8 +154,11 @@ syntax-quoteの内部のみ、unquoteとunquote-splicingが定義される
 - [ ] REPLで文字列入力中にも"が終端してなければ入力継続
 - [ ] ある程度形になってきたらIssueやDiscussionを開く
 - [ ] Issue/Discussion/Pull Requestのテンプレートを用意する
-- [ ] (+)'(2) つながっている式が有効になってしまっている
-- [ ] (+1) cannot call 1 になっている。↑の事情が影響か
+- [x] (+)'(2) つながっている式が有効になってしまっている
+- [x] (+1) cannot call 1 になっている。↑の事情が影響か
+  - 解消後も残った => OK +1は1と評価されるわ. +だけの特別ケース
+- [ ] ./.scilisp-history.txtの生成場所など、環境変数や設定ファイルの読み込みで設定きるようにする
+- [ ] REPLのTAB補完、リスト表示
 
 ## cargo
 

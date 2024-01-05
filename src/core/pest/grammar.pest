@@ -53,9 +53,8 @@ expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string
         | quote | syntax_quote | unquote | unquote_splicing }
 
 // top level
-scilisp = { SOI ~ scilisp_inner ~ EOI}
+scilisp = { SOI ~ ws* ~ scilisp_inner* ~ ws* ~ EOI }
   scilisp_inner = _{ expr ~ (ws+ ~ expr)* }
-  empty_scilisp = _{ SOI ~ ws* ~ EOI }
 
 // TODO:
 // (symbol.member) dot

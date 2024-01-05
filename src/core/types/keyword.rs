@@ -22,13 +22,13 @@ mod tests {
         #[test]
         fn test_keyword() {
             let k1 = Keyword {
-                name: "abc".to_string(),
+                name: ":abc".to_string(),
             };
             let k2 = Keyword {
-                name: "abc".to_string(),
+                name: ":abc".to_string(),
             };
             let k3 = Keyword {
-                name: "def".to_string(),
+                name: ":def".to_string(),
             };
             assert_eq!(k1, k2);
             assert_ne!(k1, k3);
