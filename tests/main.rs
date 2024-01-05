@@ -16,18 +16,18 @@ fn show_help() -> Result<(), Box<dyn std::error::Error>> {
 fn execute_success() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("scilisp")?;
     cmd.arg("tests/main.lisp");
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("Done."));
+    cmd.assert().success().stdout(predicate::str::contains(
+        "Hello from Sci-Lisp! [2024, 2024]",
+    ));
     Ok(())
 }
 
 #[test]
 fn execute_fail() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("scilisp")?;
-    cmd.arg("lint").arg("tests/main.rs");
+    cmd.arg("tests/notexist.rs");
     cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("Done."));
+        .failure()
+        .stderr(predicate::str::contains("IO Error"));
     Ok(())
 }

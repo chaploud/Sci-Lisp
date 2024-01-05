@@ -2,8 +2,6 @@
 
 // scilisp  # launch REPL
 // scilisp xxx.lisp  # run as script
-// scilisp -c xxx.lisp  # compile code
-// scilisp -l xxx.lisp  # lint code
 
 use std::path::PathBuf;
 use std::process::exit;
@@ -11,8 +9,6 @@ use std::process::exit;
 use clap::Parser;
 
 mod core;
-use crate::core::cli::compiler::compile;
-use crate::core::cli::linter::lint;
 use crate::core::cli::repl::{execute, repl};
 
 #[derive(Parser)]
@@ -24,36 +20,18 @@ use crate::core::cli::repl::{execute, repl};
 struct Args {
     #[arg(help = "Execute <FILE>")]
     file: Option<PathBuf>,
-
-    #[arg(short, long, help = "Compile <FILE>", value_name = "FILE")]
-    compile: Option<PathBuf>,
-
-    #[arg(
-        short,
-        long,
-        help = "Lint <FILE>",
-        value_name = "FILE",
-        conflicts_with = "compile"
-    )]
-    lint: Option<PathBuf>,
 }
 
 #[derive(Debug)]
 enum Action {
     Repl,
     Execute(Option<PathBuf>),
-    Compile(Option<PathBuf>),
-    Lint(Option<PathBuf>),
 }
 
 fn main() {
     let args: Args = Args::parse();
 
-    let action = if args.compile.is_some() {
-        Action::Compile(args.compile)
-    } else if args.lint.is_some() {
-        Action::Lint(args.lint)
-    } else if args.file.is_some() {
+    let action = if args.file.is_some() {
         Action::Execute(args.file)
     } else {
         Action::Repl
@@ -62,8 +40,6 @@ fn main() {
     let result = match action {
         Action::Repl => repl(),
         Action::Execute(file) => execute(file),
-        Action::Compile(file) => compile(file),
-        Action::Lint(file) => lint(file),
     };
 
     if let Err(err) = result {

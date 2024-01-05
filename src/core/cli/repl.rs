@@ -120,7 +120,7 @@ pub fn repl() -> Result<()> {
                     continue;
                 }
 
-                println!("{}", value.unwrap());
+                println!("{:?}", value.unwrap());
             }
         };
     }
@@ -130,11 +130,6 @@ pub fn repl() -> Result<()> {
 }
 
 pub fn execute(file: Option<PathBuf>) -> Result<()> {
-    println!(
-        "Executing '{}' ...",
-        file.clone().unwrap().to_string_lossy()
-    );
-
     // Read
     let content = try_read_file(&file)?;
     let parsed = parse(&content)?;

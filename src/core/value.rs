@@ -21,7 +21,7 @@ use crate::core::types::symbol::Symbol;
 use crate::core::types::type_name::TypeName;
 use crate::core::types::vector::Vector;
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub enum Value {
     Nil,
     Bool(bool),
@@ -86,6 +86,28 @@ impl Hash for Value {
 }
 
 impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use Value::*;
+        match self {
+            Nil => write!(f, "nil"),
+            Bool(b) => write!(f, "{}", b),
+            I64(i) => write!(f, "{}", i),
+            F64(fl) => write!(f, "{}", fl),
+            Symbol(s) => write!(f, "{}", s),
+            Keyword(k) => write!(f, "{}", k),
+            Regex(r) => write!(f, "#\"{}\"", r),
+            String(s) => write!(f, "{}", s),
+            List(l) => write!(f, "{}", l),
+            Vector(v) => write!(f, "{}", v),
+            Map(m) => write!(f, "{}", m),
+            Set(s) => write!(f, "{}", s),
+            Function(func) => write!(f, "{}", func.name()),
+            Macro(mac) => write!(f, "{}", mac.name()),
+        }
+    }
+}
+
+impl fmt::Debug for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use Value::*;
         match self {
