@@ -56,9 +56,7 @@ impl PartialEq for Value {
             (Vector(v1), Vector(v2)) => v1 == v2,
             (Map(h1), Map(h2)) => h1 == h2,
             (Set(s1), Set(s2)) => s1 == s2,
-            (Function(f1), Function(f2)) => f1.name() == f2.name(),
-            (Macro(m1), Macro(m2)) => m1.name() == m2.name(),
-            _ => false,
+            _ => false, // Functions and Macros are not comparable
         }
     }
 }
@@ -79,8 +77,7 @@ impl Hash for Value {
             Vector(v) => v.hash(state),
             Map(h) => h.hash(state),
             Set(s) => s.hash(state),
-            Function(f) => f.name().hash(state),
-            Macro(m) => m.name().hash(state),
+            _ => 0.hash(state), // Functions and Macros are not hashable
         }
     }
 }
@@ -101,8 +98,9 @@ impl fmt::Display for Value {
             Vector(v) => write!(f, "{}", v),
             Map(m) => write!(f, "{}", m),
             Set(s) => write!(f, "{}", s),
-            Function(func) => write!(f, "{}", func.name()),
-            Macro(mac) => write!(f, "{}", mac.name()),
+            // TODO: check print results
+            Function(func) => write!(f, "{:#?}", func),
+            Macro(mac) => write!(f, "{:#?}", mac),
         }
     }
 }
@@ -123,8 +121,8 @@ impl fmt::Debug for Value {
             Vector(v) => write!(f, "{}", v),
             Map(m) => write!(f, "{}", m),
             Set(s) => write!(f, "{}", s),
-            Function(func) => write!(f, "{}", func.name()),
-            Macro(mac) => write!(f, "{}", mac.name()),
+            Function(func) => write!(f, "{:#?}", func),
+            Macro(mac) => write!(f, "{:?}", mac),
         }
     }
 }
@@ -403,10 +401,10 @@ impl PartialOrd for Value {
             (Value::Vector(v1), Value::Vector(v2)) => v1.partial_cmp(v2),
             (Value::Map(m1), Value::Map(m2)) => m1.partial_cmp(m2),
             (Value::Set(s1), Value::Set(s2)) => s1.partial_cmp(s2),
-            (Value::Function(f1), Value::Function(f2)) => f1.name().partial_cmp(&f2.name()),
-            (Value::Macro(m1), Value::Macro(m2)) => m1.name().partial_cmp(&m2.name()),
             (Value::Nil, Value::Nil) => Some(Ordering::Equal),
             (Value::Bool(b1), Value::Bool(b2)) => b1.partial_cmp(b2),
+            // TODO: Function and Macro
+            // TODO: Do not panic
             (s, o) => panic!("Cannot compare {:?} and {:?}", s.type_name(), o.type_name()),
         }
     }
@@ -427,10 +425,10 @@ impl Ord for Value {
             (Value::Vector(v1), Value::Vector(v2)) => v1.cmp(v2),
             (Value::Map(m1), Value::Map(m2)) => m1.cmp(m2),
             (Value::Set(s1), Value::Set(s2)) => s1.cmp(s2),
-            (Value::Function(f1), Value::Function(f2)) => f1.name().cmp(&f2.name()),
-            (Value::Macro(m1), Value::Macro(m2)) => m1.name().cmp(&m2.name()),
             (Value::Nil, Value::Nil) => Ordering::Equal,
             (Value::Bool(b1), Value::Bool(b2)) => b1.cmp(b2),
+            // TODO: Function and Macro
+            // TODO: Do not panic
             (s, o) => panic!("Cannot compare {:?} and {:?}", s.type_name(), o.type_name()),
         }
     }

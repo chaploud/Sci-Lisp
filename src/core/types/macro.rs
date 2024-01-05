@@ -6,11 +6,9 @@ use dyn_clone::DynClone;
 
 use crate::core::environment::Environment;
 use crate::core::types::error::Result;
-use crate::core::types::symbol::Symbol;
 use crate::core::value::Value;
 
 pub trait Macro: Debug + DynClone {
-    fn name(&self) -> Symbol;
     fn call(
         &self,
         args: Vec<Value>,

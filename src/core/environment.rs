@@ -11,9 +11,6 @@ use crate::core::types::error::Result;
 use crate::core::types::symbol::Symbol;
 use crate::core::value::Value;
 
-use super::types::function::Function;
-use super::types::r#macro::Macro;
-
 pub type EnvLookup = HashMap<Symbol, Value>;
 
 #[derive(Debug, PartialEq)]
@@ -35,9 +32,9 @@ impl<'a> Environment<'a> {
         ret
     }
 
-    pub fn get(&self, key: &Symbol) -> Result<&Value> {
-        match self.lookup.get(key) {
-            Some(value) => Ok(value),
+    pub fn get(&self, key: &Symbol) -> Result<(&Symbol, &Value)> {
+        match self.lookup.get_key_value(key) {
+            Some((key, val)) => Ok((key, val)),
             None => match &self.parent {
                 None => Err(Error::Name(key.to_string())),
                 Some(parent) => parent.get(key),
@@ -73,45 +70,45 @@ impl<'a> Environment<'a> {
 }
 
 fn put_builtin_functions(env: &mut Environment) {
-    let _ = env.put(&TypeFn.name(), Value::Function(Rc::new(TypeFn)));
-    let _ = env.put(&PrintFn.name(), Value::Function(Rc::new(PrintFn)));
-    let _ = env.put(&AddFn.name(), Value::Function(Rc::new(AddFn)));
-    let _ = env.put(&SubFn.name(), Value::Function(Rc::new(SubFn)));
-    let _ = env.put(&MulFn.name(), Value::Function(Rc::new(MulFn)));
-    let _ = env.put(&DivFn.name(), Value::Function(Rc::new(DivFn)));
-    let _ = env.put(&FloorDivFn.name(), Value::Function(Rc::new(FloorDivFn)));
-    let _ = env.put(&RemFn.name(), Value::Function(Rc::new(RemFn)));
-    let _ = env.put(&EqualFn.name(), Value::Function(Rc::new(EqualFn)));
-    let _ = env.put(&NotEqualFn.name(), Value::Function(Rc::new(NotEqualFn)));
-    let _ = env.put(&IsFn.name(), Value::Function(Rc::new(IsFn)));
-    let _ = env.put(&GeFn.name(), Value::Function(Rc::new(GeFn)));
-    let _ = env.put(&GtFn.name(), Value::Function(Rc::new(GtFn)));
-    let _ = env.put(&LeFn.name(), Value::Function(Rc::new(LeFn)));
-    let _ = env.put(&LtFn.name(), Value::Function(Rc::new(LtFn)));
-    let _ = env.put(&DocFn.name(), Value::Function(Rc::new(DocFn)));
-    let _ = env.put(&StrFn.name(), Value::Function(Rc::new(StrFn)));
-    let _ = env.put(&I64Fn.name(), Value::Function(Rc::new(I64Fn)));
-    let _ = env.put(&F64Fn.name(), Value::Function(Rc::new(F64Fn)));
+    let _ = env.put(&SYMBOL_TYPE, Value::Function(Rc::new(TypeFn)));
+    let _ = env.put(&SYMBOL_PRINT, Value::Function(Rc::new(PrintFn)));
+    let _ = env.put(&SYMBOL_ADD, Value::Function(Rc::new(AddFn)));
+    let _ = env.put(&SYMBOL_SUB, Value::Function(Rc::new(SubFn)));
+    let _ = env.put(&SYMBOL_MUL, Value::Function(Rc::new(MulFn)));
+    let _ = env.put(&SYMBOL_DIV, Value::Function(Rc::new(DivFn)));
+    let _ = env.put(&SYMBOL_FLOORDIV, Value::Function(Rc::new(FloorDivFn)));
+    let _ = env.put(&SYMBOL_REM, Value::Function(Rc::new(RemFn)));
+    let _ = env.put(&SYMBOL_EQUAL, Value::Function(Rc::new(EqualFn)));
+    let _ = env.put(&SYMBOL_NOTEQUAL, Value::Function(Rc::new(NotEqualFn)));
+    let _ = env.put(&SYMBOL_IS, Value::Function(Rc::new(IsFn)));
+    let _ = env.put(&SYMBOL_GE, Value::Function(Rc::new(GeFn)));
+    let _ = env.put(&SYMBOL_GT, Value::Function(Rc::new(GtFn)));
+    let _ = env.put(&SYMBOL_LE, Value::Function(Rc::new(LeFn)));
+    let _ = env.put(&SYMBOL_LT, Value::Function(Rc::new(LtFn)));
+    let _ = env.put(&SYMBOL_STR, Value::Function(Rc::new(StrFn)));
+    let _ = env.put(&SYMBOL_I64, Value::Function(Rc::new(I64Fn)));
+    let _ = env.put(&SYMBOL_F64, Value::Function(Rc::new(F64Fn)));
 }
 
 fn put_builtin_macros(env: &mut Environment) {
-    let _ = env.put(&DefMacro.name(), Value::Macro(Rc::new(DefMacro)));
-    let _ = env.put(&ConstMacro.name(), Value::Macro(Rc::new(ConstMacro)));
-    let _ = env.put(&SetMacro.name(), Value::Macro(Rc::new(SetMacro)));
-    let _ = env.put(&LetMacro.name(), Value::Macro(Rc::new(LetMacro)));
-    let _ = env.put(&QuoteMacro.name(), Value::Macro(Rc::new(QuoteMacro)));
+    let _ = env.put(&SYMBOL_DEF, Value::Macro(Rc::new(DefMacro)));
+    let _ = env.put(&SYMBOL_CONST, Value::Macro(Rc::new(ConstMacro)));
+    let _ = env.put(&SYMBOL_SET, Value::Macro(Rc::new(SetMacro)));
+    let _ = env.put(&SYMBOL_LET, Value::Macro(Rc::new(LetMacro)));
+    let _ = env.put(&SYMBOL_QUOTE, Value::Macro(Rc::new(QuoteMacro)));
     let _ = env.put(
-        &SyntaxQuoteMacro.name(),
+        &SYMBOL_SYNTAX_QUOTE,
         Value::Macro(Rc::new(SyntaxQuoteMacro)),
     );
-    let _ = env.put(&UnquoteMacro.name(), Value::Macro(Rc::new(UnquoteMacro)));
+    let _ = env.put(&SYMBOL_UNQUOTE, Value::Macro(Rc::new(UnquoteMacro)));
     let _ = env.put(
-        &UnquoteSplicingMacro.name(),
+        &SYMBOL_UNQUOTE_SPLICING,
         Value::Macro(Rc::new(UnquoteSplicingMacro)),
     );
-    let _ = env.put(&DoMacro.name(), Value::Macro(Rc::new(DoMacro)));
-    let _ = env.put(&IfMacro.name(), Value::Macro(Rc::new(IfMacro)));
-    let _ = env.put(&WhileMacro.name(), Value::Macro(Rc::new(WhileMacro)));
-    let _ = env.put(&SwitchMacro.name(), Value::Macro(Rc::new(SwitchMacro)));
-    let _ = env.put(&TimeMacro.name(), Value::Macro(Rc::new(TimeMacro)));
+    let _ = env.put(&SYMBOL_DO, Value::Macro(Rc::new(DoMacro)));
+    let _ = env.put(&SYMBOL_IF, Value::Macro(Rc::new(IfMacro)));
+    let _ = env.put(&SYMBOL_WHILE, Value::Macro(Rc::new(WhileMacro)));
+    let _ = env.put(&SYMBOL_SWITCH, Value::Macro(Rc::new(SwitchMacro)));
+    let _ = env.put(&SYMBOL_TIME, Value::Macro(Rc::new(TimeMacro)));
+    let _ = env.put(&SYMBOL_DOC, Value::Macro(Rc::new(DocMacro)));
 }

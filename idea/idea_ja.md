@@ -159,6 +159,7 @@ syntax-quoteの内部のみ、unquoteとunquote-splicingが定義される
   - 解消後も残った => OK +1は1と評価されるわ. +だけの特別ケース
 - [ ] ./.scilisp-history.txtの生成場所など、環境変数や設定ファイルの読み込みで設定きるようにする
 - [ ] REPLのTAB補完、リスト表示
+- [ ] def, const, defn等々のdocstring対応
 
 ## cargo
 

@@ -7,6 +7,8 @@ use crate::core::environment::Environment;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
 use crate::core::types::error::{arity_error, arity_error_min, arity_error_range};
+#[allow(unused_imports)]
+use crate::core::types::function::Function;
 use crate::core::types::meta::Meta;
 use crate::core::types::r#macro::Macro;
 use crate::core::types::symbol::Symbol;
@@ -26,9 +28,6 @@ pub const SYMBOL_DEF: Symbol = Symbol {
 pub struct DefMacro;
 
 impl Macro for DefMacro {
-    fn name(&self) -> Symbol {
-        SYMBOL_DEF
-    }
     fn call(
         &self,
         args: Vec<Value>,
@@ -51,15 +50,7 @@ impl Macro for DefMacro {
         }
 
         let symbol = match args_for_def[0].clone() {
-            Value::Symbol(sym) => {
-                if sym.name.starts_with("*") {
-                    return Err(Error::Type(format!(
-                        "set!: cannot set special variable '{}'",
-                        sym.name
-                    )));
-                }
-                sym
-            }
+            Value::Symbol(sym) => sym,
             _ => {
                 return Err(Error::Type(
                     "def: first argument must be a symbol".to_string(),
@@ -87,9 +78,6 @@ pub const SYMBOL_CONST: Symbol = Symbol {
 pub struct ConstMacro;
 
 impl Macro for ConstMacro {
-    fn name(&self) -> Symbol {
-        SYMBOL_CONST
-    }
     fn call(
         &self,
         args: Vec<Value>,
@@ -112,15 +100,7 @@ impl Macro for ConstMacro {
         }
 
         let mut symbol = match args_for_def[0].clone() {
-            Value::Symbol(sym) => {
-                if sym.name.starts_with("*") {
-                    return Err(Error::Type(format!(
-                        "set!: cannot set special variable '{}'",
-                        sym.name
-                    )));
-                }
-                sym
-            }
+            Value::Symbol(sym) => sym,
             _ => {
                 return Err(Error::Type(
                     "const: first argument must be a symbol".to_string(),
@@ -149,9 +129,6 @@ pub const SYMBOL_SET: Symbol = Symbol {
 pub struct SetMacro;
 
 impl Macro for SetMacro {
-    fn name(&self) -> Symbol {
-        SYMBOL_SET
-    }
     fn call(
         &self,
         args: Vec<Value>,
@@ -174,15 +151,7 @@ impl Macro for SetMacro {
         }
 
         let symbol = match args_for_set[0].clone() {
-            Value::Symbol(sym) => {
-                if sym.name.starts_with("*") {
-                    return Err(Error::Type(format!(
-                        "set!: cannot set special variable '{}'",
-                        sym.name
-                    )));
-                }
-                sym
-            }
+            Value::Symbol(sym) => sym,
             _ => {
                 return Err(Error::Type(
                     "set: first argument must be a symbol".to_string(),
@@ -211,9 +180,6 @@ pub const SYMBOL_LET: Symbol = Symbol {
 pub struct LetMacro;
 
 impl Macro for LetMacro {
-    fn name(&self) -> Symbol {
-        SYMBOL_LET
-    }
     fn call(
         &self,
         args: Vec<Value>,
@@ -278,9 +244,6 @@ pub const SYMBOL_QUOTE: Symbol = Symbol {
 pub struct QuoteMacro;
 
 impl Macro for QuoteMacro {
-    fn name(&self) -> Symbol {
-        SYMBOL_QUOTE
-    }
     fn call(
         &self,
         args: Vec<Value>,
@@ -309,9 +272,6 @@ pub const SYMBOL_SYNTAX_QUOTE: Symbol = Symbol {
 pub struct SyntaxQuoteMacro;
 
 impl Macro for SyntaxQuoteMacro {
-    fn name(&self) -> Symbol {
-        SYMBOL_SYNTAX_QUOTE
-    }
     fn call(
         &self,
         args: Vec<Value>,
@@ -347,9 +307,6 @@ pub const SYMBOL_UNQUOTE: Symbol = Symbol {
 pub struct UnquoteMacro;
 
 impl Macro for UnquoteMacro {
-    fn name(&self) -> Symbol {
-        SYMBOL_UNQUOTE
-    }
     fn call(
         &self,
         args: Vec<Value>,
@@ -382,9 +339,6 @@ pub const SYMBOL_UNQUOTE_SPLICING: Symbol = Symbol {
 pub struct UnquoteSplicingMacro;
 
 impl Macro for UnquoteSplicingMacro {
-    fn name(&self) -> Symbol {
-        SYMBOL_UNQUOTE_SPLICING
-    }
     fn call(
         &self,
         args: Vec<Value>,
@@ -401,7 +355,7 @@ impl Macro for UnquoteSplicingMacro {
 
         let mut arg: Value = args[0].clone();
         if let Value::Symbol(sym) = arg {
-            arg = environment.get(&sym)?.clone();
+            arg = environment.get(&sym)?.1.clone();
         }
 
         let mut result: Vec<Value> = vec![];
@@ -479,9 +433,6 @@ pub const SYMBOL_DO: Symbol = Symbol {
 pub struct DoMacro;
 
 impl Macro for DoMacro {
-    fn name(&self) -> Symbol {
-        SYMBOL_DO
-    }
     fn call(
         &self,
         args: Vec<Value>,
@@ -512,9 +463,6 @@ pub const SYMBOL_IF: Symbol = Symbol {
 pub struct IfMacro;
 
 impl Macro for IfMacro {
-    fn name(&self) -> Symbol {
-        SYMBOL_IF
-    }
     fn call(
         &self,
         args: Vec<Value>,
@@ -559,9 +507,6 @@ pub const SYMBOL_WHILE: Symbol = Symbol {
 pub struct WhileMacro;
 
 impl Macro for WhileMacro {
-    fn name(&self) -> Symbol {
-        SYMBOL_WHILE
-    }
     fn call(
         &self,
         args: Vec<Value>,
@@ -606,9 +551,6 @@ pub const SYMBOL_SWITCH: Symbol = Symbol {
 pub struct SwitchMacro;
 
 impl Macro for SwitchMacro {
-    fn name(&self) -> Symbol {
-        SYMBOL_SWITCH
-    }
     fn call(
         &self,
         args: Vec<Value>,
@@ -674,9 +616,6 @@ pub const SYMBOL_TIME: Symbol = Symbol {
 pub struct TimeMacro;
 
 impl Macro for TimeMacro {
-    fn name(&self) -> Symbol {
-        SYMBOL_TIME
-    }
     fn call(
         &self,
         args: Vec<Value>,
@@ -697,11 +636,59 @@ impl Macro for TimeMacro {
     }
 }
 
-// slice [-1:3, :3]
+// doc
+pub const SYMBOL_DOC: Symbol = Symbol {
+    name: Cow::Borrowed("doc"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the documentation of a value."),
+        mutable: false,
+    },
+};
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DocMacro;
+
+impl Macro for DocMacro {
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &mut Environment,
+        _ast: &mut Vec<Value>,
+        _evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        let sym = match &args[0] {
+            Value::Symbol(sym) => sym,
+            _ => {
+                return Err(Error::Type(
+                    "doc: first argument must be a symbol".to_string(),
+                ))
+            }
+        };
+
+        let (key, val) = environment.get(sym)?;
+
+        let mut result = "------------------------------\n".to_string();
+        result += format!("{}: {}\n", val.type_name(), sym.name).as_str();
+        result += format!("{}\n", key.meta.doc).as_str();
+        result += "------------------------------";
+
+        // TODO: generate doc about arity
+
+        println!("{}", result);
+
+        Ok(Value::Nil)
+    }
+}
+
+// fn
 // TODO:
-// SliceMacro,
+// SliceMacro,[-1:3, :3]
 // FnMacro,
+// DefnMacro,
 // ForMacro,
 // BreakMacro,
 // ContinueMacro,

@@ -41,7 +41,7 @@ pub fn eval_list(
     };
 
     let first = match first {
-        Value::Symbol(sym) => environment.get(sym)?.clone(),
+        Value::Symbol(sym) => environment.get(sym)?.1.clone(),
         f => f.clone(),
     };
 
@@ -92,7 +92,7 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
             if !is_need_eval(environment) {
                 return Ok(Value::Symbol(symbol));
             }
-            Ok(environment.get(&symbol)?.clone())
+            Ok(environment.get(&symbol)?.1.clone())
         }
         Value::Keyword(_) => Ok(val),
         Value::List(list) => eval_list(environment, ast, &list),
