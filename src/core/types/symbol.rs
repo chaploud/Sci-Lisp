@@ -1,8 +1,9 @@
 /* core/types/symbol.rs */
 
+use std::borrow::Cow;
 use std::cmp::Ordering;
+use std::fmt;
 use std::hash::{Hash, Hasher};
-use std::{borrow::Cow, fmt};
 
 use crate::core::types::meta::Meta;
 

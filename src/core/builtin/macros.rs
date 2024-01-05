@@ -244,7 +244,7 @@ impl Macro for LetMacro {
 
         bind_form.value.chunks(2).for_each(|chunk| {
             let symbol = match &chunk[0] {
-                Value::Symbol(sym) => sym,
+                Value::Symbol(sym) => Ok(sym),
                 _ => Err(Error::Type(
                     "let: first element of each pair must be a symbol".to_string(),
                 )),
@@ -252,7 +252,7 @@ impl Macro for LetMacro {
 
             let value = chunk[1].clone();
 
-            local_env.put(symbol, value).unwrap();
+            local_env.put(symbol.unwrap(), value).unwrap();
         });
 
         let mut result = Value::Nil;
@@ -284,9 +284,9 @@ impl Macro for QuoteMacro {
     fn call(
         &self,
         args: Vec<Value>,
-        environment: &mut Environment,
-        ast: &mut Vec<Value>,
-        evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
+        _environment: &mut Environment,
+        _ast: &mut Vec<Value>,
+        _evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
     ) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
@@ -612,7 +612,7 @@ impl Macro for SwitchMacro {
     fn call(
         &self,
         args: Vec<Value>,
-        environment: &mut Environment,
+        _environment: &mut Environment,
         _ast: &mut Vec<Value>,
         _evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
     ) -> Result<Value> {
@@ -680,7 +680,7 @@ impl Macro for TimeMacro {
     fn call(
         &self,
         args: Vec<Value>,
-        environment: &mut Environment,
+        _environment: &mut Environment,
         _ast: &mut Vec<Value>,
         _evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
     ) -> Result<Value> {

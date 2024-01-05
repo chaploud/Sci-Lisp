@@ -9,7 +9,7 @@ pub struct Meta {
 impl Default for Meta {
     fn default() -> Self {
         Meta {
-            doc: Cow::Borrowed(""),
+            doc: Cow::Borrowed("No documentation"),
             mutable: true,
         }
     }

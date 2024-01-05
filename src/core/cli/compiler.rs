@@ -6,6 +6,7 @@ use crate::core::types::error::Result;
 use crate::core::utility::utility::try_read_file;
 
 pub fn compile(file: Option<PathBuf>) -> Result<()> {
+    println!("***Compile is not implemented yet.***"); // TODO:
     print!(
         "Compiling '{}' ... ",
         file.clone().unwrap().to_string_lossy()
