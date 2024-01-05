@@ -72,6 +72,19 @@
 - リーダーマクロはLisp側でmacro組んだらよろしい
   - 例: '(1, 2, 3) => (quote (1, 2, 3)) => これ自体はRustで実装
 
+### シンタックスクォート(quasi-quote)の処理
+
+syntax-quoteの内部のみ、unquoteとunquote-splicingが定義される
+
+```clojure
+(syntax-quote [(unquote a) a (unquote-splicing a)
+               (unquote (quote a))])
+```
+
+- syntax-quoteの入れ子は、syntax-quoteとして振舞ってくれればよい
+- unquoteの入れ子は、やはりシンボルが解決された後はValueそのものを返してくれればよい => シンプル!
+- 一段階しかはがさない
+
 #### def, defn, struct, 等のdocstring
 
 - meta情報を持たせる(これはHashMap?)
@@ -103,6 +116,10 @@
 - nsはぶっちゃけほしい
 - cloneによるパフォーマンスの低下は気になる
 - 無限ループ時のCtrl+Cの挙動
+- クラスの実装は、高い山を上るがごとく大変なものにになるであろう
+  - クラスの実装の前に、いちどリファクタリング・テストをはさもう
+- シーケンスまたはイテラブルの定義が必要
+- isの挙動がおかしい、のは変数の扱いのせい(Pythonみたくキャッシュを使うことはしたくないが...)
 
 ## cargo
 

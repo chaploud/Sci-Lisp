@@ -37,7 +37,7 @@ impl std::hash::Hash for Function {
 
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "function: '{}' ", self.name)
+        write!(f, "{}", self.name)
     }
 }
 

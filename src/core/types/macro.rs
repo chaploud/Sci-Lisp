@@ -68,6 +68,6 @@ impl Ord for Macro {
 
 impl fmt::Display for Macro {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "macro: '{}' ", self.name)
+        write!(f, "{}", self.name)
     }
 }
