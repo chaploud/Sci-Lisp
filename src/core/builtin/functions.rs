@@ -556,6 +556,74 @@ impl Function for FirstFn {
     }
 }
 
+// rest
+pub const SYMBOL_REST: Symbol = Symbol {
+    name: Cow::Borrowed("rest"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the rest of a collection."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RestFn;
+
+impl Function for RestFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::List(list) => {
+                if list.value.is_empty() {
+                    return Value::as_list(vec![]);
+                }
+                Value::as_list(list.value[1..].to_vec())
+            }
+            Value::Vector(vector) => {
+                if vector.value.is_empty() {
+                    return Value::as_vector(vec![]);
+                }
+                Value::as_vector(vector.value[1..].to_vec())
+            }
+            Value::Map(map) => {
+                if map.value.is_empty() {
+                    return Value::as_map(vec![]);
+                }
+                Value::as_map(
+                    map.value[1..]
+                        .into_iter()
+                        .map(|(k, v)| (k.clone(), v.clone()))
+                        .collect::<Vec<(Value, Value)>>(),
+                )
+            }
+            Value::Set(set) => {
+                if set.value.is_empty() {
+                    return Value::as_set(vec![]);
+                }
+                Value::as_set(
+                    set.value[1..]
+                        .into_iter()
+                        .map(|v| v.clone())
+                        .collect::<Vec<Value>>(),
+                )
+            }
+            Value::String(s) => {
+                if s.is_empty() {
+                    Ok(Value::String("".to_string()))
+                } else {
+                    Ok(Value::String(s[1..].to_string()))
+                }
+            }
+            _ => Err(type_error(
+                "rest: argument must be list, vector, map, set or string",
+                args[0].type_name().as_str(),
+            )),
+        }
+    }
+}
+
 // TODO:
 // isinstance
 // format
