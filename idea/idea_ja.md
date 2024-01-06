@@ -161,6 +161,7 @@ syntax-quoteの内部のみ、unquoteとunquote-splicingが定義される
 - [ ] REPLのTAB補完、リスト表示
 - [ ] def, const, defn等々のdocstring対応
 - [ ] arityの保持[], [], [&rest]
+- [ ] def, const, defn系の作用するenvironmentが問題となってきている
 
 ## cargo
 

@@ -1,7 +1,6 @@
 /* core/builtin/macros.rs */
 
 use std::borrow::Cow;
-use std::cell::RefCell;
 use std::rc::Rc;
 use std::vec;
 
@@ -700,6 +699,8 @@ pub const SYMBOL_FN: Symbol = Symbol {
 pub struct FnMacro;
 
 // TODO: need to check bug about lifetime
+// TODO: check enclosing_env
+// TODO: set!/def/const environment herarchy
 
 impl Macro for FnMacro {
     fn call(
@@ -707,7 +708,7 @@ impl Macro for FnMacro {
         args: Vec<Value>,
         environment: &mut Environment,
         _ast: &mut Vec<Value>,
-        _evalfn: for<'b, 'c, 'd> fn(&'b mut Environment<'c>, &'d mut Vec<Value>) -> Result<Value>,
+        _evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
     ) -> Result<Value> {
         if args.len() < 2 {
             return Err(arity_error_min(2, args.len()));
@@ -742,12 +743,10 @@ impl Macro for FnMacro {
             }
         }
 
-        let enclosing_env = Rc::new(RefCell::new(environment));
-
         Ok(Value::Function(Rc::new(Lambda {
             args: params,
             body,
-            enclosing_env: Rc::clone(&enclosing_env),
+            parent_env: environment,
         })))
     }
 }
@@ -769,6 +768,7 @@ impl Macro for FnMacro {
 // AND, OR
 // GENSYM/AUTO-GENSYM
 // SEQUENCE/RANGE
+// NameSpaceMacro
 
 pub const SYMBOL_SYNTAX_QUOTING: Symbol = Symbol {
     name: Cow::Borrowed("*syntax-quoting*"),
