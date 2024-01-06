@@ -8,6 +8,7 @@ use crate::core::types::error::{arity_error, arity_error_min, type_error};
 use crate::core::types::function::Function;
 use crate::core::types::meta::Meta;
 use crate::core::types::symbol::Symbol;
+use crate::core::types::vector::Vector;
 use crate::core::value::Value;
 
 // type
@@ -507,6 +508,51 @@ impl Function for F64Fn {
         }
 
         Value::to_f64(&args[0])
+    }
+}
+
+// first
+pub const SYMBOL_FIRST: Symbol = Symbol {
+    name: Cow::Borrowed("first"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the first element of a collection."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FirstFn;
+
+impl Function for FirstFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::List(list) => list.value.first().map_or(Ok(Value::Nil), |v| Ok(v.clone())),
+            Value::Vector(vector) => vector
+                .value
+                .first()
+                .map_or(Ok(Value::Nil), |v| Ok(v.clone())),
+            Value::Map(map) => map.value.first().map_or(Ok(Value::Nil), |(k, v)| {
+                Ok(Value::Vector(Vector {
+                    value: vec![k.clone(), v.clone()],
+                }))
+            }),
+            Value::Set(set) => set.value.first().map_or(Ok(Value::Nil), |v| Ok(v.clone())),
+            Value::String(s) => {
+                if s.is_empty() {
+                    Ok(Value::Nil)
+                } else {
+                    Ok(Value::String(s[0..1].to_string()))
+                }
+            }
+            _ => Err(type_error(
+                "first: argument must be list, vector, map, set or string",
+                args[0].type_name().as_str(),
+            )),
+        }
     }
 }
 

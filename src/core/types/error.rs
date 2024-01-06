@@ -27,6 +27,7 @@ pub enum Error {
     Cast(String, String),
     Arity(String),
     Immutable(String),
+    Index(String),
 }
 
 impl fmt::Display for Error {
@@ -57,6 +58,7 @@ impl fmt::Display for Error {
             Cast(src, dest) => write!(f, "Cast Error: cannot cast {} to {}", src, dest),
             Arity(msg) => write!(f, "Arity Error: {}", msg),
             Immutable(msg) => write!(f, "Immutable Error: {}", msg),
+            Index(msg) => write!(f, "Index Error: {}", msg),
         }
     }
 }
@@ -78,6 +80,7 @@ impl std::error::Error for Error {
             Cast(_, _) => None,
             Arity(_) => None,
             Immutable(_) => None,
+            Index(_) => None,
         }
     }
 }
