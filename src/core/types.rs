@@ -3,6 +3,7 @@
 pub mod error;
 pub mod function;
 pub mod keyword;
+pub mod lambda;
 pub mod list;
 pub mod r#macro;
 pub mod map;

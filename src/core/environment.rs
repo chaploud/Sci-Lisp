@@ -13,7 +13,7 @@ use crate::core::value::Value;
 
 pub type EnvLookup = HashMap<Symbol, Value>;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Environment<'a> {
     lookup: EnvLookup,
     pub parent: Option<&'a Environment<'a>>,

@@ -87,14 +87,14 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
         | Value::I64(_)
         | Value::F64(_)
         | Value::Regex(_)
-        | Value::String(_) => Ok(val),
+        | Value::String(_)
+        | Value::Keyword(_) => Ok(val),
         Value::Symbol(symbol) => {
             if !is_need_eval(environment) {
                 return Ok(Value::Symbol(symbol));
             }
             Ok(environment.get(&symbol)?.1.clone())
         }
-        Value::Keyword(_) => Ok(val),
         Value::List(list) => eval_list(environment, ast, &list),
         Value::Vector(vector) => {
             let result: Vec<Value> = vector

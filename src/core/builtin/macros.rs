@@ -1,6 +1,8 @@
 /* core/builtin/macros.rs */
 
 use std::borrow::Cow;
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::vec;
 
 use crate::core::environment::Environment;
@@ -9,6 +11,7 @@ use crate::core::types::error::Result;
 use crate::core::types::error::{arity_error, arity_error_min, arity_error_range};
 #[allow(unused_imports)]
 use crate::core::types::function::Function;
+use crate::core::types::lambda::Lambda;
 use crate::core::types::meta::Meta;
 use crate::core::types::r#macro::Macro;
 use crate::core::types::symbol::Symbol;
@@ -681,6 +684,71 @@ impl Macro for DocMacro {
         println!("{}", result);
 
         Ok(Value::Nil)
+    }
+}
+
+// fn
+pub const SYMBOL_FN: Symbol = Symbol {
+    name: Cow::Borrowed("fn"),
+    meta: Meta {
+        doc: Cow::Borrowed("Create a anonymous/lambda function."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FnMacro;
+
+// TODO: need to check bug about lifetime
+
+impl Macro for FnMacro {
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &mut Environment,
+        _ast: &mut Vec<Value>,
+        _evalfn: for<'b, 'c, 'd> fn(&'b mut Environment<'c>, &'d mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
+        if args.len() < 2 {
+            return Err(arity_error_min(2, args.len()));
+        }
+
+        let mut params = vec![];
+        let mut body = vec![];
+
+        for (i, arg) in args.into_iter().enumerate() {
+            if i == 0 {
+                let params_vec = match arg {
+                    Value::Vector(v) => v.value,
+                    _ => {
+                        return Err(Error::Type(
+                            "fn: first argument must be a vector".to_string(),
+                        ))
+                    }
+                };
+
+                for param in params_vec {
+                    match param {
+                        Value::Symbol(sym) => params.push(sym),
+                        _ => {
+                            return Err(Error::Type(
+                                "fn: first argument must be a vector of symbols".to_string(),
+                            ))
+                        }
+                    }
+                }
+            } else {
+                body.push(arg);
+            }
+        }
+
+        let enclosing_env = Rc::new(RefCell::new(environment));
+
+        Ok(Value::Function(Rc::new(Lambda {
+            args: params,
+            body,
+            enclosing_env: Rc::clone(&enclosing_env),
+        })))
     }
 }
 
