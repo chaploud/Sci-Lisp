@@ -9,16 +9,15 @@ use crate::core::types::symbol::Symbol;
 use crate::core::value::Value;
 
 #[derive(Debug, Clone)]
-pub struct Lambda<'a> {
+pub struct Lambda {
     pub args: Vec<Symbol>,
     pub body: Vec<Value>,
-    pub parent_env: &'a Environment<'a>,
 }
 
 // TODO: &rest
-impl<'a> Function for Lambda<'a> {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
-        let mut local_env = Environment::new(None, Some(self.parent_env));
+impl Function for Lambda {
+    fn call(&self, args: Vec<Value>, environment: &mut Environment) -> Result<Value> {
+        let mut local_env = Environment::new(None, Some(environment));
         let mut ast = Vec::<Value>::new();
 
         if args.len() != self.args.len() {
@@ -26,7 +25,7 @@ impl<'a> Function for Lambda<'a> {
         }
 
         for (arg, val) in self.args.iter().zip(args) {
-            local_env.put(arg, val)?;
+            local_env.insert(arg, val)?;
         }
 
         let mut result = Value::Nil;

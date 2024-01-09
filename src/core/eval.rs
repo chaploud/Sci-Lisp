@@ -42,6 +42,7 @@ pub fn eval_list(
 
     let first = match first {
         Value::Symbol(sym) => environment.get(sym)?.1.clone(),
+        Value::List(list) => ast_eval(environment, ast, Value::List(list.clone()))?,
         f => f.clone(),
     };
 
@@ -54,7 +55,7 @@ pub fn eval_list(
                 .map(|v| ast_eval(environment, ast, v))
                 .collect();
 
-            func.call(ret?)
+            func.call(ret?, environment)
         }
         Value::Macro(mac) => mac.call(rest, environment, ast, eval),
         f => {

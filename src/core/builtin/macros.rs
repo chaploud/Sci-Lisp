@@ -62,7 +62,7 @@ impl Macro for DefMacro {
 
         let value = args_for_def[1].clone();
 
-        environment.put(&symbol, value)?;
+        environment.insert(&symbol, value)?;
         Ok(Value::Symbol(symbol))
     }
 }
@@ -113,7 +113,7 @@ impl Macro for ConstMacro {
         let value = args_for_def[1].clone();
         symbol.meta.mutable = false;
 
-        environment.put(&symbol, value)?;
+        environment.insert(&symbol, value)?;
         Ok(Value::Symbol(symbol))
     }
 }
@@ -164,7 +164,7 @@ impl Macro for SetMacro {
         let value = args_for_set[1].clone();
 
         environment.get(&symbol)?;
-        environment.put(&symbol, value)?;
+        environment.insert(&symbol, value)?;
         Ok(Value::Symbol(symbol))
     }
 }
@@ -220,7 +220,7 @@ impl Macro for LetMacro {
 
             let value = chunk[1].clone();
 
-            local_env.put(symbol.unwrap(), value).unwrap();
+            local_env.insert(symbol.unwrap(), value).unwrap();
         });
 
         let mut result = Value::Nil;
@@ -321,7 +321,7 @@ impl Macro for UnquoteMacro {
         }
 
         let mut local_env = Environment::new(None, Some(environment));
-        local_env.put(&SYMBOL_UNQUOTING, Value::Bool(true))?;
+        local_env.insert(&SYMBOL_UNQUOTING, Value::Bool(true))?;
 
         ast.push(args[0].clone());
         evalfn(&mut local_env, ast)
@@ -353,7 +353,7 @@ impl Macro for UnquoteSplicingMacro {
         }
 
         let mut local_env = Environment::new(None, Some(environment));
-        local_env.put(&SYMBOL_UNQUOTING, Value::Bool(true))?;
+        local_env.insert(&SYMBOL_UNQUOTING, Value::Bool(true))?;
 
         let mut arg: Value = args[0].clone();
         if let Value::Symbol(sym) = arg {
@@ -706,7 +706,7 @@ impl Macro for FnMacro {
     fn call(
         &self,
         args: Vec<Value>,
-        environment: &mut Environment,
+        _environment: &mut Environment,
         _ast: &mut Vec<Value>,
         _evalfn: fn(&mut Environment, &mut Vec<Value>) -> Result<Value>,
     ) -> Result<Value> {
@@ -743,11 +743,7 @@ impl Macro for FnMacro {
             }
         }
 
-        Ok(Value::Function(Rc::new(Lambda {
-            args: params,
-            body,
-            parent_env: environment,
-        })))
+        Ok(Value::Function(Rc::new(Lambda { args: params, body })))
     }
 }
 
