@@ -1,6 +1,7 @@
 /* core/cli/repl.rs */
 
 use std::borrow::Cow;
+use std::env;
 use std::path::PathBuf;
 
 use colored::*;
@@ -69,7 +70,8 @@ pub fn repl() -> Result<()> {
         println!("No previous history.");
     }
 
-    let environment = Environment::new_root_environment();
+    let root = Environment::new_root_environment();
+    let environment = Environment::new_local_environment(root.clone());
     // TODO: show completion list from environment (with tab key)
 
     loop {
@@ -137,7 +139,8 @@ pub fn execute(file: Option<PathBuf>) -> Result<()> {
     read(&mut ast, parsed)?;
 
     // Eval
-    let environment = Environment::new_root_environment();
+    let root = Environment::new_root_environment();
+    let environment = Environment::new_local_environment(root.clone());
     eval(&environment, &mut ast)?;
 
     Ok(())

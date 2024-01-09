@@ -58,7 +58,7 @@ pub fn eval_list(
                 .map(|v| ast_eval(environment, ast, v))
                 .collect();
 
-            func.call(ret?, environment)
+            func.call(ret?)
         }
         Value::Macro(mac) => mac.call(rest, environment, ast, eval),
         f => {

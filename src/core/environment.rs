@@ -16,14 +16,14 @@ use crate::core::value::Value;
 pub struct Environment {
     pub root: Rc<RefCell<HashMap<Symbol, Value>>>,
     pub parent: Option<Rc<RefCell<Environment>>>,
-    pub current: Option<HashMap<Symbol, Value>>,
+    pub current: Option<Rc<RefCell<HashMap<Symbol, Value>>>>,
 }
 
 impl Environment {
     pub fn new_root_environment() -> Rc<RefCell<Self>> {
         let root = Rc::new(RefCell::new(HashMap::new()));
         let result = Rc::new(RefCell::new(Self {
-            root: root.clone(),
+            root,
             parent: None,
             current: None,
         }));
@@ -34,21 +34,30 @@ impl Environment {
         result
     }
 
-    pub fn new_local_environment(parent: &Rc<RefCell<Environment>>) -> Rc<RefCell<Self>> {
+    pub fn new_local_environment(parent: Rc<RefCell<Environment>>) -> Rc<RefCell<Self>> {
         let result = Rc::new(RefCell::new(Self {
-            root: parent.borrow().root.clone(),
+            root: parent.borrow_mut().root.clone(),
             parent: Some(parent.clone()),
-            current: Some(HashMap::new()),
+            current: Some(Rc::new(RefCell::new(HashMap::new()))),
         }));
         result
     }
 
     pub fn get(&self, key: Symbol) -> Result<(Symbol, Value)> {
-        match self.current.clone().unwrap_or_default().get_key_value(&key) {
+        match self
+            .current
+            .clone()
+            .unwrap_or_default()
+            .borrow()
+            .get_key_value(&key)
+        {
             Some((key, val)) => Ok((key.clone(), val.clone())),
             None => match &self.parent {
-                None => Err(Error::Name(key.to_string())),
                 Some(parent) => parent.borrow().get(key),
+                None => match self.root.borrow().get_key_value(&key) {
+                    Some((k, v)) => Ok((k.clone(), v.clone())),
+                    None => Err(Error::Name(key.to_string())),
+                },
             },
         }
     }
@@ -80,7 +89,13 @@ impl Environment {
     }
 
     pub fn insert_to_current(&mut self, key: Symbol, value: Value) -> Result<Value> {
-        match self.current.clone().unwrap_or_default().entry(key.clone()) {
+        match self
+            .current
+            .clone()
+            .unwrap_or_default()
+            .borrow_mut()
+            .entry(key.clone())
+        {
             Entry::Occupied(mut entry) => {
                 if entry.key().meta.mutable {
                     if !key.meta.mutable {
@@ -106,7 +121,13 @@ impl Environment {
     }
 
     pub fn set(&mut self, key: &Symbol, value: Value) -> Result<Value> {
-        match self.current.clone().unwrap_or_default().entry(key.clone()) {
+        match self
+            .current
+            .clone()
+            .unwrap_or_default()
+            .borrow_mut()
+            .entry(key.clone())
+        {
             Entry::Occupied(mut entry) => {
                 if entry.key().meta.mutable {
                     entry.insert(value);
@@ -117,13 +138,26 @@ impl Environment {
                     )));
                 }
             }
-            // 親環境までたどってsetを試みる。できなかったらエラー
             Entry::Vacant(_) => match self.parent.clone() {
-                None => return Err(Error::Name(key.to_string())),
                 Some(parent) => {
                     parent.borrow_mut().set(key, value)?;
                     return Ok(Value::Nil);
                 }
+                None => match self.root.clone().borrow_mut().entry(key.clone()) {
+                    Entry::Occupied(mut entry) => {
+                        if entry.key().meta.mutable {
+                            entry.insert(value);
+                        } else {
+                            return Err(Error::Immutable(format!(
+                                "cannot overwrite immutable binding '{}'",
+                                key
+                            )));
+                        }
+                    }
+                    Entry::Vacant(_) => {
+                        return Err(Error::Name(key.to_string()));
+                    }
+                },
             },
         };
         Ok(Value::Nil)

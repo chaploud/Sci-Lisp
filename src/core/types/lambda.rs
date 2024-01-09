@@ -15,20 +15,21 @@ use crate::core::value::Value;
 pub struct Lambda {
     pub args: Vec<Symbol>,
     pub body: Vec<Value>,
+    pub environment: Rc<RefCell<Environment>>,
 }
 
 // TODO: &rest
 impl Function for Lambda {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
-        let local_env = Environment::new_local_environment(environment);
-        let mut ast = Vec::<Value>::new();
-
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.len() != self.args.len() {
             return Err(arity_error(self.args.len(), args.len()));
         }
 
-        for (arg, val) in self.args.iter().zip(args) {
-            local_env.borrow_mut().insert_to_current(arg.clone(), val)?;
+        let local_env = Environment::new_local_environment(self.environment.clone());
+        let mut ast = Vec::<Value>::new();
+
+        for (sym, val) in self.args.iter().zip(args) {
+            local_env.borrow_mut().insert_to_current(sym.clone(), val)?;
         }
 
         let mut result = Value::Nil;

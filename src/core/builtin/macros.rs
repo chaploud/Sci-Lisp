@@ -197,7 +197,7 @@ impl Macro for LetMacro {
             return Err(arity_error_min(1, args.len()));
         }
 
-        let mut local_env = Environment::new_local_environment(environment);
+        let mut local_env = Environment::new_local_environment(environment.clone());
 
         let bind_form = match &args[0] {
             Value::Vector(v) => v,
@@ -292,7 +292,7 @@ impl Macro for SyntaxQuoteMacro {
         }
 
         // TODO:
-        let mut local_env = Environment::new_local_environment(environment);
+        let mut local_env = Environment::new_local_environment(environment.clone());
         // local_env.put(&UNQUOTE.name, Value::Macro(UNQUOTE))?;
         // local_env.put(&UNQUOTE_SPLICING.name, Value::Macro(UNQUOTE_SPLICING))?;
         // local_env.put(&SYMBOL_SYNTAX_QUOTING, Value::Bool(true))?;
@@ -326,7 +326,7 @@ impl Macro for UnquoteMacro {
             return Err(arity_error(1, args.len()));
         }
 
-        let mut local_env = Environment::new_local_environment(environment);
+        let mut local_env = Environment::new_local_environment(environment.clone());
         local_env
             .borrow_mut()
             .insert_to_current(SYMBOL_UNQUOTING, Value::Bool(true))?;
@@ -360,7 +360,7 @@ impl Macro for UnquoteSplicingMacro {
             return Err(arity_error(1, args.len()));
         }
 
-        let mut local_env = Environment::new_local_environment(environment);
+        let mut local_env = Environment::new_local_environment(environment.clone());
         local_env
             .borrow_mut()
             .insert_to_current(SYMBOL_UNQUOTING, Value::Bool(true))?;
@@ -716,7 +716,7 @@ impl Macro for FnMacro {
     fn call(
         &self,
         args: Vec<Value>,
-        _environment: &Rc<RefCell<Environment>>,
+        environment: &Rc<RefCell<Environment>>,
         _ast: &mut Vec<Value>,
         _evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
     ) -> Result<Value> {
@@ -753,7 +753,11 @@ impl Macro for FnMacro {
             }
         }
 
-        Ok(Value::Function(Rc::new(Lambda { args: params, body })))
+        Ok(Value::Function(Rc::new(Lambda {
+            args: params,
+            body,
+            environment: environment.clone(),
+        })))
     }
 }
 
