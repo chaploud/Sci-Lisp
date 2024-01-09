@@ -1,6 +1,8 @@
 /* core/types/function.rs */
 
+use std::cell::RefCell;
 use std::fmt::Debug;
+use std::rc::Rc;
 
 use dyn_clone::DynClone;
 
@@ -9,6 +11,6 @@ use crate::core::types::error::Result;
 use crate::core::value::Value;
 
 pub trait Function: Debug + DynClone {
-    fn call(&self, args: Vec<Value>, environment: &mut Environment) -> Result<Value>;
+    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value>;
 }
 dyn_clone::clone_trait_object!(Function);

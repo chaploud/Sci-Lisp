@@ -69,7 +69,7 @@ pub fn repl() -> Result<()> {
         println!("No previous history.");
     }
 
-    let mut environment = Environment::new(None, None);
+    let environment = Environment::new_root_environment();
     // TODO: show completion list from environment (with tab key)
 
     loop {
@@ -114,7 +114,7 @@ pub fn repl() -> Result<()> {
                     continue;
                 }
 
-                let value = eval(&mut environment, &mut ast);
+                let value = eval(&environment, &mut ast);
                 if let Err(err) = value {
                     eprintln!("{}", err);
                     continue;
@@ -137,8 +137,8 @@ pub fn execute(file: Option<PathBuf>) -> Result<()> {
     read(&mut ast, parsed)?;
 
     // Eval
-    let mut environment = Environment::new(None, None);
-    eval(&mut environment, &mut ast)?;
+    let environment = Environment::new_root_environment();
+    eval(&environment, &mut ast)?;
 
     Ok(())
 }

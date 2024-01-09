@@ -1,5 +1,8 @@
 /* core/eval.rs */
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::core::builtin::macros::{SYMBOL_SYNTAX_QUOTING, SYMBOL_UNQUOTING};
 use crate::core::environment::Environment;
 use crate::core::types::error::Error;
@@ -7,13 +10,13 @@ use crate::core::types::error::Result;
 use crate::core::types::list::List;
 use crate::core::value::Value;
 
-pub fn is_need_eval(environment: &mut Environment) -> bool {
-    let in_syntax_quote = match environment.get(&SYMBOL_SYNTAX_QUOTING) {
+pub fn is_need_eval(environment: &Rc<RefCell<Environment>>) -> bool {
+    let in_syntax_quote = match environment.borrow().get(SYMBOL_SYNTAX_QUOTING) {
         Ok(_) => true,
         Err(_) => false,
     };
 
-    let in_unquoting = match environment.get(&SYMBOL_UNQUOTING) {
+    let in_unquoting = match environment.borrow().get(SYMBOL_UNQUOTING) {
         Ok(_) => true,
         Err(_) => false,
     };
@@ -22,7 +25,7 @@ pub fn is_need_eval(environment: &mut Environment) -> bool {
 }
 
 pub fn ast_eval(
-    environment: &mut Environment,
+    environment: &Rc<RefCell<Environment>>,
     ast: &mut Vec<Value>,
     value: Value,
 ) -> Result<Value> {
@@ -31,7 +34,7 @@ pub fn ast_eval(
 }
 
 pub fn eval_list(
-    environment: &mut Environment,
+    environment: &Rc<RefCell<Environment>>,
     ast: &mut Vec<Value>,
     list: &List,
 ) -> Result<Value> {
@@ -41,7 +44,7 @@ pub fn eval_list(
     };
 
     let first = match first {
-        Value::Symbol(sym) => environment.get(sym)?.1.clone(),
+        Value::Symbol(sym) => environment.borrow().get(sym.clone())?.1.clone(),
         Value::List(list) => ast_eval(environment, ast, Value::List(list.clone()))?,
         f => f.clone(),
     };
@@ -76,7 +79,7 @@ pub fn eval_list(
     result
 }
 
-pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value> {
+pub fn eval(environment: &Rc<RefCell<Environment>>, ast: &mut Vec<Value>) -> Result<Value> {
     let val = match ast.pop() {
         Some(val) => val,
         None => Value::Nil,
@@ -94,7 +97,7 @@ pub fn eval(environment: &mut Environment, ast: &mut Vec<Value>) -> Result<Value
             if !is_need_eval(environment) {
                 return Ok(Value::Symbol(symbol));
             }
-            Ok(environment.get(&symbol)?.1.clone())
+            Ok(environment.borrow().get(symbol)?.1.clone())
         }
         Value::List(list) => eval_list(environment, ast, &list),
         Value::Vector(vector) => {
