@@ -30,7 +30,6 @@ pub struct Lambda {
     pub environment: Rc<RefCell<Environment>>,
 }
 
-// TODO: &rest
 impl Function for Lambda {
     fn call(&self, args: Vec<Value>) -> Result<Value> {
         let local_env = Environment::new_local_environment(self.environment.clone());

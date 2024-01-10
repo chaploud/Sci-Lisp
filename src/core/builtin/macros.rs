@@ -708,10 +708,6 @@ pub const SYMBOL_FN: Symbol = Symbol {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FnMacro;
 
-// TODO: need to check bug about lifetime
-// TODO: check enclosing_env
-// TODO: set!/def/const environment herarchy
-
 impl Macro for FnMacro {
     fn call(
         &self,
@@ -761,11 +757,87 @@ impl Macro for FnMacro {
     }
 }
 
-// fn
+// defn
+pub const SYMBOL_DEFN: Symbol = Symbol {
+    name: Cow::Borrowed("defn"),
+    meta: Meta {
+        doc: Cow::Borrowed("Bind a function to a symbol."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DefnMacro;
+
+impl Macro for DefnMacro {
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &Rc<RefCell<Environment>>,
+        _ast: &mut Vec<Value>,
+        _evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
+        if args.len() < 3 {
+            return Err(arity_error_min(3, args.len()));
+        }
+
+        let binding = args[0].clone();
+        let name = match &binding {
+            Value::Symbol(sym) => sym,
+            _ => {
+                return Err(Error::Type(
+                    "defn: first argument must be a symbol".to_string(),
+                ))
+            }
+        };
+
+        let mut params = vec![];
+        let mut body = vec![];
+
+        for (i, arg) in args.into_iter().enumerate() {
+            if i == 1 {
+                let params_vec = match arg {
+                    Value::Vector(v) => v.value,
+                    _ => {
+                        return Err(Error::Type(
+                            "defn: second argument must be a vector".to_string(),
+                        ))
+                    }
+                };
+
+                for param in params_vec {
+                    match param {
+                        Value::Symbol(sym) => params.push(sym),
+                        _ => {
+                            return Err(Error::Type(
+                                "defn: second argument must be a vector of symbols".to_string(),
+                            ))
+                        }
+                    }
+                }
+            } else if i == 2 {
+                body.push(arg);
+            } else {
+                body.push(arg);
+            }
+        }
+
+        let lambda = Lambda {
+            args: params,
+            body,
+            environment: environment.clone(),
+        };
+
+        environment
+            .borrow_mut()
+            .insert_to_root(name.clone(), Value::Function(Rc::new(lambda)))?;
+
+        Ok(Value::Symbol(name.clone()))
+    }
+}
+
 // TODO:
 // SliceMacro,[-1:3, :3]
-// FnMacro,
-// DefnMacro,
 // ForMacro,
 // BreakMacro,
 // ContinueMacro,
