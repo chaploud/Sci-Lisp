@@ -207,4 +207,6 @@ fn insert_builtin_macros(env: &mut Environment) {
     let _ = env.insert_to_root(SYMBOL_DOC, Value::Macro(Rc::new(DocMacro)));
     let _ = env.insert_to_root(SYMBOL_FN, Value::Macro(Rc::new(FnMacro)));
     let _ = env.insert_to_root(SYMBOL_DEFN, Value::Macro(Rc::new(DefnMacro)));
+    let _ = env.insert_to_root(SYMBOL_THREAD_FIRST, Value::Macro(Rc::new(ThreadFirstMacro)));
+    let _ = env.insert_to_root(SYMBOL_THREAD_LAST, Value::Macro(Rc::new(ThreadLastMacro)));
 }

@@ -949,11 +949,113 @@ impl Macro for DefnMacro {
     }
 }
 
+// thread-first(->)
+pub const SYMBOL_THREAD_FIRST: Symbol = Symbol {
+    name: Cow::Borrowed("->"),
+    meta: Meta {
+        doc: Cow::Borrowed("Thread-first macro."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ThreadFirstMacro;
+
+impl Macro for ThreadFirstMacro {
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &Rc<RefCell<Environment>>,
+        ast: &mut Vec<Value>,
+        evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
+        if args.len() < 1 {
+            return Err(arity_error_min(1, args.len()));
+        }
+
+        ast.push(args[0].clone());
+        let mut result = evalfn(environment, ast)?;
+
+        for arg in args.into_iter().skip(1) {
+            match arg {
+                Value::List(list) => {
+                    let mut new_list = list.value.clone();
+                    new_list.insert(1, result.clone());
+                    ast.push(Value::as_list(new_list)?);
+                    result = evalfn(environment, ast)?;
+                }
+                Value::Symbol(sym) => {
+                    let new_list = vec![Value::Symbol(sym), result.clone()];
+                    ast.push(Value::as_list(new_list)?);
+                    result = evalfn(environment, ast)?;
+                }
+                _ => {
+                    return Err(Error::Type(
+                        "->: arguments must be lists, functions or macros".to_string(),
+                    ))
+                }
+            }
+        }
+
+        Ok(result)
+    }
+}
+
+// thread-last(->>)
+pub const SYMBOL_THREAD_LAST: Symbol = Symbol {
+    name: Cow::Borrowed("->>"),
+    meta: Meta {
+        doc: Cow::Borrowed("Thread-last macro."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ThreadLastMacro;
+
+impl Macro for ThreadLastMacro {
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &Rc<RefCell<Environment>>,
+        ast: &mut Vec<Value>,
+        evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
+        if args.len() < 1 {
+            return Err(arity_error_min(1, args.len()));
+        }
+
+        ast.push(args[0].clone());
+        let mut result = evalfn(environment, ast)?;
+
+        for arg in args.into_iter().skip(1) {
+            match arg {
+                Value::List(list) => {
+                    let mut new_list = list.value.clone();
+                    new_list.push(result.clone());
+                    ast.push(Value::as_list(new_list)?);
+                    result = evalfn(environment, ast)?;
+                }
+                Value::Symbol(sym) => {
+                    let new_list = vec![Value::Symbol(sym), result.clone()];
+                    ast.push(Value::as_list(new_list)?);
+                    result = evalfn(environment, ast)?;
+                }
+                _ => {
+                    return Err(Error::Type(
+                        "->: arguments must be lists, functions or macros".to_string(),
+                    ))
+                }
+            }
+        }
+
+        Ok(result)
+    }
+}
+
 // TODO:
 // SliceMacro,[-1:3, :3]
 // ForMacro,
-// BreakMacro,
-// ContinueMacro,
 // EnumMacro,
 // StructMacro,
 // MacroMacro,
