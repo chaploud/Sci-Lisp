@@ -506,6 +506,90 @@ impl Macro for IfMacro {
     }
 }
 
+// break
+pub const SYMBOL_BREAK: Symbol = Symbol {
+    name: Cow::Borrowed("break"),
+    meta: Meta {
+        doc: Cow::Borrowed("Break out of a while/for loop."),
+        mutable: false,
+    },
+};
+
+pub const SYMBOL_BREAKING: Symbol = Symbol {
+    name: Cow::Borrowed("*breaking*"),
+    meta: Meta {
+        doc: Cow::Borrowed("Internal variable for break."),
+        mutable: true,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BreakMacro;
+
+impl Macro for BreakMacro {
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &Rc<RefCell<Environment>>,
+        _ast: &mut Vec<Value>,
+        _evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
+        if args.len() > 2 {
+            return Err(arity_error_range(0, 1, args.len()));
+        }
+
+        environment
+            .borrow_mut()
+            .set(&SYMBOL_BREAKING, Value::Bool(true))?;
+
+        let mut result = Value::Nil;
+        if args.len() == 1 {
+            result = args[0].clone();
+        }
+        Ok(result)
+    }
+}
+
+// continue
+pub const SYMBOL_CONTINUE: Symbol = Symbol {
+    name: Cow::Borrowed("continue"),
+    meta: Meta {
+        doc: Cow::Borrowed("Continue a while/for loop."),
+        mutable: false,
+    },
+};
+
+pub const SYMBOL_CONTINUING: Symbol = Symbol {
+    name: Cow::Borrowed("*continuing*"),
+    meta: Meta {
+        doc: Cow::Borrowed("Internal variable for continue."),
+        mutable: true,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ContinueMacro;
+
+impl Macro for ContinueMacro {
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &Rc<RefCell<Environment>>,
+        _ast: &mut Vec<Value>,
+        _evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
+        if args.len() != 0 {
+            return Err(arity_error(0, args.len()));
+        }
+
+        environment
+            .borrow_mut()
+            .set(&SYMBOL_CONTINUING, Value::Bool(true))?;
+
+        Ok(Value::Nil)
+    }
+}
+
 // while
 pub const SYMBOL_WHILE: Symbol = Symbol {
     name: Cow::Borrowed("while"),
@@ -526,21 +610,50 @@ impl Macro for WhileMacro {
         ast: &mut Vec<Value>,
         evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
     ) -> Result<Value> {
-        if args.len() != 2 {
-            return Err(arity_error(2, args.len()));
+        if args.len() < 1 {
+            return Err(arity_error_min(1, args.len()));
         }
 
+        let local_env = Environment::new_local_environment(environment.clone());
+        local_env
+            .borrow_mut()
+            .insert_to_current(SYMBOL_BREAK, Value::Macro(Rc::new(BreakMacro)))?;
+        local_env
+            .borrow_mut()
+            .insert_to_current(SYMBOL_BREAKING, Value::Bool(false))?;
+        local_env
+            .borrow_mut()
+            .insert_to_current(SYMBOL_CONTINUE, Value::Macro(Rc::new(ContinueMacro)))?;
+        local_env
+            .borrow_mut()
+            .insert_to_current(SYMBOL_CONTINUING, Value::Bool(false))?;
+
         let condition = &args[0];
-        let body = &args[1];
+        let bodies = &args[1..];
 
         let mut ret = Value::Nil;
-        let result = loop {
+        let result = 'looptop: loop {
             ast.push(condition.clone());
-            let truthy = evalfn(environment, ast)?;
+            let truthy = evalfn(&local_env, ast)?;
 
+            let prev_ret = ret.clone();
             if truthy.is_truthy() {
-                ast.push(body.clone());
-                ret = evalfn(environment, ast)?;
+                for body in bodies {
+                    ast.push(body.clone());
+                    ret = evalfn(&local_env, ast)?;
+                    if local_env.borrow().get(SYMBOL_BREAKING)?.1.is_truthy() {
+                        if ret == Value::Nil {
+                            ret = prev_ret;
+                        }
+                        break 'looptop ret;
+                    }
+                    if local_env.borrow().get(SYMBOL_CONTINUING)?.1.is_truthy() {
+                        local_env
+                            .borrow_mut()
+                            .set(&SYMBOL_CONTINUING, Value::Bool(false))?;
+                        continue 'looptop;
+                    }
+                }
             } else {
                 break ret;
             }
