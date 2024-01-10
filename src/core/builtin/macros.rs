@@ -9,8 +9,7 @@ use crate::core::environment::Environment;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
 use crate::core::types::error::{arity_error, arity_error_min, arity_error_range};
-#[allow(unused_imports)]
-use crate::core::types::function::Function;
+use crate::core::types::keyword::Keyword;
 use crate::core::types::lambda::Lambda;
 use crate::core::types::meta::Meta;
 use crate::core::types::r#macro::Macro;
@@ -1053,6 +1052,121 @@ impl Macro for ThreadLastMacro {
     }
 }
 
+// cond
+pub const SYMBOL_COND: Symbol = Symbol {
+    name: Cow::Borrowed("cond"),
+    meta: Meta {
+        doc: Cow::Borrowed("Cond macro."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CondMacro;
+
+impl Macro for CondMacro {
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &Rc<RefCell<Environment>>,
+        ast: &mut Vec<Value>,
+        evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
+        if args.len() % 2 != 0 {
+            return Err(Error::Syntax(
+                "cond: case and expression must be in pairs".to_string(),
+            ));
+        }
+
+        let mut result = Value::Nil;
+        let keyword_else = Value::Keyword(Keyword {
+            name: ":else".to_string(),
+        });
+
+        for chunk in args.chunks(2) {
+            ast.push(chunk[0].clone());
+            let case = evalfn(environment, ast)?;
+
+            if case.is_truthy() || case == keyword_else {
+                ast.push(chunk[1].clone());
+                result = evalfn(environment, ast)?;
+                break;
+            }
+        }
+        Ok(result)
+    }
+}
+
+// and
+pub const SYMBOL_AND: Symbol = Symbol {
+    name: Cow::Borrowed("and"),
+    meta: Meta {
+        doc: Cow::Borrowed("And macro."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AndMacro;
+
+impl Macro for AndMacro {
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &Rc<RefCell<Environment>>,
+        ast: &mut Vec<Value>,
+        evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
+        if args.is_empty() {
+            return Ok(Value::Bool(true));
+        }
+        let mut result = Value::Bool(true);
+        for arg in args {
+            ast.push(arg.clone());
+            result = evalfn(environment, ast)?;
+            if !result.is_truthy() {
+                break;
+            }
+        }
+        Ok(result)
+    }
+}
+
+// or
+pub const SYMBOL_OR: Symbol = Symbol {
+    name: Cow::Borrowed("or"),
+    meta: Meta {
+        doc: Cow::Borrowed("Or macro."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OrMacro;
+
+impl Macro for OrMacro {
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &Rc<RefCell<Environment>>,
+        ast: &mut Vec<Value>,
+        evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
+        if args.is_empty() {
+            return Ok(Value::Nil);
+        }
+        let mut result = Value::Bool(false);
+        for arg in args {
+            ast.push(arg.clone());
+            result = evalfn(environment, ast)?;
+            if result.is_truthy() {
+                break;
+            }
+        }
+        Ok(result)
+    }
+}
+
 // TODO:
 // SliceMacro,[-1:3, :3]
 // ForMacro,
@@ -1060,8 +1174,6 @@ impl Macro for ThreadLastMacro {
 // StructMacro,
 // MacroMacro,
 // ClassMacro,
-// ThreadArrowMacro,
-// DoubleThreadArrowMacro
 // AND, OR
 // GENSYM/AUTO-GENSYM
 // SEQUENCE/RANGE

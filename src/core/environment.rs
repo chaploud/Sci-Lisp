@@ -209,4 +209,7 @@ fn insert_builtin_macros(env: &mut Environment) {
     let _ = env.insert_to_root(SYMBOL_DEFN, Value::Macro(Rc::new(DefnMacro)));
     let _ = env.insert_to_root(SYMBOL_THREAD_FIRST, Value::Macro(Rc::new(ThreadFirstMacro)));
     let _ = env.insert_to_root(SYMBOL_THREAD_LAST, Value::Macro(Rc::new(ThreadLastMacro)));
+    let _ = env.insert_to_root(SYMBOL_COND, Value::Macro(Rc::new(CondMacro)));
+    let _ = env.insert_to_root(SYMBOL_AND, Value::Macro(Rc::new(AndMacro)));
+    let _ = env.insert_to_root(SYMBOL_OR, Value::Macro(Rc::new(OrMacro)));
 }
