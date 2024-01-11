@@ -10,6 +10,8 @@ use crate::core::types::error::Error;
 use crate::core::types::error::Result;
 use crate::core::value::Value;
 
+use super::types::vector::Vector;
+
 fn inner_collect(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Vec<Value>> {
     pair.into_inner()
         .map(|expr| read_scilisp(ast, expr))
@@ -65,6 +67,7 @@ fn read_scilisp(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
         Rule::syntax_quote => syntax_quote_to_ast(ast, pair),
         Rule::unquote => unquote_to_ast(ast, pair),
         Rule::unquote_splicing => unquote_splicing_to_ast(ast, pair),
+        Rule::slice => slice_as_vector(pair),
         _ => {
             println!("pair: {:?}", pair.as_str());
             Err(Error::Syntax("unexpected token".to_string()))
@@ -114,4 +117,27 @@ fn unquote_splicing_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Val
     let pair = pair.into_inner().next().unwrap();
     let value = read_scilisp(ast, pair)?;
     Value::as_list(vec![Value::Symbol(SYMBOL_UNQUOTE_SPLICING), value])
+}
+
+fn slice_as_vector(pair: Pair<Rule>) -> Result<Value> {
+    let mut result: Vec<Value> = vec![];
+    let segments = pair.into_inner(); // slice segments
+    for seg in segments {
+        let mut slice: Vector = Vector::from(vec![Value::Nil, Value::Nil]);
+        for side in seg.into_inner() {
+            match side.as_rule() {
+                Rule::slice_left => {
+                    let value = read_scilisp(&mut vec![], side.into_inner().next().unwrap())?;
+                    slice[0] = value;
+                }
+                Rule::slice_right => {
+                    let value = read_scilisp(&mut vec![], side.into_inner().next().unwrap())?;
+                    slice[1] = value;
+                }
+                _ => {}
+            }
+        }
+        result.push(Value::Vector(slice));
+    }
+    Ok(Value::Slice(Vector { value: result }))
 }

@@ -1275,10 +1275,17 @@ impl Macro for ForMacro {
     }
 }
 
+// slice
+pub const SYMBOL_SLICE: Symbol = Symbol {
+    name: Cow::Borrowed("slice"),
+    meta: Meta {
+        doc: Cow::Borrowed("Slice macro."),
+        mutable: false,
+    },
+};
+
 // TODO:
 // SliceMacro,[-1:3, :3]
-// ForMacro,
-// Lazy Sequence/Range
 // EnumMacro,
 // StructMacro,
 // MacroMacro,

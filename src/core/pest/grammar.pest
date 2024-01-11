@@ -5,7 +5,7 @@ prefix_char = _{ "#" | "'" | "`" | "~" | "~@" | "@" | "\\" | ":" }
 special_char = _{ "!" | "$" | "%" | "&" | "-" | "=" | "^" | "|" | "+" | "*" | "<" | ">" | "?" | "_" | "/"}
 separation_char = _{ "." }
 
-identifier = _{ ( ASCII_ALPHA | special_char) ~ (ASCII_ALPHANUMERIC | special_char)* }
+identifier = _{ !"-" ~ ( ASCII_ALPHA | special_char) ~ (ASCII_ALPHANUMERIC | special_char)* }
 
 // atom
 nil = @{ "nil" }
@@ -32,10 +32,10 @@ string = { "\"" ~ string_inner ~ "\"" }
   char = _{ !("\"" | "\\") ~ ANY | "\\" ~ ANY }
 
 // collection
-list = { "(" ~ collection_inner ~ ")" | empty_list }
-vector = { "[" ~ collection_inner ~ "]" | empty_vector }
-map = { "{" ~ collection_inner ~ "}" | empty_map }
-set = { "#{" ~ collection_inner ~ "}" | empty_set }
+list = { "(" ~ ws* ~ collection_inner ~ ws* ~ ")" | empty_list }
+vector = { "[" ~ ws* ~ collection_inner ~ ws* ~ "]" | empty_vector }
+map = { "{" ~ ws* ~ collection_inner ~ ws* ~ "}" | empty_map }
+set = { "#{" ~ ws* ~ collection_inner ~ ws* ~ "}" | empty_set }
   collection_inner = _{ expr ~ (ws+ ~ expr)* }
   empty_list = _{ "(" ~ ws* ~ ")" }
   empty_vector = _{ "[" ~ ws* ~ "]" }
@@ -48,9 +48,19 @@ syntax_quote = { "`" ~ expr }
 unquote = { "~" ~ expr }
 unquote_splicing = { "~@" ~ expr }
 
+// slice
+slice = { "[" ~ ws* ~ slice_segment ~ (ws+ ~ slice_segment)* ~ ws* ~ "]" }
+  slice_segment = { slice_left* ~ ":" ~ slice_right* }
+  slice_left = { list | symbol | i64 }
+  slice_right = { list | symbol | i64 }
+
+// at cannot distinguish from vector
+// if [0], [sym], [:key], ["str"] is first element of list
+// they are evaluated as at function
+
 expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string
         | list | vector | map | set
-        | quote | syntax_quote | unquote | unquote_splicing }
+        | quote | syntax_quote | unquote | unquote_splicing | slice }
 
 // top level
 scilisp = { SOI ~ ws* ~ scilisp_inner* ~ ws* ~ EOI }

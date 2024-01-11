@@ -40,6 +40,7 @@ pub enum Value {
     Function(Rc<dyn Function>),
     Macro(Rc<dyn Macro>),
     Generator(Rc<RefCell<dyn Generator>>),
+    Slice(Vector), // [[nil, 1], [nil, nil], [24, 3]]
 }
 
 use crate::core::value::Value::*;
@@ -59,6 +60,7 @@ impl PartialEq for Value {
             (Vector(v1), Vector(v2)) => v1 == v2,
             (Map(h1), Map(h2)) => h1 == h2,
             (Set(s1), Set(s2)) => s1 == s2,
+            (Slice(s1), Slice(s2)) => s1 == s2,
             _ => false,
         }
     }
@@ -80,6 +82,7 @@ impl Hash for Value {
             Vector(v) => v.hash(state),
             Map(h) => h.hash(state),
             Set(s) => s.hash(state),
+            Slice(s) => s.hash(state),
             _ => 0.hash(state), // other not hashable
         }
     }
@@ -104,6 +107,25 @@ impl fmt::Display for Value {
             Function(func) => write!(f, "{:?}", func),
             Macro(mac) => write!(f, "{:?}", mac),
             Generator(g) => write!(f, "{:?}", g),
+            Slice(s) => {
+                let mut result = std::string::String::new();
+                for (n, val) in s.value.iter().enumerate() {
+                    if n > 0 {
+                        result += ", ";
+                    }
+                    for i in 0..2 {
+                        if let Value::Vector(v) = val {
+                            if v[i] != Value::Nil {
+                                result += format!("{}", v[i]).as_str();
+                            }
+                        }
+                        if i == 0 {
+                            result += ":";
+                        }
+                    }
+                }
+                write!(f, "slice: [{}]", result)
+            }
         }
     }
 }
@@ -127,6 +149,26 @@ impl fmt::Debug for Value {
             Function(func) => write!(f, "{:?}", func),
             Macro(mac) => write!(f, "{:?}", mac),
             Generator(g) => write!(f, "{:?}", g),
+            Slice(s) => {
+                let mut result = std::string::String::new();
+                for (n, val) in s.value.iter().enumerate() {
+                    if n > 0 {
+                        result += ", ";
+                    }
+                    for i in 0..2 {
+                        if let Value::Vector(v) = val {
+                            result += format!("{}", v[i]).as_str();
+                        }
+                        if i == 0 {
+                            result += ":";
+                        }
+                        if i == 1 {
+                            result += ", ";
+                        }
+                    }
+                }
+                write!(f, "slice: [{}]", result)
+            }
         }
     }
 }
@@ -149,6 +191,7 @@ impl Value {
             Value::Function(_) => TypeName::Function,
             Value::Macro(_) => TypeName::Macro,
             Value::Generator(_) => TypeName::Generator,
+            Value::Slice(_) => TypeName::Slice,
         };
         result.to_string()
     }
