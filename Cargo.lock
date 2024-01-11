@@ -587,6 +587,7 @@ dependencies = [
  "colored",
  "dyn-clone",
  "indexmap",
+ "once_cell",
  "pest",
  "pest_derive",
  "predicates",

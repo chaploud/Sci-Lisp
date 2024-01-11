@@ -1,5 +1,6 @@
 /* core/value.rs */
 
+use std::cell::RefCell;
 use std::cmp::Ordering;
 use std::fmt;
 use std::hash::Hash;
@@ -12,6 +13,7 @@ use crate::core::parse::Rule;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
 use crate::core::types::function::Function;
+use crate::core::types::generator::Generator;
 use crate::core::types::keyword::Keyword;
 use crate::core::types::list::List;
 use crate::core::types::map::Map;
@@ -37,6 +39,7 @@ pub enum Value {
     Set(Set),
     Function(Rc<dyn Function>),
     Macro(Rc<dyn Macro>),
+    Generator(Rc<RefCell<dyn Generator>>),
 }
 
 use crate::core::value::Value::*;
@@ -56,7 +59,7 @@ impl PartialEq for Value {
             (Vector(v1), Vector(v2)) => v1 == v2,
             (Map(h1), Map(h2)) => h1 == h2,
             (Set(s1), Set(s2)) => s1 == s2,
-            _ => false, // Functions and Macros are not comparable
+            _ => false,
         }
     }
 }
@@ -77,7 +80,7 @@ impl Hash for Value {
             Vector(v) => v.hash(state),
             Map(h) => h.hash(state),
             Set(s) => s.hash(state),
-            _ => 0.hash(state), // Functions and Macros are not hashable
+            _ => 0.hash(state), // other not hashable
         }
     }
 }
@@ -98,9 +101,9 @@ impl fmt::Display for Value {
             Vector(v) => write!(f, "{}", v),
             Map(m) => write!(f, "{}", m),
             Set(s) => write!(f, "{}", s),
-            // TODO: check print results
-            Function(func) => write!(f, "{:#?}", func),
-            Macro(mac) => write!(f, "{:#?}", mac),
+            Function(func) => write!(f, "{:?}", func),
+            Macro(mac) => write!(f, "{:?}", mac),
+            Generator(g) => write!(f, "{:?}", g),
         }
     }
 }
@@ -121,8 +124,9 @@ impl fmt::Debug for Value {
             Vector(v) => write!(f, "{}", v),
             Map(m) => write!(f, "{}", m),
             Set(s) => write!(f, "{}", s),
-            Function(func) => write!(f, "{:#?}", func),
+            Function(func) => write!(f, "{:?}", func),
             Macro(mac) => write!(f, "{:?}", mac),
+            Generator(g) => write!(f, "{:?}", g),
         }
     }
 }
@@ -144,6 +148,7 @@ impl Value {
             Value::Set(_) => TypeName::Set,
             Value::Function(_) => TypeName::Function,
             Value::Macro(_) => TypeName::Macro,
+            Value::Generator(_) => TypeName::Generator,
         };
         result.to_string()
     }
@@ -430,6 +435,79 @@ impl Ord for Value {
             // TODO: Function and Macro
             // TODO: Do not panic
             (s, o) => panic!("Cannot compare {:?} and {:?}", s.type_name(), o.type_name()),
+        }
+    }
+}
+
+pub struct ValueIter {
+    pub value: Value,
+    pub current: usize,
+    pub generator: Rc<RefCell<dyn Generator>>,
+}
+
+impl Iterator for ValueIter {
+    type Item = Value;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.value {
+            Value::List(ref l) => {
+                if self.current < l.value.len() {
+                    let result = l.value[self.current].clone();
+                    self.current += 1;
+                    Some(result)
+                } else {
+                    None
+                }
+            }
+            Value::Vector(ref v) => {
+                if self.current < v.value.len() {
+                    let result = v.value[self.current].clone();
+                    self.current += 1;
+                    Some(result)
+                } else {
+                    None
+                }
+            }
+            Value::Map(ref m) => {
+                if self.current < m.value.len() {
+                    let result = m.value[self.current].clone();
+                    self.current += 1;
+                    Some(result)
+                } else {
+                    None
+                }
+            }
+            Value::Set(ref s) => {
+                if self.current < s.value.len() {
+                    let result = s.value[self.current].clone();
+                    self.current += 1;
+                    Some(result)
+                } else {
+                    None
+                }
+            }
+            Value::Generator(_) => self.generator.borrow_mut().next(),
+            _ => panic!("Cannot iterate over {}", self.value.type_name()),
+        }
+    }
+}
+
+impl IntoIterator for Value {
+    type Item = Value;
+    type IntoIter = ValueIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        match self {
+            Value::List(l) => l.into_iter(),
+            Value::Vector(v) => v.into_iter(),
+            Value::Map(m) => m.into_iter(),
+            Value::Set(s) => s.into_iter(),
+            Value::Generator(g) => ValueIter {
+                value: Value::Generator(g.clone()),
+                current: 0,
+                generator: g,
+            },
+            _ => panic!("Cannot iterate over {}", self.type_name()),
         }
     }
 }

@@ -1,10 +1,13 @@
 /* core/builtin/functions.rs */
 
 use std::borrow::Cow;
+use std::cell::RefCell;
 use std::ptr;
+use std::rc::Rc;
 
-use crate::core::types::error::Result;
+use crate::core::builtin::generators::Range;
 use crate::core::types::error::{arity_error, arity_error_min, type_error};
+use crate::core::types::error::{arity_error_range, Result};
 use crate::core::types::function::Function;
 use crate::core::types::meta::Meta;
 use crate::core::types::symbol::Symbol;
@@ -624,8 +627,67 @@ impl Function for RestFn {
     }
 }
 
-// TODO:
-// isinstance
-// format
-// read
-// write
+// range
+pub const SYMBOL_RANGE: Symbol = Symbol {
+    name: Cow::Borrowed("range"),
+    meta: Meta {
+        doc: Cow::Borrowed("Create a range of i64."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RangeFn;
+
+impl Function for RangeFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() < 1 || args.len() > 3 {
+            return Err(arity_error_range(1, 3, args.len()));
+        }
+
+        let mut start = 0;
+        let mut end = 0;
+        let mut step = 1;
+
+        if args.len() == 1 {
+            end = match args[0] {
+                Value::I64(i) => i,
+                _ => return Err(type_error("i64", args[0].type_name().as_str())),
+            };
+        } else if args.len() == 2 {
+            start = match args[0] {
+                Value::I64(i) => i,
+                _ => return Err(type_error("i64", args[0].type_name().as_str())),
+            };
+            end = match args[1] {
+                Value::I64(i) => i,
+                _ => return Err(type_error("i64", args[1].type_name().as_str())),
+            };
+        } else if args.len() == 3 {
+            start = match args[0] {
+                Value::I64(i) => i,
+                _ => return Err(type_error("i64", args[0].type_name().as_str())),
+            };
+            end = match args[1] {
+                Value::I64(i) => i,
+                _ => return Err(type_error("i64", args[1].type_name().as_str())),
+            };
+            step = match args[2] {
+                Value::I64(i) => i,
+                _ => return Err(type_error("i64", args[2].type_name().as_str())),
+            };
+        }
+
+        Ok(Value::Generator(Rc::new(RefCell::new(Range::new(
+            start, end, step,
+        )))))
+    }
+}
+
+// take
+// collect
+// map
+// filter
+// reduce
+// zip
+// apply

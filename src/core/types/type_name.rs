@@ -18,6 +18,7 @@ pub enum TypeName {
     Set,
     Function,
     Macro,
+    Generator,
 }
 
 use TypeName::*;
@@ -38,6 +39,7 @@ impl fmt::Display for TypeName {
             Set => "set",
             Function => "function",
             Macro => "macro",
+            Generator => "generator",
         };
         write!(f, "{}", str)
     }

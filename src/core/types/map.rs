@@ -1,13 +1,17 @@
 /* core/types/map.rs */
 
 use core::fmt;
+use std::cell::RefCell;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 use std::ops::{Index, IndexMut};
+use std::rc::Rc;
 
 use indexmap::IndexMap;
 
+use crate::core::builtin::generators::EmptyGenerator;
 use crate::core::value::Value;
+use crate::core::value::ValueIter;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Map {
@@ -81,5 +85,18 @@ impl Index<usize> for Map {
 impl IndexMut<usize> for Map {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.value[index]
+    }
+}
+
+impl IntoIterator for Map {
+    type Item = Value;
+    type IntoIter = ValueIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        ValueIter {
+            value: Value::Map(self),
+            current: 0,
+            generator: Rc::new(RefCell::new(EmptyGenerator::new())),
+        }
     }
 }

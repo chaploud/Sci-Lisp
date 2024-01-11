@@ -2,6 +2,7 @@
 
 pub mod error;
 pub mod function;
+pub mod generator;
 pub mod keyword;
 pub mod lambda;
 pub mod list;

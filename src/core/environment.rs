@@ -185,6 +185,7 @@ fn insert_builtin_functions(env: &mut Environment) {
     let _ = env.insert_to_root(SYMBOL_F64, Value::Function(Rc::new(F64Fn)));
     let _ = env.insert_to_root(SYMBOL_FIRST, Value::Function(Rc::new(FirstFn)));
     let _ = env.insert_to_root(SYMBOL_REST, Value::Function(Rc::new(RestFn)));
+    let _ = env.insert_to_root(SYMBOL_RANGE, Value::Function(Rc::new(RangeFn)));
 }
 
 fn insert_builtin_macros(env: &mut Environment) {
@@ -212,4 +213,5 @@ fn insert_builtin_macros(env: &mut Environment) {
     let _ = env.insert_to_root(SYMBOL_COND, Value::Macro(Rc::new(CondMacro)));
     let _ = env.insert_to_root(SYMBOL_AND, Value::Macro(Rc::new(AndMacro)));
     let _ = env.insert_to_root(SYMBOL_OR, Value::Macro(Rc::new(OrMacro)));
+    let _ = env.insert_to_root(SYMBOL_FOR, Value::Macro(Rc::new(ForMacro)));
 }

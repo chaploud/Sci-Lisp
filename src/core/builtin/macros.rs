@@ -636,25 +636,24 @@ impl Macro for WhileMacro {
             let truthy = evalfn(&local_env, ast)?;
 
             let prev_ret = ret.clone();
-            if truthy.is_truthy() {
-                for body in bodies {
-                    ast.push(body.clone());
-                    ret = evalfn(&local_env, ast)?;
-                    if local_env.borrow().get(SYMBOL_BREAKING)?.1.is_truthy() {
-                        if ret == Value::Nil {
-                            ret = prev_ret;
-                        }
-                        break 'looptop ret;
-                    }
-                    if local_env.borrow().get(SYMBOL_CONTINUING)?.1.is_truthy() {
-                        local_env
-                            .borrow_mut()
-                            .set(&SYMBOL_CONTINUING, Value::Bool(false))?;
-                        continue 'looptop;
-                    }
-                }
-            } else {
+            if !truthy.is_truthy() {
                 break ret;
+            }
+            for body in bodies {
+                ast.push(body.clone());
+                ret = evalfn(&local_env, ast)?;
+                if local_env.borrow().get(SYMBOL_BREAKING)?.1.is_truthy() {
+                    if ret == Value::Nil {
+                        ret = prev_ret;
+                    }
+                    break 'looptop ret;
+                }
+                if local_env.borrow().get(SYMBOL_CONTINUING)?.1.is_truthy() {
+                    local_env
+                        .borrow_mut()
+                        .set(&SYMBOL_CONTINUING, Value::Bool(false))?;
+                    continue 'looptop;
+                }
             }
         };
 
@@ -1167,16 +1166,124 @@ impl Macro for OrMacro {
     }
 }
 
+// for
+pub const SYMBOL_FOR: Symbol = Symbol {
+    name: Cow::Borrowed("for"),
+    meta: Meta {
+        doc: Cow::Borrowed("For macro."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ForMacro;
+
+impl Macro for ForMacro {
+    fn call(
+        &self,
+        args: Vec<Value>,
+        environment: &Rc<RefCell<Environment>>,
+        ast: &mut Vec<Value>,
+        evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
+        if args.len() < 2 {
+            return Err(arity_error_min(2, args.len()));
+        }
+
+        let local_env = Environment::new_local_environment(environment.clone());
+        local_env
+            .borrow_mut()
+            .insert_to_current(SYMBOL_BREAK, Value::Macro(Rc::new(BreakMacro)))?;
+        local_env
+            .borrow_mut()
+            .insert_to_current(SYMBOL_BREAKING, Value::Bool(false))?;
+        local_env
+            .borrow_mut()
+            .insert_to_current(SYMBOL_CONTINUE, Value::Macro(Rc::new(ContinueMacro)))?;
+        local_env
+            .borrow_mut()
+            .insert_to_current(SYMBOL_CONTINUING, Value::Bool(false))?;
+
+        let binding = match args[0].clone() {
+            Value::Vector(v) => v,
+            _ => Err(Error::Type(
+                "for: first argument must be a vector".to_string(),
+            ))?,
+        };
+
+        if binding.value.len() != 2 {
+            Err(Error::Type(
+                "for: first argument must be a vector of length 2".to_string(),
+            ))?
+        }
+
+        let param_symbol = match binding.value[0].clone() {
+            Value::Symbol(sym) => sym,
+            _ => Err(Error::Type(
+                "for: first element of binding must be a symbol".to_string(),
+            ))?,
+        };
+
+        let param_body = binding.value[1].clone();
+
+        let mut iterator = match param_body {
+            Value::Symbol(_)
+            | Value::List(_)
+            | Value::Vector(_)
+            | Value::Set(_)
+            | Value::Map(_) => {
+                ast.push(param_body.clone());
+                evalfn(&local_env, ast)?
+            }
+            Value::Generator(g) => Value::Generator(g),
+            _ => Err(Error::Type(
+                "for: second element of binding must be a symbol, list, vector, set, or map"
+                    .to_string(),
+            ))?,
+        }
+        .into_iter();
+
+        let mut ret = Value::Nil;
+        let result = 'looptop: loop {
+            let v = iterator.next();
+            if v.is_none() {
+                break ret;
+            }
+
+            local_env
+                .borrow_mut()
+                .insert_to_current(param_symbol.clone(), v.unwrap())?;
+            let prev_ret = ret.clone();
+            for arg in args.iter().skip(1) {
+                ast.push(arg.clone());
+                ret = evalfn(&local_env, ast)?;
+                if local_env.borrow().get(SYMBOL_BREAKING)?.1.is_truthy() {
+                    if ret == Value::Nil {
+                        ret = prev_ret;
+                    }
+                    break 'looptop ret;
+                }
+                if local_env.borrow().get(SYMBOL_CONTINUING)?.1.is_truthy() {
+                    local_env
+                        .borrow_mut()
+                        .set(&SYMBOL_CONTINUING, Value::Bool(false))?;
+                    continue 'looptop;
+                }
+            }
+        };
+        Ok(result)
+    }
+}
+
 // TODO:
 // SliceMacro,[-1:3, :3]
 // ForMacro,
+// Lazy Sequence/Range
 // EnumMacro,
 // StructMacro,
 // MacroMacro,
 // ClassMacro,
-// AND, OR
 // GENSYM/AUTO-GENSYM
-// SEQUENCE/RANGE
 // NameSpaceMacro
 
 pub const SYMBOL_SYNTAX_QUOTING: Symbol = Symbol {
