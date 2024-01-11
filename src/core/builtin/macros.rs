@@ -1275,6 +1275,16 @@ impl Macro for ForMacro {
     }
 }
 
+// sliceオブジェクトは [-1:3:2] とかで作れる
+// >>> a = np.array([1, 2, 3, 4, 5])
+// >>> a
+// array([1, 2, 3, 4, 5])
+// >>> a[2:-1]
+// array([3, 4])
+// >>> a[2:-1:2]
+// array([3])
+// vectorの中にスライスオブジェクトがいくつか格納されている感じ
+
 // TODO:
 // SliceMacro,[-1:3, :3]
 // EnumMacro,

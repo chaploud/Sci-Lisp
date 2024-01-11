@@ -1,5 +1,7 @@
 /* core/read.rs */
 
+use std::rc::Rc;
+
 use pest::iterators::Pair;
 
 use crate::core::builtin::macros::{
@@ -8,9 +10,8 @@ use crate::core::builtin::macros::{
 use crate::core::parse::Rule;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
+use crate::core::types::slice::Slice;
 use crate::core::value::Value;
-
-use super::types::vector::Vector;
 
 fn inner_collect(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Vec<Value>> {
     pair.into_inner()
@@ -53,7 +54,7 @@ fn read_scilisp(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
                                     "map keys must be keyword, string or i64 after evaluated"
                                         .to_string(),
                                 ))
-                            } // TODO: check in eval
+                            }
                         };
                         read_scilisp(ast, key)
                     }
@@ -67,7 +68,7 @@ fn read_scilisp(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
         Rule::syntax_quote => syntax_quote_to_ast(ast, pair),
         Rule::unquote => unquote_to_ast(ast, pair),
         Rule::unquote_splicing => unquote_splicing_to_ast(ast, pair),
-        Rule::slice => slice_as_vector(pair),
+        Rule::slice => as_slice(ast, pair),
         _ => {
             println!("pair: {:?}", pair.as_str());
             Err(Error::Syntax("unexpected token".to_string()))
@@ -119,25 +120,23 @@ fn unquote_splicing_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Val
     Value::as_list(vec![Value::Symbol(SYMBOL_UNQUOTE_SPLICING), value])
 }
 
-fn slice_as_vector(pair: Pair<Rule>) -> Result<Value> {
-    let mut result: Vec<Value> = vec![];
-    let segments = pair.into_inner(); // slice segments
-    for seg in segments {
-        let mut slice: Vector = Vector::from(vec![Value::Nil, Value::Nil]);
-        for side in seg.into_inner() {
-            match side.as_rule() {
-                Rule::slice_left => {
-                    let value = read_scilisp(&mut vec![], side.into_inner().next().unwrap())?;
-                    slice[0] = value;
-                }
-                Rule::slice_right => {
-                    let value = read_scilisp(&mut vec![], side.into_inner().next().unwrap())?;
-                    slice[1] = value;
-                }
-                _ => {}
-            }
+fn as_slice(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
+    let mut slice_start = Value::Nil;
+    let mut slice_end = Value::Nil;
+    let mut slice_step = Value::Nil;
+
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::slice_start => slice_start = read_scilisp(ast, p.into_inner().next().unwrap())?,
+            Rule::slice_end => slice_end = read_scilisp(ast, p.into_inner().next().unwrap())?,
+            Rule::slice_step => slice_step = read_scilisp(ast, p.into_inner().next().unwrap())?,
+            _ => unreachable!(),
         }
-        result.push(Value::Vector(slice));
     }
-    Ok(Value::Slice(Vector { value: result }))
+
+    Ok(Value::Slice(Rc::new(Slice::new(
+        slice_start,
+        slice_end,
+        slice_step,
+    ))))
 }

@@ -2,10 +2,10 @@ COMMENT = _{ ";" ~ (!NEWLINE ~ ANY)* ~ NEWLINE }
 ws = _{ " " | "\t" | "\r" | "\n" | "," }
 
 prefix_char = _{ "#" | "'" | "`" | "~" | "~@" | "@" | "\\" | ":" }
-special_char = _{ "!" | "$" | "%" | "&" | "-" | "=" | "^" | "|" | "+" | "*" | "<" | ">" | "?" | "_" | "/"}
-separation_char = _{ "." }
+special_char = _{ "!" | "$" | "%" | "&" | "-" | "=" | "^" | "+" | "*" | "<" | ">" | "?" | "_" | "/"}
+separation_char = _{ "." | "|" }
 
-identifier = _{ !"-" ~ ( ASCII_ALPHA | special_char) ~ (ASCII_ALPHANUMERIC | special_char)* }
+identifier = _{ ( ASCII_ALPHA | special_char) ~ (ASCII_ALPHANUMERIC | special_char)*}
 
 // atom
 nil = @{ "nil" }
@@ -49,18 +49,20 @@ unquote = { "~" ~ expr }
 unquote_splicing = { "~@" ~ expr }
 
 // slice
-slice = { "[" ~ ws* ~ slice_segment ~ (ws+ ~ slice_segment)* ~ ws* ~ "]" }
-  slice_segment = { slice_left* ~ ":" ~ slice_right* }
-  slice_left = { list | symbol | i64 }
-  slice_right = { list | symbol | i64 }
+slice = { slice_start? ~ ws* ~ "|" ~ ws* ~ slice_end? ~ ws* ~ ("|" ~ ws* ~ slice_step?)? }
+slice_start = { slice_member }
+slice_end = { slice_member }
+slice_step = { slice_member }
+slice_member = _{ nil | i64 | symbol | quote | list }
+// TODO: other slice member such as syntax_quote
 
 // at cannot distinguish from vector
 // if [0], [sym], [:key], ["str"] is first element of list
-// they are evaluated as at function
+// they are evaluated as 'at' function
 
-expr = _{ nil | bool | i64 | f64 | symbol | keyword | regex | string
+expr = _{ slice | nil | bool | i64 | f64 | symbol | keyword | regex | string
         | list | vector | map | set
-        | quote | syntax_quote | unquote | unquote_splicing | slice }
+        | quote | syntax_quote | unquote | unquote_splicing }
 
 // top level
 scilisp = { SOI ~ ws* ~ scilisp_inner* ~ ws* ~ EOI }

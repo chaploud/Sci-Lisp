@@ -19,6 +19,7 @@ use crate::core::types::list::List;
 use crate::core::types::map::Map;
 use crate::core::types::r#macro::Macro;
 use crate::core::types::set::Set;
+use crate::core::types::slice::Slice;
 use crate::core::types::symbol::Symbol;
 use crate::core::types::type_name::TypeName;
 use crate::core::types::vector::Vector;
@@ -40,7 +41,7 @@ pub enum Value {
     Function(Rc<dyn Function>),
     Macro(Rc<dyn Macro>),
     Generator(Rc<RefCell<dyn Generator>>),
-    Slice(Vector), // [[nil, 1], [nil, nil], [24, 3]]
+    Slice(Rc<Slice>),
 }
 
 use crate::core::value::Value::*;
@@ -107,25 +108,7 @@ impl fmt::Display for Value {
             Function(func) => write!(f, "{:?}", func),
             Macro(mac) => write!(f, "{:?}", mac),
             Generator(g) => write!(f, "{:?}", g),
-            Slice(s) => {
-                let mut result = std::string::String::new();
-                for (n, val) in s.value.iter().enumerate() {
-                    if n > 0 {
-                        result += ", ";
-                    }
-                    for i in 0..2 {
-                        if let Value::Vector(v) = val {
-                            if v[i] != Value::Nil {
-                                result += format!("{}", v[i]).as_str();
-                            }
-                        }
-                        if i == 0 {
-                            result += ":";
-                        }
-                    }
-                }
-                write!(f, "slice: [{}]", result)
-            }
+            Slice(s) => write!(f, "{}", s),
         }
     }
 }
@@ -149,26 +132,7 @@ impl fmt::Debug for Value {
             Function(func) => write!(f, "{:?}", func),
             Macro(mac) => write!(f, "{:?}", mac),
             Generator(g) => write!(f, "{:?}", g),
-            Slice(s) => {
-                let mut result = std::string::String::new();
-                for (n, val) in s.value.iter().enumerate() {
-                    if n > 0 {
-                        result += ", ";
-                    }
-                    for i in 0..2 {
-                        if let Value::Vector(v) = val {
-                            result += format!("{}", v[i]).as_str();
-                        }
-                        if i == 0 {
-                            result += ":";
-                        }
-                        if i == 1 {
-                            result += ", ";
-                        }
-                    }
-                }
-                write!(f, "slice: [{}]", result)
-            }
+            Slice(s) => write!(f, "{}", s),
         }
     }
 }

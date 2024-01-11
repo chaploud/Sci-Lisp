@@ -8,7 +8,6 @@ use crate::core::environment::Environment;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
 use crate::core::types::list::List;
-use crate::core::types::vector::Vector;
 use crate::core::value::Value;
 
 pub fn is_need_eval(environment: &Rc<RefCell<Environment>>) -> bool {
@@ -94,7 +93,8 @@ pub fn eval(environment: &Rc<RefCell<Environment>>, ast: &mut Vec<Value>) -> Res
         | Value::F64(_)
         | Value::Regex(_)
         | Value::String(_)
-        | Value::Keyword(_) => Ok(val),
+        | Value::Keyword(_)
+        | Value::Slice(_) => Ok(val),
         Value::Symbol(symbol) => {
             if !is_need_eval(environment) {
                 return Ok(Value::Symbol(symbol));
@@ -131,13 +131,6 @@ pub fn eval(environment: &Rc<RefCell<Environment>>, ast: &mut Vec<Value>) -> Res
                 .collect::<Result<Vec<Value>>>()?;
 
             Value::as_set(result)
-        }
-        Value::Slice(s) => {
-            let result: Vec<Value> = s
-                .into_iter()
-                .map(|v| ast_eval(environment, ast, v))
-                .collect::<Result<Vec<Value>>>()?;
-            Ok(Value::Slice(Vector { value: result }))
         }
         _ => unreachable!(),
     }
