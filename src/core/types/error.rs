@@ -5,6 +5,7 @@ use std::num::{ParseFloatError, ParseIntError};
 use std::str::ParseBoolError;
 
 use crate::core::parse::Rule;
+use crate::core::value::Value;
 
 // use everywhere
 pub type Result<T> = std::result::Result<T, Error>;
@@ -150,4 +151,15 @@ pub fn arity_error_min(expected_min: usize, actual: usize) -> Error {
 
 pub fn type_error(expected: &str, actual: &str) -> Error {
     Error::Type(format!("expected type: '{}', got: '{}'", expected, actual))
+}
+
+pub fn index_out_of_range_error(index: i64) -> Error {
+    Error::Index(format!("index '{}' out of range", index))
+}
+
+pub fn index_cannot_be_negative_error(index: i64, value: Value) -> Error {
+    Error::Index(format!(
+        "index '{}' cannot be negative for {}",
+        index, value
+    ))
 }

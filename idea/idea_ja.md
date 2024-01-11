@@ -226,6 +226,13 @@ key/index error
 - [ ] def, const, defn系の作用するenvironmentが問題となってきている
 - [ ] slice, macroを実装できたら、まとめに入る、一旦安定化
 - [ ] unreachableやだな
+- [ ] []が面倒なので以下のような呼び出し方をする
+(0 a)
+(:hoge b)
+("hoge" c)
+(a a)
+((some-eval) c)
+(2|-1|1 [1, 2, 3, 4, 5, 6])
 
 ## cargo
 

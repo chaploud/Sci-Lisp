@@ -33,7 +33,17 @@ impl Iterator for EmptyGenerator {
     }
 }
 
-impl Generator for EmptyGenerator {}
+impl DoubleEndedIterator for EmptyGenerator {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        None
+    }
+}
+
+impl Generator for EmptyGenerator {
+    fn can_reverse(&self) -> bool {
+        true
+    }
+}
 
 // range
 #[derive(Clone)]
@@ -75,4 +85,19 @@ impl Iterator for Range {
     }
 }
 
-impl Generator for Range {}
+impl DoubleEndedIterator for Range {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if self.start < self.end {
+            self.end -= self.step;
+            Some(Value::I64(self.end))
+        } else {
+            None
+        }
+    }
+}
+
+impl Generator for Range {
+    fn can_reverse(&self) -> bool {
+        true
+    }
+}

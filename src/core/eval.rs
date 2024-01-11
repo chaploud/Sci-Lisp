@@ -40,7 +40,6 @@ pub fn eval_list(
     let first = match first {
         Value::Symbol(sym) => environment.borrow().get(sym.clone())?.1.clone(),
         Value::List(list) => ast_eval(environment, ast, Value::List(list.clone()))?,
-        Value::Slice(s) => ast_eval(environment, ast, Value::Slice(s.clone()))?,
         f => f.clone(),
     };
 
