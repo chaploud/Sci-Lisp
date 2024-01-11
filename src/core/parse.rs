@@ -18,6 +18,6 @@ pub fn parse(input: &str) -> Result<Pair<Rule>> {
             let pair = pairs.next().unwrap();
             Ok(pair)
         }
-        Err(err) => Err(Error::PestParse(err)),
+        Err(err) => Err(Error::PestParse(Box::new(err))),
     }
 }

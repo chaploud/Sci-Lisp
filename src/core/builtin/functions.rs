@@ -56,7 +56,7 @@ impl Function for PrintFn {
             }
             print!("{}", arg);
         }
-        println!("");
+        println!();
         Ok(Value::Nil)
     }
 }
@@ -108,7 +108,7 @@ pub struct SubFn;
 
 impl Function for SubFn {
     fn call(&self, args: Vec<Value>) -> Result<Value> {
-        if args.len() < 1 {
+        if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
 
@@ -247,7 +247,7 @@ pub struct EqualFn;
 
 impl Function for EqualFn {
     fn call(&self, args: Vec<Value>) -> Result<Value> {
-        if args.len() < 1 {
+        if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
         if args.len() == 1 {
@@ -280,7 +280,7 @@ pub struct NotEqualFn;
 
 impl Function for NotEqualFn {
     fn call(&self, args: Vec<Value>) -> Result<Value> {
-        if args.len() < 1 {
+        if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
         if args.len() == 1 {
@@ -334,7 +334,7 @@ pub struct GeFn;
 
 impl Function for GeFn {
     fn call(&self, args: Vec<Value>) -> Result<Value> {
-        if args.len() < 1 {
+        if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
         if args.len() == 1 {
@@ -367,7 +367,7 @@ pub struct GtFn;
 
 impl Function for GtFn {
     fn call(&self, args: Vec<Value>) -> Result<Value> {
-        if args.len() < 1 {
+        if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
         if args.len() == 1 {
@@ -398,7 +398,7 @@ pub struct LeFn;
 
 impl Function for LeFn {
     fn call(&self, args: Vec<Value>) -> Result<Value> {
-        if args.len() < 1 {
+        if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
         if args.len() == 1 {
@@ -431,7 +431,7 @@ pub struct LtFn;
 
 impl Function for LtFn {
     fn call(&self, args: Vec<Value>) -> Result<Value> {
-        if args.len() < 1 {
+        if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
         if args.len() == 1 {
@@ -605,12 +605,7 @@ impl Function for RestFn {
                 if set.value.is_empty() {
                     return Value::as_set(vec![]);
                 }
-                Value::as_set(
-                    set.value[1..]
-                        .into_iter()
-                        .map(|v| v.clone())
-                        .collect::<Vec<Value>>(),
-                )
+                Value::as_set(set.value[1..].into_iter().cloned().collect::<Vec<Value>>())
             }
             Value::String(s) => {
                 if s.is_empty() {
@@ -641,7 +636,7 @@ pub struct RangeFn;
 
 impl Function for RangeFn {
     fn call(&self, args: Vec<Value>) -> Result<Value> {
-        if args.len() < 1 || args.len() > 3 {
+        if args.is_empty() || args.len() > 3 {
             return Err(arity_error_range(1, 3, args.len()));
         }
 

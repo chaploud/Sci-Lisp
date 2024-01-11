@@ -25,6 +25,19 @@ rustyline-derive = "0.10.0"
 assert_cmd = "2.0.12"
 predicates = "3.0.4"
 
+[dev-dependencies.cargo-husky]
+version = "1.5.0"
+default-features = false
+features = [
+  "run-cargo-fmt",
+  "run-cargo-check",
+  "run-cargo-clippy",
+  "run-cargo-test",
+  "precommit-hook",
+  "prepush-hook",
+  "postmerge-hook",
+]
+
 [[bin]]
 name = "scilisp"
 path = "src/main.rs"

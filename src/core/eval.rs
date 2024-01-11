@@ -11,17 +11,11 @@ use crate::core::types::list::List;
 use crate::core::value::Value;
 
 pub fn is_need_eval(environment: &Rc<RefCell<Environment>>) -> bool {
-    let in_syntax_quote = match environment.borrow().get(SYMBOL_SYNTAX_QUOTING) {
-        Ok(_) => true,
-        Err(_) => false,
-    };
+    let in_syntax_quote = environment.borrow().get(SYMBOL_SYNTAX_QUOTING).is_ok();
 
-    let in_unquoting = match environment.borrow().get(SYMBOL_UNQUOTING) {
-        Ok(_) => true,
-        Err(_) => false,
-    };
+    let in_unquoting = environment.borrow().get(SYMBOL_UNQUOTING).is_ok();
 
-    return !in_syntax_quote || in_unquoting;
+    !in_syntax_quote || in_unquoting
 }
 
 pub fn ast_eval(
@@ -30,7 +24,7 @@ pub fn ast_eval(
     value: Value,
 ) -> Result<Value> {
     ast.push(value.clone());
-    return eval(environment, ast);
+    eval(environment, ast)
 }
 
 pub fn eval_list(

@@ -28,8 +28,8 @@ impl Environment {
             current: None,
         }));
 
-        insert_builtin_macros(&mut *result.borrow_mut());
-        insert_builtin_functions(&mut *result.borrow_mut());
+        insert_builtin_macros(&mut result.borrow_mut());
+        insert_builtin_functions(&mut result.borrow_mut());
 
         result
     }

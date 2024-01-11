@@ -15,7 +15,7 @@ pub enum Error {
     ParseBool(ParseBoolError),
     ParseInt(ParseIntError),
     ParseFloat(ParseFloatError),
-    PestParse(pest::error::Error<Rule>),
+    PestParse(Box<pest::error::Error<Rule>>),
     Regex(regex::Error),
     IO(std::io::Error),
     Readline(rustyline::error::ReadlineError),
@@ -107,7 +107,7 @@ impl From<ParseFloatError> for Error {
 
 impl From<pest::error::Error<Rule>> for Error {
     fn from(err: pest::error::Error<Rule>) -> Self {
-        Error::PestParse(err)
+        Error::PestParse(Box::new(err))
     }
 }
 

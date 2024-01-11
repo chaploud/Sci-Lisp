@@ -61,14 +61,11 @@ impl Function for Lambda {
             let sym = &self.args[i];
             if sym == &SYMBOL_ANPERSAND {
                 if !exist_rest {
-                    return Err(Error::Type(format!(
-                        "invalid argument: {}",
-                        sym.to_string()
-                    )));
+                    return Err(Error::Type(format!("invalid argument: {}", sym)));
                 }
                 let rest_sym = &self.args[i + 1];
                 let rest_args = Value::as_vector(args[i..].to_vec())?;
-                local_env.borrow_mut().set(&rest_sym, rest_args)?;
+                local_env.borrow_mut().set(rest_sym, rest_args)?;
                 break;
             }
             let _ = local_env

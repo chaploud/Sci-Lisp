@@ -39,13 +39,15 @@ impl Set {
     }
 }
 
+impl Default for Set {
+    fn default() -> Self {
+        Set::new()
+    }
+}
+
 impl PartialOrd for Set {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        let mut self_vec: Vec<_> = self.value.iter().collect();
-        let mut other_vec: Vec<_> = other.value.iter().collect();
-        self_vec.sort();
-        other_vec.sort();
-        Some(self_vec.cmp(&other_vec))
+        Some(self.cmp(other))
     }
 }
 

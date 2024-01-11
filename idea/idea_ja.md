@@ -235,6 +235,26 @@ cargo build           # デバッグビルド
 cargo build --relase  # リリースビルド
 cargo test            # テストの実行
 cargo fmt             # フォーマット
+cargo clippy          # 静的解析Lint
+```
+
+## git hooks
+
+- pre-commit
+
+```
+cargo fmt
+cargo check
+cargo clippy
+```
+
+- pre-push
+
+```
+cargo fmt
+cargo check
+cargo clippy
+cargo test
 ```
 
 ## オープンソース展開

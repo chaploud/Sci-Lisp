@@ -192,11 +192,11 @@ impl Macro for LetMacro {
         ast: &mut Vec<Value>,
         evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
     ) -> Result<Value> {
-        if args.len() < 1 {
+        if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
 
-        let mut local_env = Environment::new_local_environment(environment.clone());
+        let local_env = Environment::new_local_environment(environment.clone());
 
         let bind_form = match &args[0] {
             Value::Vector(v) => v,
@@ -231,7 +231,7 @@ impl Macro for LetMacro {
         let mut result = Value::Nil;
         for arg in args.into_iter().skip(1) {
             ast.push(arg.clone());
-            result = evalfn(&mut local_env, ast)?;
+            result = evalfn(&local_env, ast)?;
         }
 
         Ok(result)
@@ -291,13 +291,13 @@ impl Macro for SyntaxQuoteMacro {
         }
 
         // TODO:
-        let mut local_env = Environment::new_local_environment(environment.clone());
+        let local_env = Environment::new_local_environment(environment.clone());
         // local_env.put(&UNQUOTE.name, Value::Macro(UNQUOTE))?;
         // local_env.put(&UNQUOTE_SPLICING.name, Value::Macro(UNQUOTE_SPLICING))?;
         // local_env.put(&SYMBOL_SYNTAX_QUOTING, Value::Bool(true))?;
 
         ast.push(args[0].clone());
-        evalfn(&mut local_env, ast)
+        evalfn(&local_env, ast)
     }
 }
 
@@ -325,13 +325,13 @@ impl Macro for UnquoteMacro {
             return Err(arity_error(1, args.len()));
         }
 
-        let mut local_env = Environment::new_local_environment(environment.clone());
+        let local_env = Environment::new_local_environment(environment.clone());
         local_env
             .borrow_mut()
             .insert_to_current(SYMBOL_UNQUOTING, Value::Bool(true))?;
 
         ast.push(args[0].clone());
-        evalfn(&mut local_env, ast)
+        evalfn(&local_env, ast)
     }
 }
 
@@ -359,7 +359,7 @@ impl Macro for UnquoteSplicingMacro {
             return Err(arity_error(1, args.len()));
         }
 
-        let mut local_env = Environment::new_local_environment(environment.clone());
+        let local_env = Environment::new_local_environment(environment.clone());
         local_env
             .borrow_mut()
             .insert_to_current(SYMBOL_UNQUOTING, Value::Bool(true))?;
@@ -375,25 +375,25 @@ impl Macro for UnquoteSplicingMacro {
             Value::List(l) => {
                 for v in l.value.iter() {
                     ast.push(v.clone());
-                    result.push(evalfn(&mut local_env, ast)?);
+                    result.push(evalfn(&local_env, ast)?);
                 }
             }
             Value::Vector(v) => {
                 for v in v.value.iter() {
                     ast.push(v.clone());
-                    result.push(evalfn(&mut local_env, ast)?);
+                    result.push(evalfn(&local_env, ast)?);
                 }
             }
             Value::Set(s) => {
                 for v in s.value.iter() {
                     ast.push(v.clone());
-                    result.push(evalfn(&mut local_env, ast)?);
+                    result.push(evalfn(&local_env, ast)?);
                 }
             }
             Value::Map(m) => {
                 for (k, v) in m.value.iter() {
                     ast.push(Value::Vector(Vector::from([k.clone(), v.clone()].to_vec())));
-                    result.push(evalfn(&mut local_env, ast)?);
+                    result.push(evalfn(&local_env, ast)?);
                 }
             }
             Value::String(s) => {
@@ -577,7 +577,7 @@ impl Macro for ContinueMacro {
         _ast: &mut Vec<Value>,
         _evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
     ) -> Result<Value> {
-        if args.len() != 0 {
+        if !args.is_empty() {
             return Err(arity_error(0, args.len()));
         }
 
@@ -609,7 +609,7 @@ impl Macro for WhileMacro {
         ast: &mut Vec<Value>,
         evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
     ) -> Result<Value> {
-        if args.len() < 1 {
+        if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
 
@@ -681,7 +681,7 @@ impl Macro for SwitchMacro {
         _ast: &mut Vec<Value>,
         _evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
     ) -> Result<Value> {
-        if args.len() < 1 {
+        if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
 
@@ -926,8 +926,6 @@ impl Macro for DefnMacro {
                         }
                     }
                 }
-            } else if i == 2 {
-                body.push(arg);
             } else {
                 body.push(arg);
             }
@@ -967,7 +965,7 @@ impl Macro for ThreadFirstMacro {
         ast: &mut Vec<Value>,
         evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
     ) -> Result<Value> {
-        if args.len() < 1 {
+        if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
 
@@ -1019,7 +1017,7 @@ impl Macro for ThreadLastMacro {
         ast: &mut Vec<Value>,
         evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
     ) -> Result<Value> {
-        if args.len() < 1 {
+        if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
 

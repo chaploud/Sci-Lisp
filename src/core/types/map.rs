@@ -39,6 +39,12 @@ impl Map {
     }
 }
 
+impl Default for Map {
+    fn default() -> Self {
+        Map::new()
+    }
+}
+
 impl fmt::Display for Map {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // write the map as a list of key-value pairs
@@ -56,11 +62,7 @@ impl fmt::Display for Map {
 // 辞書の順序付けは、キーの順序付けによって決定される
 impl PartialOrd for Map {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        let mut self_vec: Vec<_> = self.value.iter().collect();
-        let mut other_vec: Vec<_> = other.value.iter().collect();
-        self_vec.sort();
-        other_vec.sort();
-        Some(self_vec.cmp(&other_vec))
+        Some(self.cmp(other))
     }
 }
 

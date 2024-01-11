@@ -28,6 +28,12 @@ impl Vector {
     }
 }
 
+impl Default for Vector {
+    fn default() -> Self {
+        Vector::new()
+    }
+}
+
 impl fmt::Display for Vector {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut result = String::new();
