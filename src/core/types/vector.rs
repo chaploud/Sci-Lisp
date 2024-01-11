@@ -137,12 +137,12 @@ impl Vector {
                         if (step > 0 && current >= end) || (step < 0 && current <= end) {
                             break;
                         }
+                        current += step;
                         let v = vector.at(current);
                         if v.is_none() {
-                            break;
+                            continue;
                         }
                         new_slice.push(v.unwrap());
-                        current += step;
                     }
                     Value::as_vector(new_slice)
                 }
