@@ -6,6 +6,8 @@ use std::ops::{Index, IndexMut};
 use std::rc::Rc;
 
 use crate::core::builtin::generators::EmptyGenerator;
+use crate::core::types::error::Result;
+use crate::core::types::function::Function;
 use crate::core::value::Value;
 use crate::core::value::ValueIter;
 
@@ -63,5 +65,14 @@ impl IntoIterator for Vector {
             current: 0,
             generator: Rc::new(RefCell::new(EmptyGenerator::new())),
         }
+    }
+}
+
+// set!のことも考えないとな
+// def a ([1] [1, 2, 3])したらどうなる?
+
+impl Function for Vector {
+    fn call(&self, _args: Vec<Value>) -> Result<Value> {
+        Ok(Value::Nil)
     }
 }
