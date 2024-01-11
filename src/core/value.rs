@@ -516,7 +516,7 @@ impl Function for i64 {
                     v.value.len() as i64 + *self
                 };
                 if index >= v.value.len() as i64 || index < 0 {
-                    return Err(index_out_of_range_error(index));
+                    return Err(index_out_of_range_error(*self));
                 }
                 v[index as usize].clone()
             }
@@ -527,7 +527,7 @@ impl Function for i64 {
                     l.value.len() as i64 + *self
                 };
                 if index >= l.value.len() as i64 || index < 0 {
-                    return Err(index_out_of_range_error(index));
+                    return Err(index_out_of_range_error(*self));
                 }
                 l[index as usize].clone()
             }

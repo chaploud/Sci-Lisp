@@ -10,6 +10,8 @@ use crate::core::types::error::Result;
 use crate::core::types::list::List;
 use crate::core::value::Value;
 
+use super::types::function::Function;
+
 pub fn is_need_eval(environment: &Rc<RefCell<Environment>>) -> bool {
     let in_syntax_quote = environment.borrow().get(SYMBOL_SYNTAX_QUOTING).is_ok();
 
@@ -25,6 +27,16 @@ pub fn ast_eval(
 ) -> Result<Value> {
     ast.push(value.clone());
     eval(environment, ast)
+}
+
+fn eval_rest(
+    environment: &Rc<RefCell<Environment>>,
+    ast: &mut Vec<Value>,
+    rest: Vec<Value>,
+) -> Result<Vec<Value>> {
+    rest.into_iter()
+        .map(|v| ast_eval(environment, ast, v))
+        .collect()
 }
 
 pub fn eval_list(
@@ -46,14 +58,8 @@ pub fn eval_list(
     let rest: Vec<Value> = list.value[1..].to_vec();
 
     let result: Result<Value> = match first {
-        Value::Function(func) => {
-            let ret: Result<Vec<Value>> = rest
-                .into_iter()
-                .map(|v| ast_eval(environment, ast, v))
-                .collect();
-
-            func.call(ret?)
-        }
+        Value::Function(func) => func.call(eval_rest(environment, ast, rest)?),
+        Value::I64(int) => int.call(eval_rest(environment, ast, rest)?),
         Value::Macro(mac) => mac.call(rest, environment, ast, eval),
         f => {
             if is_need_eval(environment) {

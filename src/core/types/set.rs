@@ -94,3 +94,25 @@ impl IntoIterator for Set {
         }
     }
 }
+
+impl Set {
+    pub fn insert(&mut self, value: Value) {
+        self.value.insert(value);
+    }
+
+    pub fn remove(&mut self, value: &Value) {
+        self.value.remove(value);
+    }
+
+    pub fn contains(&self, value: &Value) -> bool {
+        self.value.contains(value)
+    }
+
+    pub fn get(&self, value: &Value) -> Option<&Value> {
+        self.value.get(value)
+    }
+
+    pub fn len(&self) -> usize {
+        self.value.len()
+    }
+}

@@ -84,3 +84,16 @@ impl IntoIterator for List {
         }
     }
 }
+
+impl List {
+    pub fn len(&self) -> usize {
+        self.value.len()
+    }
+    pub fn at(&self, index: i64) -> Value {
+        if index < 0 {
+            self.value[self.value.len() - (-index) as usize].clone()
+        } else {
+            self.value[index as usize].clone()
+        }
+    }
+}

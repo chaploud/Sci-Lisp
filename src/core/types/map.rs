@@ -102,3 +102,45 @@ impl IntoIterator for Map {
         }
     }
 }
+
+impl Map {
+    pub fn insert(&mut self, key: Value, value: Value) {
+        self.value.insert(key, value);
+    }
+
+    pub fn get(&self, key: &Value) -> Option<&Value> {
+        self.value.get(key)
+    }
+
+    pub fn get_mut(&mut self, key: &Value) -> Option<&mut Value> {
+        self.value.get_mut(key)
+    }
+
+    pub fn remove(&mut self, key: &Value) -> Option<Value> {
+        self.value.swap_remove(key)
+    }
+
+    pub fn contains_key(&self, key: &Value) -> bool {
+        self.value.contains_key(key)
+    }
+
+    pub fn keys(&self) -> Vec<Value> {
+        self.value.keys().cloned().collect()
+    }
+
+    pub fn values(&self) -> Vec<Value> {
+        self.value.values().cloned().collect()
+    }
+
+    pub fn len(&self) -> usize {
+        self.value.len()
+    }
+
+    pub fn at(&self, index: i64) -> Value {
+        if index < 0 {
+            self.value[self.value.len() - (-index) as usize].clone()
+        } else {
+            self.value[index as usize].clone()
+        }
+    }
+}

@@ -6,8 +6,6 @@ use std::ops::{Index, IndexMut};
 use std::rc::Rc;
 
 use crate::core::builtin::generators::EmptyGenerator;
-use crate::core::types::error::Result;
-use crate::core::types::function::Function;
 use crate::core::value::Value;
 use crate::core::value::ValueIter;
 
@@ -74,11 +72,18 @@ impl IntoIterator for Vector {
     }
 }
 
-// set!のことも考えないとな
-// def a ([1] [1, 2, 3])したらどうなる?
-
-impl Function for Vector {
-    fn call(&self, _args: Vec<Value>) -> Result<Value> {
-        Ok(Value::Nil)
+impl Vector {
+    pub fn len(&self) -> usize {
+        self.value.len()
+    }
+    pub fn at(&self, index: i64) -> Value {
+        if index < 0 {
+            self.value[(self.len() as i64 + index) as usize].clone()
+        } else {
+            self.value[index as usize].clone()
+        }
     }
 }
+
+// set!のことも考えないとな
+// def a ([1] [1, 2, 3])したらどうなる?
