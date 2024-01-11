@@ -46,7 +46,7 @@ pub enum Value {
 
 use crate::core::value::Value::*;
 
-use super::types::error::{arity_error, index_out_of_range_error};
+use super::types::error::{arity_error, index_out_of_range_error, key_not_found_error};
 
 impl PartialEq for Value {
     fn eq(&self, other: &Value) -> bool {
@@ -524,6 +524,28 @@ impl Function for i64 {
             _ => {
                 return Err(Error::Type(format!(
                     "Cannot index {} with {}",
+                    args[0].type_name(),
+                    self
+                )));
+            }
+        };
+        Ok(result)
+    }
+}
+
+impl Function for std::string::String {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+        let result = match args[0] {
+            Value::Map(ref m) => match m.get(&Value::String(self.clone())) {
+                Some(value) => value.clone(),
+                None => return Err(key_not_found_error(Value::String(self.clone()))),
+            },
+            _ => {
+                return Err(Error::Type(format!(
+                    "Cannot get {} with {}",
                     args[0].type_name(),
                     self
                 )));

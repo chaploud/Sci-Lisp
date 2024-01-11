@@ -60,6 +60,8 @@ pub fn eval_list(
     let result: Result<Value> = match first {
         Value::Function(func) => func.call(eval_rest(environment, ast, rest)?),
         Value::I64(int) => int.call(eval_rest(environment, ast, rest)?),
+        Value::String(s) => s.call(eval_rest(environment, ast, rest)?),
+        Value::Keyword(k) => k.call(eval_rest(environment, ast, rest)?),
         Value::Macro(mac) => mac.call(rest, environment, ast, eval),
         f => {
             if is_need_eval(environment) {

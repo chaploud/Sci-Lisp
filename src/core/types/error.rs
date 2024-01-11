@@ -5,6 +5,7 @@ use std::num::{ParseFloatError, ParseIntError};
 use std::str::ParseBoolError;
 
 use crate::core::parse::Rule;
+use crate::core::value::Value;
 
 // use everywhere
 pub type Result<T> = std::result::Result<T, Error>;
@@ -28,6 +29,7 @@ pub enum Error {
     Arity(String),
     Immutable(String),
     Index(String),
+    Key(String),
 }
 
 impl fmt::Display for Error {
@@ -59,6 +61,7 @@ impl fmt::Display for Error {
             Arity(msg) => write!(f, "Arity Error: {}", msg),
             Immutable(msg) => write!(f, "Immutable Error: {}", msg),
             Index(msg) => write!(f, "Index Error: {}", msg),
+            Key(msg) => write!(f, "Key Error: {}", msg),
         }
     }
 }
@@ -81,6 +84,7 @@ impl std::error::Error for Error {
             Arity(_) => None,
             Immutable(_) => None,
             Index(_) => None,
+            Key(_) => None,
         }
     }
 }
@@ -154,4 +158,8 @@ pub fn type_error(expected: &str, actual: &str) -> Error {
 
 pub fn index_out_of_range_error(index: i64) -> Error {
     Error::Index(format!("index '{}' out of range", index))
+}
+
+pub fn key_not_found_error(key: Value) -> Error {
+    Error::Key(format!("key '{}' not found", key))
 }
