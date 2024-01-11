@@ -13,5 +13,5 @@ pub trait Generator:
 {
     // HACK:
     fn can_reverse(&self) -> bool;
-    fn at(&self, index: i64) -> Value;
+    fn at(&self, index: i64) -> Option<Value>;
 }

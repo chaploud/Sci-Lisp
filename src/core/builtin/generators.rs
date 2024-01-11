@@ -58,8 +58,8 @@ impl Generator for EmptyGenerator {
     fn can_reverse(&self) -> bool {
         true
     }
-    fn at(&self, _index: i64) -> Value {
-        Value::Nil
+    fn at(&self, _index: i64) -> Option<Value> {
+        Some(Value::Nil)
     }
 }
 
@@ -139,13 +139,18 @@ impl Generator for Range {
     fn can_reverse(&self) -> bool {
         true
     }
-    fn at(&self, index: i64) -> Value {
-        // 負方向も許容する
-        let index = if index < 0 {
-            self.len() as i64 + index
+    fn at(&self, index: i64) -> Option<Value> {
+        if index < 0 {
+            let index = self.len() as i64 + index;
+            if index < 0 {
+                return None;
+            }
+            Some(Value::I64(self.start + self.step * index))
         } else {
-            index
-        };
-        Value::I64(self.start + self.step * index)
+            if index >= self.len() as i64 {
+                return None;
+            }
+            Some(Value::I64(self.start + self.step * index))
+        }
     }
 }

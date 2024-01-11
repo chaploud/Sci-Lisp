@@ -89,11 +89,17 @@ impl List {
     pub fn len(&self) -> usize {
         self.value.len()
     }
-    pub fn at(&self, index: i64) -> Value {
+    pub fn at(&self, index: i64) -> Option<Value> {
         if index < 0 {
-            self.value[self.value.len() - (-index) as usize].clone()
-        } else {
-            self.value[index as usize].clone()
+            let index = self.len() as i64 + index;
+            if index < 0 {
+                return None;
+            }
+            return Some(self.value[index as usize].clone());
         }
+        if index as usize >= self.len() {
+            return None;
+        }
+        Some(self.value[index as usize].clone())
     }
 }

@@ -46,7 +46,7 @@ pub enum Value {
 
 use crate::core::value::Value::*;
 
-use super::types::error::{arity_error, index_cannot_be_negative_error, index_out_of_range_error};
+use super::types::error::{arity_error, index_out_of_range_error};
 
 impl PartialEq for Value {
     fn eq(&self, other: &Value) -> bool {
@@ -509,63 +509,18 @@ impl Function for i64 {
             return Err(arity_error(1, args.len()));
         }
         let result = match args[0] {
-            Value::Vector(ref v) => {
-                let index = if *self >= 0 {
-                    *self
-                } else {
-                    v.value.len() as i64 + *self
-                };
-                if index >= v.value.len() as i64 || index < 0 {
-                    return Err(index_out_of_range_error(*self));
-                }
-                v[index as usize].clone()
-            }
-            Value::List(ref l) => {
-                let index = if *self >= 0 {
-                    *self
-                } else {
-                    l.value.len() as i64 + *self
-                };
-                if index >= l.value.len() as i64 || index < 0 {
-                    return Err(index_out_of_range_error(*self));
-                }
-                l[index as usize].clone()
-            }
-            Value::Generator(ref g) => {
-                let index = *self;
-                if index < 0 && !g.borrow().can_reverse() {
-                    return Err(index_cannot_be_negative_error(
-                        index,
-                        Value::Generator(g.clone()),
-                    ));
-                }
-
-                let mut generator = g.borrow_mut();
-                let result = if index >= 0 {
-                    let mut ret = None;
-                    for _ in 0..index {
-                        ret = generator.next();
-                        if ret.is_none() {
-                            break;
-                        }
-                    }
-                    ret
-                } else {
-                    let mut ret = None;
-                    for _ in 0..-index {
-                        ret = generator.next_back();
-                        if ret.is_none() {
-                            break;
-                        }
-                    }
-                    ret
-                };
-
-                match result {
-                    Some(value) => value,
-                    None => return Err(index_out_of_range_error(index)),
-                }
-            }
+            Value::Vector(ref v) => match v.at(*self) {
+                Some(value) => value,
+                None => return Err(index_out_of_range_error(*self)),
+            },
+            Value::List(ref l) => match l.at(*self) {
+                Some(value) => value,
+                None => return Err(index_out_of_range_error(*self)),
+            },
+            Value::Generator(ref g) => match g.borrow().at(*self) {
+                Some(value) => value,
+                None => return Err(index_out_of_range_error(*self)),
+            },
             _ => {
                 return Err(Error::Type(format!(
                     "Cannot index {} with {}",
