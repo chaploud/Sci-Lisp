@@ -521,6 +521,10 @@ impl Function for i64 {
                 Some(value) => value,
                 None => return Err(index_out_of_range_error(*self)),
             },
+            Value::Map(ref m) => match m.get(&Value::I64(*self)) {
+                Some(value) => value.clone(),
+                None => return Err(key_not_found_error(Value::I64(*self))),
+            },
             _ => {
                 return Err(Error::Type(format!(
                     "Cannot index {} with {}",

@@ -6,6 +6,9 @@ use std::ops::{Index, IndexMut};
 use std::rc::Rc;
 
 use crate::core::builtin::generators::EmptyGenerator;
+use crate::core::types::error::Error;
+use crate::core::types::error::Result;
+use crate::core::types::error::{arity_error, index_out_of_range_error};
 use crate::core::value::Value;
 use crate::core::value::ValueIter;
 
@@ -88,6 +91,76 @@ impl Vector {
             return None;
         }
         Some(self.value[index as usize].clone())
+    }
+    pub fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        for member in self.value.clone() {
+            match member {
+                Value::Slice(_) | Value::I64(_) => {}
+                _ => {
+                    return Err(Error::Type(
+                        "slicing vector can contain only slice or i64".to_string(),
+                    ))
+                }
+            }
+        }
+
+        let mut result = args[0].clone();
+        for member in self.value.clone() {
+            result = Self::slice_index(member, result)?;
+        }
+        Ok(result)
+    }
+
+    fn slice_index(member: Value, value: Value) -> Result<Value> {
+        match value {
+            Value::Vector(vector) => match member {
+                Value::Slice(s) => {
+                    let mut new_slice = Vec::<Value>::new();
+                    let start = match s.start {
+                        Value::I64(i) => i,
+                        _ => 0,
+                    };
+                    let end = match s.end {
+                        Value::I64(i) => i,
+                        _ => vector.len() as i64,
+                    };
+                    let step = match s.step {
+                        Value::I64(i) => i,
+                        _ => 1,
+                    };
+                    let mut current = start;
+                    loop {
+                        if (step > 0 && current >= end) || (step < 0 && current <= end) {
+                            break;
+                        }
+                        let v = vector.at(current);
+                        if v.is_none() {
+                            break;
+                        }
+                        new_slice.push(v.unwrap());
+                        current += step;
+                    }
+                    Value::as_vector(new_slice)
+                }
+                Value::I64(i) => {
+                    let v = vector.at(i);
+                    if v.is_none() {
+                        return Err(index_out_of_range_error(i));
+                    }
+                    Ok(v.unwrap())
+                }
+                _ => Err(Error::Type(
+                    "slicing vector can contain only slice or i64".to_string(),
+                )),
+            },
+            _ => Err(Error::Type(
+                "slice or index access is allowed only for vector and list".to_string(),
+            )),
+        }
     }
 }
 
