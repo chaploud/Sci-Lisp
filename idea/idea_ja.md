@@ -243,6 +243,7 @@ key/index error
 - [ ] テスト機能をデフォルトで持つ
 - [ ] TODO Listを公開する(GitHubプロジェクトでもいいかもしれない)
 - [ ] GitHub Pagesの設置(Tailwind Componentによるドキュメンテーション)
+- [ ] let, defn, macroの引数デストラクチャリング
 
 ## cargo
 
