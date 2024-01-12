@@ -21,6 +21,16 @@ pub fn is_need_eval(environment: &Rc<RefCell<Environment>>) -> bool {
     !in_syntax_quote || in_unquoting
 }
 
+pub fn splicing_insert(values: Vec<Value>) -> Vec<Value> {
+    values
+        .into_iter()
+        .flat_map(|v| match v {
+            Value::Splicing(s) => s.value,
+            _ => vec![v],
+        })
+        .collect()
+}
+
 pub fn ast_eval(
     environment: &Rc<RefCell<Environment>>,
     ast: &mut Vec<Value>,
@@ -30,7 +40,7 @@ pub fn ast_eval(
     eval(environment, ast)
 }
 
-fn eval_rest(
+pub fn eval_rest(
     environment: &Rc<RefCell<Environment>>,
     ast: &mut Vec<Value>,
     rest: Vec<Value>,
@@ -69,7 +79,7 @@ pub fn eval_list(
         Value::String(mut s) => s.call(eval_rest(environment, ast, rest)?),
         Value::Keyword(mut k) => k.call(eval_rest(environment, ast, rest)?),
         Value::Vector(v) => v.call(eval_rest(environment, ast, rest)?),
-        Value::Macro(mac) => mac.borrow_mut().call(rest, environment, ast, eval), // TODO: splicing
+        Value::Macro(mac) => mac.borrow_mut().call(rest, environment, ast, eval),
         f => {
             if is_need_eval(environment) {
                 return Err(Error::Syntax(format!("cannot call '{}'", f)));
@@ -80,22 +90,14 @@ pub fn eval_list(
                 .map(|v| ast_eval(environment, ast, v))
                 .collect::<Result<Vec<Value>>>()?;
 
+            ret = splicing_insert(ret);
+
             ret.insert(0, fst);
             Value::as_list(ret)
         }
     };
 
     result
-}
-
-pub fn splicing_insert(values: Vec<Value>) -> Vec<Value> {
-    values
-        .into_iter()
-        .flat_map(|v| match v {
-            Value::Splicing(s) => s.value,
-            _ => vec![v],
-        })
-        .collect()
 }
 
 pub fn eval(environment: &Rc<RefCell<Environment>>, ast: &mut Vec<Value>) -> Result<Value> {

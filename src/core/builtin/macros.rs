@@ -6,6 +6,7 @@ use std::rc::Rc;
 use std::vec;
 
 use crate::core::environment::Environment;
+// use crate::core::eval::eval_rest;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
 use crate::core::types::error::{arity_error, arity_error_min, arity_error_range};
@@ -17,6 +18,8 @@ use crate::core::types::splicing::Splicing;
 use crate::core::types::symbol::Symbol;
 use crate::core::types::vector::Vector;
 use crate::core::value::Value;
+
+// TODO: handle splicing not elegant
 
 // def
 pub const SYMBOL_DEF: Symbol = Symbol {
@@ -64,7 +67,7 @@ impl Macro for DefMacro {
             body = args[1].clone();
         }
 
-        ast.push(body); // NOTE: need to clone here
+        ast.push(body);
         let value = evalfn(environment, ast)?;
 
         environment
@@ -95,21 +98,11 @@ impl Macro for ConstMacro {
         ast: &mut Vec<Value>,
         evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
     ) -> Result<Value> {
-        if args.len() != 2 {
-            return Err(arity_error(2, args.len()));
+        if args.len() < 2 && args.len() > 3 {
+            return Err(arity_error_range(2, 3, args.len()));
         }
 
-        let mut args_for_def: Vec<Value> = vec![];
-        for (i, v) in args.into_iter().enumerate() {
-            if i == 0 {
-                args_for_def.push(v);
-            } else {
-                ast.push(v.clone()); // NOTE: need to clone here
-                args_for_def.push(evalfn(environment, ast)?);
-            }
-        }
-
-        let mut symbol = match args_for_def[0].clone() {
+        let mut symbol = match args[0].clone() {
             Value::Symbol(sym) => sym,
             _ => {
                 return Err(Error::Type(
@@ -117,13 +110,29 @@ impl Macro for ConstMacro {
                 ))
             }
         };
+        let body: Value;
 
-        let value = args_for_def[1].clone();
+        if args.len() == 3 {
+            let docstring = match &args[1] {
+                Value::String(s) => s.clone(),
+                _ => return Err(Error::Type("const: docstring must be a string".to_string())),
+            };
+
+            symbol.meta.doc = Cow::Owned(docstring);
+            body = args[2].clone();
+        } else {
+            body = args[1].clone();
+        }
+
+        ast.push(body);
+        let value = evalfn(environment, ast)?;
+
         symbol.meta.mutable = false;
 
         environment
             .borrow_mut()
             .insert_to_root(symbol.clone(), value)?;
+
         Ok(Value::Symbol(symbol))
     }
 }
@@ -452,6 +461,8 @@ impl Macro for UnquoteSplicingMacro {
         Ok(Value::Splicing(Splicing::from(result)))
     }
 }
+
+// TODO: expand(@)
 
 // do
 pub const SYMBOL_DO: Symbol = Symbol {
