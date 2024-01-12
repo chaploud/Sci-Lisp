@@ -31,7 +31,7 @@ pub struct Lambda {
 }
 
 impl Function for Lambda {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         let local_env = Environment::new_local_environment(self.environment.clone());
         let mut ast = Vec::<Value>::new();
 

@@ -165,53 +165,99 @@ impl Environment {
 }
 
 fn insert_builtin_functions(env: &mut Environment) {
-    let _ = env.insert_to_root(SYMBOL_TYPE, Value::Function(Rc::new(TypeFn)));
-    let _ = env.insert_to_root(SYMBOL_PRINT, Value::Function(Rc::new(PrintFn)));
-    let _ = env.insert_to_root(SYMBOL_ADD, Value::Function(Rc::new(AddFn)));
-    let _ = env.insert_to_root(SYMBOL_SUB, Value::Function(Rc::new(SubFn)));
-    let _ = env.insert_to_root(SYMBOL_MUL, Value::Function(Rc::new(MulFn)));
-    let _ = env.insert_to_root(SYMBOL_DIV, Value::Function(Rc::new(DivFn)));
-    let _ = env.insert_to_root(SYMBOL_FLOORDIV, Value::Function(Rc::new(FloorDivFn)));
-    let _ = env.insert_to_root(SYMBOL_REM, Value::Function(Rc::new(RemFn)));
-    let _ = env.insert_to_root(SYMBOL_EQUAL, Value::Function(Rc::new(EqualFn)));
-    let _ = env.insert_to_root(SYMBOL_NOTEQUAL, Value::Function(Rc::new(NotEqualFn)));
-    let _ = env.insert_to_root(SYMBOL_IS, Value::Function(Rc::new(IsFn)));
-    let _ = env.insert_to_root(SYMBOL_GE, Value::Function(Rc::new(GeFn)));
-    let _ = env.insert_to_root(SYMBOL_GT, Value::Function(Rc::new(GtFn)));
-    let _ = env.insert_to_root(SYMBOL_LE, Value::Function(Rc::new(LeFn)));
-    let _ = env.insert_to_root(SYMBOL_LT, Value::Function(Rc::new(LtFn)));
-    let _ = env.insert_to_root(SYMBOL_STR, Value::Function(Rc::new(StrFn)));
-    let _ = env.insert_to_root(SYMBOL_I64, Value::Function(Rc::new(I64Fn)));
-    let _ = env.insert_to_root(SYMBOL_F64, Value::Function(Rc::new(F64Fn)));
-    let _ = env.insert_to_root(SYMBOL_FIRST, Value::Function(Rc::new(FirstFn)));
-    let _ = env.insert_to_root(SYMBOL_REST, Value::Function(Rc::new(RestFn)));
-    let _ = env.insert_to_root(SYMBOL_RANGE, Value::Function(Rc::new(RangeFn)));
+    let _ = env.insert_to_root(SYMBOL_TYPE, Value::Function(Rc::new(RefCell::new(TypeFn))));
+    let _ = env.insert_to_root(
+        SYMBOL_PRINT,
+        Value::Function(Rc::new(RefCell::new(PrintFn))),
+    );
+    let _ = env.insert_to_root(SYMBOL_ADD, Value::Function(Rc::new(RefCell::new(AddFn))));
+    let _ = env.insert_to_root(SYMBOL_SUB, Value::Function(Rc::new(RefCell::new(SubFn))));
+    let _ = env.insert_to_root(SYMBOL_MUL, Value::Function(Rc::new(RefCell::new(MulFn))));
+    let _ = env.insert_to_root(SYMBOL_DIV, Value::Function(Rc::new(RefCell::new(DivFn))));
+    let _ = env.insert_to_root(
+        SYMBOL_FLOORDIV,
+        Value::Function(Rc::new(RefCell::new(FloorDivFn))),
+    );
+    let _ = env.insert_to_root(SYMBOL_REM, Value::Function(Rc::new(RefCell::new(RemFn))));
+    let _ = env.insert_to_root(
+        SYMBOL_EQUAL,
+        Value::Function(Rc::new(RefCell::new(EqualFn))),
+    );
+    let _ = env.insert_to_root(
+        SYMBOL_NOTEQUAL,
+        Value::Function(Rc::new(RefCell::new(NotEqualFn))),
+    );
+    let _ = env.insert_to_root(SYMBOL_IS, Value::Function(Rc::new(RefCell::new(IsFn))));
+    let _ = env.insert_to_root(SYMBOL_GE, Value::Function(Rc::new(RefCell::new(GeFn))));
+    let _ = env.insert_to_root(SYMBOL_GT, Value::Function(Rc::new(RefCell::new(GtFn))));
+    let _ = env.insert_to_root(SYMBOL_LE, Value::Function(Rc::new(RefCell::new(LeFn))));
+    let _ = env.insert_to_root(SYMBOL_LT, Value::Function(Rc::new(RefCell::new(LtFn))));
+    let _ = env.insert_to_root(SYMBOL_STR, Value::Function(Rc::new(RefCell::new(StrFn))));
+    let _ = env.insert_to_root(SYMBOL_I64, Value::Function(Rc::new(RefCell::new(I64Fn))));
+    let _ = env.insert_to_root(SYMBOL_F64, Value::Function(Rc::new(RefCell::new(F64Fn))));
+    let _ = env.insert_to_root(
+        SYMBOL_FIRST,
+        Value::Function(Rc::new(RefCell::new(FirstFn))),
+    );
+    let _ = env.insert_to_root(SYMBOL_REST, Value::Function(Rc::new(RefCell::new(RestFn))));
+    let _ = env.insert_to_root(
+        SYMBOL_RANGE,
+        Value::Function(Rc::new(RefCell::new(RangeFn))),
+    );
+    let _ = env.insert_to_root(
+        SYMBOL_GENSYM,
+        Value::Function(Rc::new(RefCell::new(GensymFn { id: 0 }))),
+    );
 }
 
 fn insert_builtin_macros(env: &mut Environment) {
-    let _ = env.insert_to_root(SYMBOL_DEF, Value::Macro(Rc::new(DefMacro)));
-    let _ = env.insert_to_root(SYMBOL_CONST, Value::Macro(Rc::new(ConstMacro)));
-    let _ = env.insert_to_root(SYMBOL_SET, Value::Macro(Rc::new(SetMacro)));
-    let _ = env.insert_to_root(SYMBOL_LET, Value::Macro(Rc::new(LetMacro)));
-    let _ = env.insert_to_root(SYMBOL_QUOTE, Value::Macro(Rc::new(QuoteMacro)));
-    let _ = env.insert_to_root(SYMBOL_SYNTAX_QUOTE, Value::Macro(Rc::new(SyntaxQuoteMacro)));
-    let _ = env.insert_to_root(SYMBOL_UNQUOTE, Value::Macro(Rc::new(UnquoteMacro)));
+    let _ = env.insert_to_root(SYMBOL_DEF, Value::Macro(Rc::new(RefCell::new(DefMacro))));
+    let _ = env.insert_to_root(
+        SYMBOL_CONST,
+        Value::Macro(Rc::new(RefCell::new(ConstMacro))),
+    );
+    let _ = env.insert_to_root(SYMBOL_SET, Value::Macro(Rc::new(RefCell::new(SetMacro))));
+    let _ = env.insert_to_root(SYMBOL_LET, Value::Macro(Rc::new(RefCell::new(LetMacro))));
+    let _ = env.insert_to_root(
+        SYMBOL_QUOTE,
+        Value::Macro(Rc::new(RefCell::new(QuoteMacro))),
+    );
+    let _ = env.insert_to_root(
+        SYMBOL_SYNTAX_QUOTE,
+        Value::Macro(Rc::new(RefCell::new(SyntaxQuoteMacro))),
+    );
+    let _ = env.insert_to_root(
+        SYMBOL_UNQUOTE,
+        Value::Macro(Rc::new(RefCell::new(UnquoteMacro))),
+    );
     let _ = env.insert_to_root(
         SYMBOL_UNQUOTE_SPLICING,
-        Value::Macro(Rc::new(UnquoteSplicingMacro)),
+        Value::Macro(Rc::new(RefCell::new(UnquoteSplicingMacro))),
     );
-    let _ = env.insert_to_root(SYMBOL_DO, Value::Macro(Rc::new(DoMacro)));
-    let _ = env.insert_to_root(SYMBOL_IF, Value::Macro(Rc::new(IfMacro)));
-    let _ = env.insert_to_root(SYMBOL_WHILE, Value::Macro(Rc::new(WhileMacro)));
-    let _ = env.insert_to_root(SYMBOL_SWITCH, Value::Macro(Rc::new(SwitchMacro)));
-    let _ = env.insert_to_root(SYMBOL_TIME, Value::Macro(Rc::new(TimeMacro)));
-    let _ = env.insert_to_root(SYMBOL_DOC, Value::Macro(Rc::new(DocMacro)));
-    let _ = env.insert_to_root(SYMBOL_FN, Value::Macro(Rc::new(FnMacro)));
-    let _ = env.insert_to_root(SYMBOL_DEFN, Value::Macro(Rc::new(DefnMacro)));
-    let _ = env.insert_to_root(SYMBOL_THREAD_FIRST, Value::Macro(Rc::new(ThreadFirstMacro)));
-    let _ = env.insert_to_root(SYMBOL_THREAD_LAST, Value::Macro(Rc::new(ThreadLastMacro)));
-    let _ = env.insert_to_root(SYMBOL_COND, Value::Macro(Rc::new(CondMacro)));
-    let _ = env.insert_to_root(SYMBOL_AND, Value::Macro(Rc::new(AndMacro)));
-    let _ = env.insert_to_root(SYMBOL_OR, Value::Macro(Rc::new(OrMacro)));
-    let _ = env.insert_to_root(SYMBOL_FOR, Value::Macro(Rc::new(ForMacro)));
+    let _ = env.insert_to_root(SYMBOL_DO, Value::Macro(Rc::new(RefCell::new(DoMacro))));
+    let _ = env.insert_to_root(SYMBOL_IF, Value::Macro(Rc::new(RefCell::new(IfMacro))));
+    let _ = env.insert_to_root(
+        SYMBOL_WHILE,
+        Value::Macro(Rc::new(RefCell::new(WhileMacro))),
+    );
+    let _ = env.insert_to_root(
+        SYMBOL_SWITCH,
+        Value::Macro(Rc::new(RefCell::new(SwitchMacro))),
+    );
+    let _ = env.insert_to_root(SYMBOL_TIME, Value::Macro(Rc::new(RefCell::new(TimeMacro))));
+    let _ = env.insert_to_root(SYMBOL_DOC, Value::Macro(Rc::new(RefCell::new(DocMacro))));
+    let _ = env.insert_to_root(SYMBOL_FN, Value::Macro(Rc::new(RefCell::new(FnMacro))));
+    let _ = env.insert_to_root(SYMBOL_DEFN, Value::Macro(Rc::new(RefCell::new(DefnMacro))));
+    let _ = env.insert_to_root(
+        SYMBOL_THREAD_FIRST,
+        Value::Macro(Rc::new(RefCell::new(ThreadFirstMacro))),
+    );
+    let _ = env.insert_to_root(
+        SYMBOL_THREAD_LAST,
+        Value::Macro(Rc::new(RefCell::new(ThreadLastMacro))),
+    );
+    let _ = env.insert_to_root(SYMBOL_COND, Value::Macro(Rc::new(RefCell::new(CondMacro))));
+    let _ = env.insert_to_root(SYMBOL_AND, Value::Macro(Rc::new(RefCell::new(AndMacro))));
+    let _ = env.insert_to_root(SYMBOL_OR, Value::Macro(Rc::new(RefCell::new(OrMacro))));
+    let _ = env.insert_to_root(SYMBOL_FOR, Value::Macro(Rc::new(RefCell::new(ForMacro))));
 }

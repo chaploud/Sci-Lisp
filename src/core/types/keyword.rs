@@ -22,7 +22,7 @@ impl fmt::Display for Keyword {
 }
 
 impl Function for Keyword {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }

@@ -58,12 +58,12 @@ pub fn eval_list(
     let rest: Vec<Value> = list.value[1..].to_vec();
 
     let result: Result<Value> = match first {
-        Value::Function(func) => func.call(eval_rest(environment, ast, rest)?),
-        Value::I64(int) => int.call(eval_rest(environment, ast, rest)?),
-        Value::String(s) => s.call(eval_rest(environment, ast, rest)?),
-        Value::Keyword(k) => k.call(eval_rest(environment, ast, rest)?),
+        Value::Function(func) => func.borrow_mut().call(eval_rest(environment, ast, rest)?),
+        Value::I64(mut int) => int.call(eval_rest(environment, ast, rest)?),
+        Value::String(mut s) => s.call(eval_rest(environment, ast, rest)?),
+        Value::Keyword(mut k) => k.call(eval_rest(environment, ast, rest)?),
         Value::Vector(v) => v.call(eval_rest(environment, ast, rest)?),
-        Value::Macro(mac) => mac.call(rest, environment, ast, eval),
+        Value::Macro(mac) => mac.borrow_mut().call(rest, environment, ast, eval),
         f => {
             if is_need_eval(environment) {
                 return Err(Error::Syntax(format!("cannot call '{}'", f)));

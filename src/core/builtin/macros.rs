@@ -614,15 +614,17 @@ impl Macro for WhileMacro {
         }
 
         let local_env = Environment::new_local_environment(environment.clone());
-        local_env
-            .borrow_mut()
-            .insert_to_current(SYMBOL_BREAK, Value::Macro(Rc::new(BreakMacro)))?;
+        local_env.borrow_mut().insert_to_current(
+            SYMBOL_BREAK,
+            Value::Macro(Rc::new(RefCell::new(BreakMacro))),
+        )?;
         local_env
             .borrow_mut()
             .insert_to_current(SYMBOL_BREAKING, Value::Bool(false))?;
-        local_env
-            .borrow_mut()
-            .insert_to_current(SYMBOL_CONTINUE, Value::Macro(Rc::new(ContinueMacro)))?;
+        local_env.borrow_mut().insert_to_current(
+            SYMBOL_CONTINUE,
+            Value::Macro(Rc::new(RefCell::new(ContinueMacro))),
+        )?;
         local_env
             .borrow_mut()
             .insert_to_current(SYMBOL_CONTINUING, Value::Bool(false))?;
@@ -860,11 +862,11 @@ impl Macro for FnMacro {
             }
         }
 
-        Ok(Value::Function(Rc::new(Lambda {
+        Ok(Value::Function(Rc::new(RefCell::new(Lambda {
             args: params,
             body,
             environment: environment.clone(),
-        })))
+        }))))
     }
 }
 
@@ -939,7 +941,7 @@ impl Macro for DefnMacro {
 
         environment
             .borrow_mut()
-            .insert_to_root(name.clone(), Value::Function(Rc::new(lambda)))?;
+            .insert_to_root(name.clone(), Value::Function(Rc::new(RefCell::new(lambda))))?;
 
         Ok(Value::Symbol(name.clone()))
     }
@@ -1189,15 +1191,17 @@ impl Macro for ForMacro {
         }
 
         let local_env = Environment::new_local_environment(environment.clone());
-        local_env
-            .borrow_mut()
-            .insert_to_current(SYMBOL_BREAK, Value::Macro(Rc::new(BreakMacro)))?;
+        local_env.borrow_mut().insert_to_current(
+            SYMBOL_BREAK,
+            Value::Macro(Rc::new(RefCell::new(BreakMacro))),
+        )?;
         local_env
             .borrow_mut()
             .insert_to_current(SYMBOL_BREAKING, Value::Bool(false))?;
-        local_env
-            .borrow_mut()
-            .insert_to_current(SYMBOL_CONTINUE, Value::Macro(Rc::new(ContinueMacro)))?;
+        local_env.borrow_mut().insert_to_current(
+            SYMBOL_CONTINUE,
+            Value::Macro(Rc::new(RefCell::new(ContinueMacro))),
+        )?;
         local_env
             .borrow_mut()
             .insert_to_current(SYMBOL_CONTINUING, Value::Bool(false))?;
@@ -1273,23 +1277,89 @@ impl Macro for ForMacro {
     }
 }
 
-// sliceオブジェクトは [-1:3:2] とかで作れる
-// >>> a = np.array([1, 2, 3, 4, 5])
-// >>> a
-// array([1, 2, 3, 4, 5])
-// >>> a[2:-1]
-// array([3, 4])
-// >>> a[2:-1:2]
-// array([3])
-// vectorの中にスライスオブジェクトがいくつか格納されている感じ
+// macro
+// pub const SYMBOL_MACRO: Symbol = Symbol {
+//     name: Cow::Borrowed("macro"),
+//     meta: Meta {
+//         doc: Cow::Borrowed("Create a macro."),
+//         mutable: false,
+//     },
+// };
+
+// #[derive(Debug, Clone, PartialEq, Eq)]
+// pub struct MacroMacro;
+
+// impl Macro for MacroMacro {
+//     fn call(
+//         &self,
+//         args: Vec<Value>,
+//         environment: &Rc<RefCell<Environment>>,
+//         _ast: &mut Vec<Value>,
+//         _evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
+//     ) -> Result<Value> {
+//         if args.len() < 2 {
+//             return Err(arity_error_min(2, args.len()));
+//         }
+
+//         let binding = args[0].clone();
+//         let name = match &binding {
+//             Value::Symbol(sym) => sym,
+//             _ => {
+//                 return Err(Error::Type(
+//                     "macro: first argument must be a symbol".to_string(),
+//                 ))
+//             }
+//         };
+
+//         let mut params = vec![];
+//         let mut body = vec![];
+
+//         for (i, arg) in args.into_iter().enumerate() {
+//             if i == 1 {
+//                 let params_vec = match arg {
+//                     Value::Vector(v) => v.value,
+//                     _ => {
+//                         return Err(Error::Type(
+//                             "macro: second argument must be a vector".to_string(),
+//                         ))
+//                     }
+//                 };
+
+//                 for param in params_vec {
+//                     match param {
+//                         Value::Symbol(sym) => params.push(sym),
+//                         _ => {
+//                             return Err(Error::Type(
+//                                 "macro: second argument must be a vector of symbols".to_string(),
+//                             ))
+//                         }
+//                     }
+//                 }
+//             } else {
+//                 body.push(arg);
+//             }
+//         }
+
+//         let lambda = Lambda {
+//             args: params,
+//             body,
+//             environment: environment.clone(),
+//         };
+
+//         environment
+//             .borrow_mut()
+//             .insert_to_root(name.clone(), Value::Macro(Rc::new(RefCell::new(lambda))))?;
+
+//         Ok(Value::Symbol(name.clone()))
+//     }
+// }
 
 // TODO:
-// SliceMacro,[-1:3, :3]
+// MacroMacro,
+// GENSYM/AUTO-GENSYM
 // EnumMacro,
 // StructMacro,
-// MacroMacro,
 // ClassMacro,
-// GENSYM/AUTO-GENSYM
 // NameSpaceMacro
 
 pub const SYMBOL_SYNTAX_QUOTING: Symbol = Symbol {

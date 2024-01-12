@@ -38,8 +38,8 @@ pub enum Value {
     Vector(Vector),
     Map(Map),
     Set(Set),
-    Function(Rc<dyn Function>),
-    Macro(Rc<dyn Macro>),
+    Function(Rc<RefCell<dyn Function>>),
+    Macro(Rc<RefCell<dyn Macro>>),
     Generator(Rc<RefCell<dyn Generator>>),
     Slice(Rc<Slice>),
 }
@@ -504,7 +504,7 @@ impl IntoIterator for Value {
 }
 
 impl Function for i64 {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -538,7 +538,7 @@ impl Function for i64 {
 }
 
 impl Function for std::string::String {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }

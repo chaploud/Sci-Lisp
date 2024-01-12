@@ -27,7 +27,7 @@ pub const SYMBOL_TYPE: Symbol = Symbol {
 pub struct TypeFn;
 
 impl Function for TypeFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -49,7 +49,7 @@ pub const SYMBOL_PRINT: Symbol = Symbol {
 pub struct PrintFn;
 
 impl Function for PrintFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         for (n, arg) in args.into_iter().enumerate() {
             if n > 0 {
                 print!(" ");
@@ -82,7 +82,7 @@ pub const SYMBOL_ADD: Symbol = Symbol {
 pub struct AddFn;
 
 impl Function for AddFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         let mut result: Value = Value::I64(0);
         for arg in args {
             helper_is_number(arg.clone())?;
@@ -107,7 +107,7 @@ pub const SYMBOL_SUB: Symbol = Symbol {
 pub struct SubFn;
 
 impl Function for SubFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
@@ -139,7 +139,7 @@ pub const SYMBOL_MUL: Symbol = Symbol {
 pub struct MulFn;
 
 impl Function for MulFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         let mut result: Value = Value::I64(1);
         for arg in args {
             helper_is_number(arg.clone())?;
@@ -162,7 +162,7 @@ pub const SYMBOL_DIV: Symbol = Symbol {
 pub struct DivFn;
 
 impl Function for DivFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.len() < 2 {
             return Err(arity_error_min(2, args.len()));
         }
@@ -190,7 +190,7 @@ pub const SYMBOL_FLOORDIV: Symbol = Symbol {
 pub struct FloorDivFn;
 
 impl Function for FloorDivFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.len() < 2 {
             return Err(arity_error_min(2, args.len()));
         }
@@ -218,7 +218,7 @@ pub const SYMBOL_REM: Symbol = Symbol {
 pub struct RemFn;
 
 impl Function for RemFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.len() < 2 || args.len() > 2 {
             return Err(arity_error(2, args.len()));
         }
@@ -246,7 +246,7 @@ pub const SYMBOL_EQUAL: Symbol = Symbol {
 pub struct EqualFn;
 
 impl Function for EqualFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
@@ -279,7 +279,7 @@ pub const SYMBOL_NOTEQUAL: Symbol = Symbol {
 pub struct NotEqualFn;
 
 impl Function for NotEqualFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
@@ -310,7 +310,7 @@ pub const SYMBOL_IS: Symbol = Symbol {
 pub struct IsFn;
 
 impl Function for IsFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 2 {
             return Err(arity_error(2, args.len()));
         }
@@ -333,7 +333,7 @@ pub const SYMBOL_GE: Symbol = Symbol {
 pub struct GeFn;
 
 impl Function for GeFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
@@ -366,7 +366,7 @@ pub const SYMBOL_GT: Symbol = Symbol {
 pub struct GtFn;
 
 impl Function for GtFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
@@ -397,7 +397,7 @@ pub const SYMBOL_LE: Symbol = Symbol {
 pub struct LeFn;
 
 impl Function for LeFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
@@ -430,7 +430,7 @@ pub const SYMBOL_LT: Symbol = Symbol {
 pub struct LtFn;
 
 impl Function for LtFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
@@ -461,7 +461,7 @@ pub const SYMBOL_STR: Symbol = Symbol {
 pub struct StrFn;
 
 impl Function for StrFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -483,7 +483,7 @@ pub const SYMBOL_I64: Symbol = Symbol {
 pub struct I64Fn;
 
 impl Function for I64Fn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -505,7 +505,7 @@ pub const SYMBOL_F64: Symbol = Symbol {
 pub struct F64Fn;
 
 impl Function for F64Fn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -527,7 +527,7 @@ pub const SYMBOL_FIRST: Symbol = Symbol {
 pub struct FirstFn;
 
 impl Function for FirstFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -572,7 +572,7 @@ pub const SYMBOL_REST: Symbol = Symbol {
 pub struct RestFn;
 
 impl Function for RestFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -635,7 +635,7 @@ pub const SYMBOL_RANGE: Symbol = Symbol {
 pub struct RangeFn;
 
 impl Function for RangeFn {
-    fn call(&self, args: Vec<Value>) -> Result<Value> {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.is_empty() || args.len() > 3 {
             return Err(arity_error_range(1, 3, args.len()));
         }
@@ -676,6 +676,47 @@ impl Function for RangeFn {
         Ok(Value::Generator(Rc::new(RefCell::new(Range::new(
             start, end, step,
         )))))
+    }
+}
+
+// gensym
+pub const SYMBOL_GENSYM: Symbol = Symbol {
+    name: Cow::Borrowed("gensym"),
+    meta: Meta {
+        doc: Cow::Borrowed("Create a unique symbol."),
+        mutable: false,
+    },
+};
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct GensymFn {
+    pub id: u64,
+}
+
+impl Function for GensymFn {
+    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+        if args.len() > 1 {
+            return Err(arity_error_range(0, 1, args.len()));
+        }
+
+        let name = if args.is_empty() {
+            format!("gensym-{}", self.id)
+        } else {
+            match args[0] {
+                Value::String(ref s) => format!("{}-{}", s, self.id),
+                _ => return Err(type_error("string", args[0].type_name().as_str())),
+            }
+        };
+
+        self.id += 1;
+
+        Ok(Value::Symbol(Symbol {
+            name: Cow::Owned(name),
+            meta: Meta {
+                doc: Cow::Borrowed("Generated symbol by gensym."),
+                mutable: false,
+            },
+        }))
     }
 }
 

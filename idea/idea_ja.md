@@ -238,6 +238,11 @@ key/index error
 - [ ] Option(Some/None)とNilの扱いが混ざってしまっているので統一的にしたい
 - slicingとatの組み合わせもあるな
 ([0, 1:2, 2])
+- [ ] example.lispの修正
+- [ ] 実装済みの機能すべて書き出し
+- [ ] テスト機能をデフォルトで持つ
+- [ ] TODO Listを公開する(GitHubプロジェクトでもいいかもしれない)
+- [ ] GitHub Pagesの設置(Tailwind Componentによるドキュメンテーション)
 
 ## cargo
 
