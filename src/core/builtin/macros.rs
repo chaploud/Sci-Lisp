@@ -37,35 +37,58 @@ impl Macro for DefMacro {
         ast: &mut Vec<Value>,
         evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
     ) -> Result<Value> {
-        if args.len() != 2 {
-            return Err(arity_error(2, args.len()));
+        if args.len() < 2 && args.len() > 3 {
+            return Err(arity_error_range(2, 3, args.len()));
         }
 
-        let mut args_for_def: Vec<Value> = vec![];
-        for (i, v) in args.into_iter().enumerate() {
-            if i == 0 {
-                args_for_def.push(v);
-            } else {
-                ast.push(v.clone()); // NOTE: need to clone here
-                args_for_def.push(evalfn(environment, ast)?);
-            }
+        if args.len() == 3 {
+            let mut symbol = match args[0].clone() {
+                Value::Symbol(sym) => sym,
+                _ => {
+                    return Err(Error::Type(
+                        "def: second argument must be a symbol".to_string(),
+                    ))
+                }
+            };
+
+            let docstring = match &args[1] {
+                Value::String(s) => s.clone(),
+                _ => {
+                    return Err(Error::Type(
+                        "def: first argument must be a string".to_string(),
+                    ))
+                }
+            };
+
+            symbol.meta.doc = Cow::Owned(docstring);
+
+            ast.push(args[2].clone()); // NOTE: need to clone here
+            let value = evalfn(environment, ast)?;
+
+            environment
+                .borrow_mut()
+                .insert_to_root(symbol.clone(), value)?;
+
+            Ok(Value::Symbol(symbol))
+        } else {
+            let symbol = match args[0].clone() {
+                Value::Symbol(sym) => sym,
+                _ => {
+                    return Err(Error::Type(
+                        "def: first argument must be a symbol".to_string(),
+                    ))
+                }
+            };
+
+            ast.push(args[1].clone()); // NOTE: need to clone here
+            let value = evalfn(environment, ast)?;
+
+            environment
+                .borrow_mut()
+                .insert_to_root(symbol.clone(), value)?;
+
+            Ok(Value::Symbol(symbol))
         }
-
-        let symbol = match args_for_def[0].clone() {
-            Value::Symbol(sym) => sym,
-            _ => {
-                return Err(Error::Type(
-                    "def: first argument must be a symbol".to_string(),
-                ))
-            }
-        };
-
-        let value = args_for_def[1].clone();
-
-        environment
-            .borrow_mut()
-            .insert_to_root(symbol.clone(), value)?;
-        Ok(Value::Symbol(symbol))
     }
 }
 
@@ -1294,8 +1317,8 @@ impl Macro for ForMacro {
 //         &self,
 //         args: Vec<Value>,
 //         environment: &Rc<RefCell<Environment>>,
-//         _ast: &mut Vec<Value>,
-//         _evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
+//         ast: &mut Vec<Value>,
+//         evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
 //     ) -> Result<Value> {
 //         if args.len() < 2 {
 //             return Err(arity_error_min(2, args.len()));
