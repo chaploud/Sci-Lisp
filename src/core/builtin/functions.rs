@@ -859,3 +859,4 @@ impl fmt::Display for GensymFn {
 // reduce
 // zip
 // apply
+// partial

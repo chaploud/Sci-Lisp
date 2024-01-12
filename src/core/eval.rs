@@ -57,12 +57,13 @@ pub fn eval_list(
     ast: &mut Vec<Value>,
     list: &List,
 ) -> Result<Value> {
-    let first = match list.value.first() {
+    let list_inner = splicing_insert(list.value.clone());
+
+    let first = match list_inner.first() {
         None => return Ok(Value::List(list.clone())),
         Some(first) => first,
     };
 
-    // TODO: splicing for first(展開されてもまあいいか)
     let first = match first {
         Value::Symbol(sym) => environment.borrow().get(sym.clone())?.1.clone(),
         Value::List(list) => ast_eval(environment, ast, Value::List(list.clone()))?,
@@ -71,7 +72,7 @@ pub fn eval_list(
         f => f.clone(),
     };
 
-    let rest: Vec<Value> = list.value[1..].to_vec();
+    let rest: Vec<Value> = list_inner[1..].to_vec();
 
     let result: Result<Value> = match first {
         Value::Function(func) => func.borrow_mut().call(eval_rest(environment, ast, rest)?),
@@ -113,7 +114,11 @@ pub fn eval(environment: &Rc<RefCell<Environment>>, ast: &mut Vec<Value>) -> Res
         | Value::F64(_)
         | Value::Regex(_)
         | Value::String(_)
-        | Value::Keyword(_) => Ok(val),
+        | Value::Keyword(_)
+        | Value::Function(_)
+        | Value::Macro(_)
+        | Value::Generator(_) => Ok(val),
+        Value::Splicing(_) => Ok(val), // TODO:
         Value::Slice(s) => {
             let start = ast_eval(environment, ast, s.start.clone())?;
             let end = ast_eval(environment, ast, s.end.clone())?;
@@ -175,6 +180,5 @@ pub fn eval(environment: &Rc<RefCell<Environment>>, ast: &mut Vec<Value>) -> Res
 
             Value::as_set(result)
         }
-        _ => unreachable!(),
     }
 }

@@ -86,6 +86,8 @@ syntax-quoteの内部のみ、unquoteとunquote-splicingが定義される
 - syntax-quoteの入れ子は、syntax-quoteとして振舞ってくれればよい
 - unquoteの入れ子は、やはりシンボルが解決された後はValueそのものを返してくれればよい => シンプル!
 - 一段階しかはがさない
+- (def a `~@[1, 2, 3]) => 展開されてほしい
+- > `~@[1, 2, 3] => 1 2 3と同等であってほしい
 
 ## Environmentについての考察
 
@@ -250,6 +252,8 @@ key/index error
 - [ ] 非同期プログラミング対応
 - [ ] builtinマクロのdocstringにはbuiltinであることを明記
 - [ ] デバッガーを作る
+- [ ] エラーメッセージの改善・スタックトレース
+- [ ] マクロの利用では極力(do)を減らしたい
 
 ## cargo
 

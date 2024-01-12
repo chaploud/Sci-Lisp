@@ -7,6 +7,7 @@ use std::rc::Rc;
 use std::vec;
 
 use crate::core::environment::Environment;
+use crate::core::eval::eval_list;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
 use crate::core::types::error::{arity_error, arity_error_min, arity_error_range};
@@ -434,12 +435,7 @@ impl Macro for UnquoteSplicingMacro {
         let mut result: Vec<Value> = vec![];
 
         match arg {
-            Value::List(l) => {
-                for v in l.value.iter() {
-                    ast.push(v.clone());
-                    result.push(evalfn(&local_env, ast)?);
-                }
-            }
+            Value::List(l) => result.push(eval_list(&local_env, ast, &l)?),
             Value::Vector(v) => {
                 for v in v.value.iter() {
                     ast.push(v.clone());
@@ -1473,7 +1469,7 @@ impl fmt::Display for MacroMacro {
 
 // TODO:
 // MacroMacro,
-// GENSYM/AUTO-GENSYM
+// /AUTO-GENSYM
 // EnumMacro,
 // StructMacro,
 // ClassMacro,
