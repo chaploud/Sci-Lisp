@@ -5,7 +5,7 @@ use crate::core::types::generator::Generator;
 use crate::core::value::Value;
 
 // EmptyGenerator
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct EmptyGenerator {}
 
 impl EmptyGenerator {
@@ -16,13 +16,7 @@ impl EmptyGenerator {
 
 impl fmt::Display for EmptyGenerator {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "empty_generator()")
-    }
-}
-
-impl fmt::Debug for EmptyGenerator {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "empty_generator()")
+        write!(f, "<generator: empty >")
     }
 }
 
@@ -65,7 +59,7 @@ impl Generator for EmptyGenerator {
 
 // range
 // TODO: Performance and can call multiple times
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Range {
     pub start: i64,
     pub end: i64,
@@ -86,13 +80,11 @@ impl Range {
 
 impl fmt::Display for Range {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "range({}, {}, {})", self.start, self.end, self.step)
-    }
-}
-
-impl fmt::Debug for Range {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "range({}, {}, {})", self.start, self.end, self.step)
+        write!(
+            f,
+            "<generator: range ({} {} {}) >",
+            self.start, self.end, self.step
+        )
     }
 }
 

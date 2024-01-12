@@ -2,11 +2,11 @@
 
 use std::borrow::Cow;
 use std::cell::RefCell;
+use std::fmt;
 use std::rc::Rc;
 use std::vec;
 
 use crate::core::environment::Environment;
-// use crate::core::eval::eval_rest;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
 use crate::core::types::error::{arity_error, arity_error_min, arity_error_range};
@@ -18,8 +18,6 @@ use crate::core::types::splicing::Splicing;
 use crate::core::types::symbol::Symbol;
 use crate::core::types::vector::Vector;
 use crate::core::value::Value;
-
-// TODO: handle splicing not elegant
 
 // def
 pub const SYMBOL_DEF: Symbol = Symbol {
@@ -75,6 +73,12 @@ impl Macro for DefMacro {
             .insert_to_root(symbol.clone(), value)?;
 
         Ok(Value::Symbol(symbol))
+    }
+}
+
+impl fmt::Display for DefMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: def>")
     }
 }
 
@@ -137,6 +141,12 @@ impl Macro for ConstMacro {
     }
 }
 
+impl fmt::Display for ConstMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: const>")
+    }
+}
+
 // set!
 pub const SYMBOL_SET: Symbol = Symbol {
     name: Cow::Borrowed("set!"),
@@ -184,6 +194,12 @@ impl Macro for SetMacro {
 
         environment.borrow_mut().set(&symbol, value)?;
         Ok(Value::Symbol(symbol))
+    }
+}
+
+impl fmt::Display for SetMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: set!>")
     }
 }
 
@@ -253,6 +269,12 @@ impl Macro for LetMacro {
     }
 }
 
+impl fmt::Display for LetMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: let>")
+    }
+}
+
 // quote(')
 pub const SYMBOL_QUOTE: Symbol = Symbol {
     name: Cow::Borrowed("quote"),
@@ -278,6 +300,12 @@ impl Macro for QuoteMacro {
         }
 
         Ok(args[0].clone())
+    }
+}
+
+impl fmt::Display for QuoteMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: quote(')>")
     }
 }
 
@@ -323,6 +351,12 @@ impl Macro for SyntaxQuoteMacro {
     }
 }
 
+impl fmt::Display for SyntaxQuoteMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: syntax-quote(`)>")
+    }
+}
+
 // unquote(~)
 pub const SYMBOL_UNQUOTE: Symbol = Symbol {
     name: Cow::Borrowed("unquote"),
@@ -354,6 +388,12 @@ impl Macro for UnquoteMacro {
 
         ast.push(args[0].clone());
         evalfn(&local_env, ast)
+    }
+}
+
+impl fmt::Display for UnquoteMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: unquote(~)>")
     }
 }
 
@@ -433,29 +473,9 @@ impl Macro for UnquoteSplicingMacro {
                 }
             },
             _ => Err(Error::Type(
-                "unquote-splicing: argument must be a list, vector, set, map, or string"
+                "unquote-splicing: argument must be a list, vector, set, map, string, or generator"
                     .to_string(),
             ))?,
-        }
-
-        if let Some(parent) = ast.last() {
-            match parent {
-                Value::List(l) => {
-                    if let Value::Symbol(sym) = l.value[0].clone() {
-                        if sym == SYMBOL_UNQUOTE_SPLICING {
-                            Err(Error::Syntax(
-                                "unquote-splicing: parent must be a list, vector or set"
-                                    .to_string(),
-                            ))?
-                        }
-                    }
-                }
-                Value::Vector(_) => {}
-                Value::Set(_) => {}
-                _ => Err(Error::Syntax(
-                    "unquote-splicing: parent must be a list, vector, or set".to_string(),
-                ))?,
-            }
         }
 
         Ok(Value::Splicing(Splicing::from(result)))
@@ -463,6 +483,12 @@ impl Macro for UnquoteSplicingMacro {
 }
 
 // TODO: expand(@)
+
+impl fmt::Display for UnquoteSplicingMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: unquote-splicing(~@)>")
+    }
+}
 
 // do
 pub const SYMBOL_DO: Symbol = Symbol {
@@ -491,6 +517,12 @@ impl Macro for DoMacro {
         }
 
         Ok(result)
+    }
+}
+
+impl fmt::Display for DoMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: do>")
     }
 }
 
@@ -538,6 +570,12 @@ impl Macro for IfMacro {
     }
 }
 
+impl fmt::Display for IfMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: if>")
+    }
+}
+
 // break
 pub const SYMBOL_BREAK: Symbol = Symbol {
     name: Cow::Borrowed("break"),
@@ -582,6 +620,12 @@ impl Macro for BreakMacro {
     }
 }
 
+impl fmt::Display for BreakMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: break>")
+    }
+}
+
 // continue
 pub const SYMBOL_CONTINUE: Symbol = Symbol {
     name: Cow::Borrowed("continue"),
@@ -619,6 +663,12 @@ impl Macro for ContinueMacro {
             .set(&SYMBOL_CONTINUING, Value::Bool(true))?;
 
         Ok(Value::Nil)
+    }
+}
+
+impl fmt::Display for ContinueMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: continue>")
     }
 }
 
@@ -696,6 +746,12 @@ impl Macro for WhileMacro {
     }
 }
 
+impl fmt::Display for WhileMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: while>")
+    }
+}
+
 // switch
 pub const SYMBOL_SWITCH: Symbol = Symbol {
     name: Cow::Borrowed("switch"),
@@ -761,6 +817,12 @@ impl Macro for SwitchMacro {
     }
 }
 
+impl fmt::Display for SwitchMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: switch>")
+    }
+}
+
 // time
 pub const SYMBOL_TIME: Symbol = Symbol {
     name: Cow::Borrowed("time"),
@@ -791,6 +853,12 @@ impl Macro for TimeMacro {
         println!("Elapsed time: {:?}", end - start);
 
         Ok(result)
+    }
+}
+
+impl fmt::Display for TimeMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: time>")
     }
 }
 
@@ -839,6 +907,12 @@ impl Macro for DocMacro {
         println!("{}", result);
 
         Ok(Value::Nil)
+    }
+}
+
+impl fmt::Display for DocMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: doc>")
     }
 }
 
@@ -900,6 +974,12 @@ impl Macro for FnMacro {
             body,
             environment: environment.clone(),
         }))))
+    }
+}
+
+impl fmt::Display for FnMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: fn>")
     }
 }
 
@@ -986,6 +1066,12 @@ impl Macro for DefnMacro {
     }
 }
 
+impl fmt::Display for DefnMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: defn>")
+    }
+}
+
 // thread-first(->)
 pub const SYMBOL_THREAD_FIRST: Symbol = Symbol {
     name: Cow::Borrowed("->"),
@@ -1035,6 +1121,12 @@ impl Macro for ThreadFirstMacro {
         }
 
         Ok(result)
+    }
+}
+
+impl fmt::Display for ThreadFirstMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: thread-first(->)>")
     }
 }
 
@@ -1090,6 +1182,12 @@ impl Macro for ThreadLastMacro {
     }
 }
 
+impl fmt::Display for ThreadLastMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: thread-last(->>)>")
+    }
+}
+
 // cond
 pub const SYMBOL_COND: Symbol = Symbol {
     name: Cow::Borrowed("cond"),
@@ -1135,6 +1233,12 @@ impl Macro for CondMacro {
     }
 }
 
+impl fmt::Display for CondMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: cond>")
+    }
+}
+
 // and
 pub const SYMBOL_AND: Symbol = Symbol {
     name: Cow::Borrowed("and"),
@@ -1170,6 +1274,12 @@ impl Macro for AndMacro {
     }
 }
 
+impl fmt::Display for AndMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: and>")
+    }
+}
+
 // or
 pub const SYMBOL_OR: Symbol = Symbol {
     name: Cow::Borrowed("or"),
@@ -1202,6 +1312,12 @@ impl Macro for OrMacro {
             }
         }
         Ok(result)
+    }
+}
+
+impl fmt::Display for OrMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: or>")
     }
 }
 
@@ -1316,82 +1432,44 @@ impl Macro for ForMacro {
     }
 }
 
+impl fmt::Display for ForMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: for>")
+    }
+}
+
 // macro
-// pub const SYMBOL_MACRO: Symbol = Symbol {
-//     name: Cow::Borrowed("macro"),
-//     meta: Meta {
-//         doc: Cow::Borrowed("Create a macro."),
-//         mutable: false,
-//     },
-// };
+pub const SYMBOL_MACRO: Symbol = Symbol {
+    name: Cow::Borrowed("macro"),
+    meta: Meta {
+        doc: Cow::Borrowed("Create a macro."),
+        mutable: false,
+    },
+};
 
-// #[derive(Debug, Clone, PartialEq, Eq)]
-// pub struct MacroMacro;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MacroMacro;
 
-// impl Macro for MacroMacro {
-//     fn call(
-//         &self,
-//         args: Vec<Value>,
-//         environment: &Rc<RefCell<Environment>>,
-//         ast: &mut Vec<Value>,
-//         evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
-//     ) -> Result<Value> {
-//         if args.len() < 2 {
-//             return Err(arity_error_min(2, args.len()));
-//         }
+impl Macro for MacroMacro {
+    fn call(
+        &self,
+        args: Vec<Value>,
+        _environment: &Rc<RefCell<Environment>>,
+        _ast: &mut Vec<Value>,
+        _evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
+    ) -> Result<Value> {
+        if args.len() < 2 {
+            return Err(arity_error_min(2, args.len()));
+        }
+        Ok(Value::Nil)
+    }
+}
 
-//         let binding = args[0].clone();
-//         let name = match &binding {
-//             Value::Symbol(sym) => sym,
-//             _ => {
-//                 return Err(Error::Type(
-//                     "macro: first argument must be a symbol".to_string(),
-//                 ))
-//             }
-//         };
-
-//         let mut params = vec![];
-//         let mut body = vec![];
-
-//         for (i, arg) in args.into_iter().enumerate() {
-//             if i == 1 {
-//                 let params_vec = match arg {
-//                     Value::Vector(v) => v.value,
-//                     _ => {
-//                         return Err(Error::Type(
-//                             "macro: second argument must be a vector".to_string(),
-//                         ))
-//                     }
-//                 };
-
-//                 for param in params_vec {
-//                     match param {
-//                         Value::Symbol(sym) => params.push(sym),
-//                         _ => {
-//                             return Err(Error::Type(
-//                                 "macro: second argument must be a vector of symbols".to_string(),
-//                             ))
-//                         }
-//                     }
-//                 }
-//             } else {
-//                 body.push(arg);
-//             }
-//         }
-
-//         let lambda = Lambda {
-//             args: params,
-//             body,
-//             environment: environment.clone(),
-//         };
-
-//         environment
-//             .borrow_mut()
-//             .insert_to_root(name.clone(), Value::Macro(Rc::new(RefCell::new(lambda))))?;
-
-//         Ok(Value::Symbol(name.clone()))
-//     }
-// }
+impl fmt::Display for MacroMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: macro>")
+    }
+}
 
 // TODO:
 // MacroMacro,

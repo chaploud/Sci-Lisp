@@ -2,6 +2,7 @@
 
 use std::borrow::Cow;
 use std::cell::RefCell;
+use std::fmt;
 use std::rc::Rc;
 
 use crate::core::environment::Environment;
@@ -80,5 +81,11 @@ impl Function for Lambda {
         }
 
         Ok(result)
+    }
+}
+
+impl fmt::Display for Lambda {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "<lambda>")
     }
 }

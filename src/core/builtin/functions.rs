@@ -2,8 +2,8 @@
 
 use std::borrow::Cow;
 use std::cell::RefCell;
-use std::ptr;
 use std::rc::Rc;
+use std::{fmt, ptr};
 
 use crate::core::builtin::generators::Range;
 use crate::core::types::error::{arity_error, arity_error_min, type_error};
@@ -36,6 +36,12 @@ impl Function for TypeFn {
     }
 }
 
+impl fmt::Display for TypeFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: type>")
+    }
+}
+
 // print
 pub const SYMBOL_PRINT: Symbol = Symbol {
     name: Cow::Borrowed("print"),
@@ -58,6 +64,12 @@ impl Function for PrintFn {
         }
         println!();
         Ok(Value::Nil)
+    }
+}
+
+impl fmt::Display for PrintFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: print>")
     }
 }
 
@@ -89,6 +101,12 @@ impl Function for AddFn {
             result = result + arg;
         }
         Ok(result)
+    }
+}
+
+impl fmt::Display for AddFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: + >")
     }
 }
 
@@ -126,6 +144,12 @@ impl Function for SubFn {
     }
 }
 
+impl fmt::Display for SubFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: - >")
+    }
+}
+
 // mul(*)
 pub const SYMBOL_MUL: Symbol = Symbol {
     name: Cow::Borrowed("*"),
@@ -146,6 +170,12 @@ impl Function for MulFn {
             result = result * arg;
         }
         Ok(result)
+    }
+}
+
+impl fmt::Display for MulFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: * >")
     }
 }
 
@@ -177,6 +207,12 @@ impl Function for DivFn {
     }
 }
 
+impl fmt::Display for DivFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: / >")
+    }
+}
+
 // floordiv(//)
 pub const SYMBOL_FLOORDIV: Symbol = Symbol {
     name: Cow::Borrowed("//"),
@@ -205,6 +241,12 @@ impl Function for FloorDivFn {
     }
 }
 
+impl fmt::Display for FloorDivFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: // >")
+    }
+}
+
 // rem(%)
 pub const SYMBOL_REM: Symbol = Symbol {
     name: Cow::Borrowed("%"),
@@ -228,6 +270,12 @@ impl Function for RemFn {
 
         let result = args[0].clone() % args[1].clone();
         Ok(result)
+    }
+}
+
+impl fmt::Display for RemFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: % >")
     }
 }
 
@@ -264,6 +312,12 @@ impl Function for EqualFn {
     }
 }
 
+impl fmt::Display for EqualFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: = >")
+    }
+}
+
 // notequal(!=)
 pub const SYMBOL_NOTEQUAL: Symbol = Symbol {
     name: Cow::Borrowed("!="),
@@ -297,6 +351,12 @@ impl Function for NotEqualFn {
     }
 }
 
+impl fmt::Display for NotEqualFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: != >")
+    }
+}
+
 // is
 pub const SYMBOL_IS: Symbol = Symbol {
     name: Cow::Borrowed("is"),
@@ -317,6 +377,12 @@ impl Function for IsFn {
         // TODO: This returns almost always false
         // Pythonic 'is' would be better
         Ok(Value::Bool(ptr::eq(&args[0], &args[1])))
+    }
+}
+
+impl fmt::Display for IsFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: is>")
     }
 }
 
@@ -348,6 +414,12 @@ impl Function for GeFn {
             prev = arg;
         }
         Ok(Value::Bool(true))
+    }
+}
+
+impl fmt::Display for GeFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: >= >")
     }
 }
 
@@ -384,6 +456,12 @@ impl Function for GtFn {
     }
 }
 
+impl fmt::Display for GtFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: > >")
+    }
+}
+
 // le(<=)
 pub const SYMBOL_LE: Symbol = Symbol {
     name: Cow::Borrowed("<="),
@@ -412,6 +490,12 @@ impl Function for LeFn {
             prev = arg;
         }
         Ok(Value::Bool(true))
+    }
+}
+
+impl fmt::Display for LeFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: <= >")
     }
 }
 
@@ -448,6 +532,12 @@ impl Function for LtFn {
     }
 }
 
+impl fmt::Display for LtFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: < >")
+    }
+}
+
 // str
 pub const SYMBOL_STR: Symbol = Symbol {
     name: Cow::Borrowed("str"),
@@ -467,6 +557,12 @@ impl Function for StrFn {
         }
 
         Value::to_str(&args[0])
+    }
+}
+
+impl fmt::Display for StrFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: str>")
     }
 }
 
@@ -492,6 +588,12 @@ impl Function for I64Fn {
     }
 }
 
+impl fmt::Display for I64Fn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: i64>")
+    }
+}
+
 // f64
 pub const SYMBOL_F64: Symbol = Symbol {
     name: Cow::Borrowed("f64"),
@@ -511,6 +613,12 @@ impl Function for F64Fn {
         }
 
         Value::to_f64(&args[0])
+    }
+}
+
+impl fmt::Display for F64Fn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: f64>")
     }
 }
 
@@ -556,6 +664,12 @@ impl Function for FirstFn {
                 args[0].type_name().as_str(),
             )),
         }
+    }
+}
+
+impl fmt::Display for FirstFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: first>")
     }
 }
 
@@ -622,6 +736,12 @@ impl Function for RestFn {
     }
 }
 
+impl fmt::Display for RestFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: rest>")
+    }
+}
+
 // range
 pub const SYMBOL_RANGE: Symbol = Symbol {
     name: Cow::Borrowed("range"),
@@ -679,6 +799,12 @@ impl Function for RangeFn {
     }
 }
 
+impl fmt::Display for RangeFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: range>")
+    }
+}
+
 // gensym
 pub const SYMBOL_GENSYM: Symbol = Symbol {
     name: Cow::Borrowed("gensym"),
@@ -717,6 +843,12 @@ impl Function for GensymFn {
                 mutable: false,
             },
         }))
+    }
+}
+
+impl fmt::Display for GensymFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: gensym>")
     }
 }
 

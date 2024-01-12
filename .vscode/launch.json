@@ -9,11 +9,7 @@
       "request": "launch",
       "name": "Debug executable 'scilisp'",
       "cargo": {
-        "args": [
-          "build",
-          "--bin=scilisp",
-          "--package=sci-lisp"
-        ],
+        "args": ["build", "--bin=scilisp", "--package=sci-lisp"],
         "filter": {
           "name": "scilisp",
           "kind": "bin"
@@ -27,12 +23,7 @@
       "request": "launch",
       "name": "Debug unit tests in executable 'scilisp'",
       "cargo": {
-        "args": [
-          "test",
-          "--no-run",
-          "--bin=scilisp",
-          "--package=sci-lisp"
-        ],
+        "args": ["test", "--no-run", "--bin=scilisp", "--package=sci-lisp"],
         "filter": {
           "name": "scilisp",
           "kind": "bin"

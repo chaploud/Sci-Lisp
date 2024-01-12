@@ -7,11 +7,10 @@ use crate::core::builtin::macros::{SYMBOL_SYNTAX_QUOTING, SYMBOL_UNQUOTING};
 use crate::core::environment::Environment;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
+use crate::core::types::function::Function;
 use crate::core::types::list::List;
+use crate::core::types::slice::Slice;
 use crate::core::value::Value;
-
-use super::types::function::Function;
-use super::types::slice::Slice;
 
 pub fn is_need_eval(environment: &Rc<RefCell<Environment>>) -> bool {
     let in_syntax_quote = environment.borrow().get(SYMBOL_SYNTAX_QUOTING).is_ok();
@@ -63,6 +62,7 @@ pub fn eval_list(
         Some(first) => first,
     };
 
+    // TODO: splicing for first(展開されてもまあいいか)
     let first = match first {
         Value::Symbol(sym) => environment.borrow().get(sym.clone())?.1.clone(),
         Value::List(list) => ast_eval(environment, ast, Value::List(list.clone()))?,
@@ -79,7 +79,7 @@ pub fn eval_list(
         Value::String(mut s) => s.call(eval_rest(environment, ast, rest)?),
         Value::Keyword(mut k) => k.call(eval_rest(environment, ast, rest)?),
         Value::Vector(v) => v.call(eval_rest(environment, ast, rest)?),
-        Value::Macro(mac) => mac.borrow_mut().call(rest, environment, ast, eval),
+        Value::Macro(mac) => mac.borrow_mut().call(rest, environment, ast, eval), // TODO: splicing for macro rest
         f => {
             if is_need_eval(environment) {
                 return Err(Error::Syntax(format!("cannot call '{}'", f)));

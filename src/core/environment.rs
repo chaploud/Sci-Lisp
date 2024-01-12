@@ -252,4 +252,8 @@ fn insert_builtin_macros(env: &mut Environment) {
     let _ = env.insert_to_root(SYMBOL_AND, Value::Macro(Rc::new(RefCell::new(AndMacro))));
     let _ = env.insert_to_root(SYMBOL_OR, Value::Macro(Rc::new(RefCell::new(OrMacro))));
     let _ = env.insert_to_root(SYMBOL_FOR, Value::Macro(Rc::new(RefCell::new(ForMacro))));
+    let _ = env.insert_to_root(
+        SYMBOL_MACRO,
+        Value::Macro(Rc::new(RefCell::new(MacroMacro))),
+    );
 }
