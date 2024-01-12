@@ -835,16 +835,19 @@ impl Macro for TimeMacro {
     fn call(
         &self,
         args: Vec<Value>,
-        _environment: &Rc<RefCell<Environment>>,
-        _ast: &mut Vec<Value>,
-        _evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
+        environment: &Rc<RefCell<Environment>>,
+        ast: &mut Vec<Value>,
+        evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
     ) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
 
         let start = std::time::Instant::now();
-        let result = args[0].clone();
+        let result = {
+            ast.push(args[0].clone());
+            evalfn(environment, ast)?
+        };
         let end = std::time::Instant::now();
         println!("Elapsed time: {:?}", end - start);
 

@@ -61,18 +61,26 @@ pub fn eval_list(
 
     let first = match list_inner.first() {
         None => return Ok(Value::List(list.clone())),
-        Some(first) => first,
+        Some(f) => f,
     };
 
-    let first = match first {
+    let mut first: Value = match first {
         Value::Symbol(sym) => environment.borrow().get(sym.clone())?.1.clone(),
         Value::List(list) => ast_eval(environment, ast, Value::List(list.clone()))?,
         Value::Vector(v) => ast_eval(environment, ast, Value::Vector(v.clone()))?,
-        Value::Splicing(_) => return Err(Error::Syntax("splicing in function call".to_string())),
         f => f.clone(),
     };
 
-    let rest: Vec<Value> = list_inner[1..].to_vec();
+    let mut rest: Vec<Value> = list_inner[1..].to_vec();
+
+    // if first of list is splicing, then expand it
+    if let Value::Splicing(_) = first.clone() {
+        let v = splicing_insert(vec![first]);
+        first = v[0].clone();
+        let mut r = v[1..].to_vec();
+        r.extend(rest.clone());
+        rest = r;
+    }
 
     let result: Result<Value> = match first {
         Value::Function(func) => func.borrow_mut().call(eval_rest(environment, ast, rest)?),
