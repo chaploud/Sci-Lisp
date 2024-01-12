@@ -13,6 +13,7 @@ use crate::core::types::keyword::Keyword;
 use crate::core::types::lambda::Lambda;
 use crate::core::types::meta::Meta;
 use crate::core::types::r#macro::Macro;
+use crate::core::types::splicing::Splicing;
 use crate::core::types::symbol::Symbol;
 use crate::core::types::vector::Vector;
 use crate::core::value::Value;
@@ -295,11 +296,18 @@ impl Macro for SyntaxQuoteMacro {
             return Err(arity_error(1, args.len()));
         }
 
-        // TODO:
         let local_env = Environment::new_local_environment(environment.clone());
-        // local_env.put(&UNQUOTE.name, Value::Macro(UNQUOTE))?;
-        // local_env.put(&UNQUOTE_SPLICING.name, Value::Macro(UNQUOTE_SPLICING))?;
-        // local_env.put(&SYMBOL_SYNTAX_QUOTING, Value::Bool(true))?;
+        local_env.borrow_mut().insert_to_current(
+            SYMBOL_UNQUOTE,
+            Value::Macro(Rc::new(RefCell::new(UnquoteMacro))),
+        )?;
+        local_env.borrow_mut().insert_to_current(
+            SYMBOL_UNQUOTE_SPLICING,
+            Value::Macro(Rc::new(RefCell::new(UnquoteSplicingMacro))),
+        )?;
+        local_env
+            .borrow_mut()
+            .insert_to_current(SYMBOL_SYNTAX_QUOTING, Value::Bool(true))?;
 
         ast.push(args[0].clone());
         evalfn(&local_env, ast)
@@ -406,6 +414,15 @@ impl Macro for UnquoteSplicingMacro {
                     result.push(Value::String(c.to_string()));
                 }
             }
+            Value::Generator(g) => loop {
+                let next = g.borrow_mut().next();
+                match next {
+                    Some(v) => {
+                        result.push(v);
+                    }
+                    None => break,
+                }
+            },
             _ => Err(Error::Type(
                 "unquote-splicing: argument must be a list, vector, set, map, or string"
                     .to_string(),
@@ -432,7 +449,7 @@ impl Macro for UnquoteSplicingMacro {
             }
         }
 
-        Value::as_list(result)
+        Ok(Value::Splicing(Splicing::from(result)))
     }
 }
 

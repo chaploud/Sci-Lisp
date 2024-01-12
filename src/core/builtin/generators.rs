@@ -103,6 +103,7 @@ impl Iterator for Range {
         if (self.step > 0 && self.current >= self.end)
             || (self.step < 0 && self.current <= self.end)
         {
+            self.current = 0; // HACK: other generator must iterate repeatedly?
             None
         } else {
             let result = self.current;
@@ -112,6 +113,7 @@ impl Iterator for Range {
     }
 }
 
+// TODO: Maybe bug, repeatly call next_back()
 impl DoubleEndedIterator for Range {
     fn next_back(&mut self) -> Option<Self::Item> {
         if (self.step > 0 && self.current >= self.end)

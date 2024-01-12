@@ -20,6 +20,7 @@ use crate::core::types::map::Map;
 use crate::core::types::r#macro::Macro;
 use crate::core::types::set::Set;
 use crate::core::types::slice::Slice;
+use crate::core::types::splicing::Splicing;
 use crate::core::types::symbol::Symbol;
 use crate::core::types::type_name::TypeName;
 use crate::core::types::vector::Vector;
@@ -42,6 +43,7 @@ pub enum Value {
     Macro(Rc<RefCell<dyn Macro>>),
     Generator(Rc<RefCell<dyn Generator>>),
     Slice(Rc<Slice>),
+    Splicing(Splicing),
 }
 
 use crate::core::value::Value::*;
@@ -64,6 +66,7 @@ impl PartialEq for Value {
             (Map(h1), Map(h2)) => h1 == h2,
             (Set(s1), Set(s2)) => s1 == s2,
             (Slice(s1), Slice(s2)) => s1 == s2,
+            (Splicing(s1), Splicing(s2)) => s1 == s2,
             _ => false,
         }
     }
@@ -86,6 +89,7 @@ impl Hash for Value {
             Map(h) => h.hash(state),
             Set(s) => s.hash(state),
             Slice(s) => s.hash(state),
+            Splicing(s) => s.hash(state),
             _ => 0.hash(state), // other not hashable
         }
     }
@@ -111,6 +115,7 @@ impl fmt::Display for Value {
             Macro(mac) => write!(f, "{:?}", mac),
             Generator(g) => write!(f, "{:?}", g),
             Slice(s) => write!(f, "{}", s),
+            Splicing(s) => write!(f, "{}", s),
         }
     }
 }
@@ -135,6 +140,7 @@ impl fmt::Debug for Value {
             Macro(mac) => write!(f, "{:?}", mac),
             Generator(g) => write!(f, "{:?}", g),
             Slice(s) => write!(f, "{}", s),
+            Splicing(s) => write!(f, "{}", s),
         }
     }
 }
@@ -158,6 +164,7 @@ impl Value {
             Value::Macro(_) => TypeName::Macro,
             Value::Generator(_) => TypeName::Generator,
             Value::Slice(_) => TypeName::Slice,
+            Value::Splicing(_) => TypeName::Splicing,
         };
         result.to_string()
     }

@@ -20,6 +20,7 @@ pub enum TypeName {
     Macro,
     Generator,
     Slice,
+    Splicing,
 }
 
 use TypeName::*;
@@ -42,6 +43,7 @@ impl fmt::Display for TypeName {
             Macro => "macro",
             Generator => "generator",
             Slice => "slice",
+            Splicing => "splicing",
         };
         write!(f, "{}", str)
     }

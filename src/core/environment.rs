@@ -226,14 +226,6 @@ fn insert_builtin_macros(env: &mut Environment) {
         SYMBOL_SYNTAX_QUOTE,
         Value::Macro(Rc::new(RefCell::new(SyntaxQuoteMacro))),
     );
-    let _ = env.insert_to_root(
-        SYMBOL_UNQUOTE,
-        Value::Macro(Rc::new(RefCell::new(UnquoteMacro))),
-    );
-    let _ = env.insert_to_root(
-        SYMBOL_UNQUOTE_SPLICING,
-        Value::Macro(Rc::new(RefCell::new(UnquoteSplicingMacro))),
-    );
     let _ = env.insert_to_root(SYMBOL_DO, Value::Macro(Rc::new(RefCell::new(DoMacro))));
     let _ = env.insert_to_root(SYMBOL_IF, Value::Macro(Rc::new(RefCell::new(IfMacro))));
     let _ = env.insert_to_root(
