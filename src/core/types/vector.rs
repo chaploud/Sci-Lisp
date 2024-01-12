@@ -121,11 +121,23 @@ impl Vector {
                 Value::Slice(s) => {
                     let mut new_slice = Vec::<Value>::new();
                     let start = match s.start {
-                        Value::I64(i) => i,
+                        Value::I64(i) => {
+                            if i < 0 {
+                                vector.len() as i64 + i
+                            } else {
+                                i
+                            }
+                        }
                         _ => 0,
                     };
                     let end = match s.end {
-                        Value::I64(i) => i,
+                        Value::I64(i) => {
+                            if i < 0 {
+                                vector.len() as i64 + i
+                            } else {
+                                i
+                            }
+                        }
                         _ => vector.len() as i64,
                     };
                     let step = match s.step {
@@ -137,8 +149,8 @@ impl Vector {
                         if (step > 0 && current >= end) || (step < 0 && current <= end) {
                             break;
                         }
-                        current += step;
                         let v = vector.at(current);
+                        current += step;
                         if v.is_none() {
                             continue;
                         }

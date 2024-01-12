@@ -1,8 +1,8 @@
 COMMENT = _{ ";" ~ (!NEWLINE ~ ANY)* ~ NEWLINE }
 ws = _{ " " | "\t" | "\r" | "\n" | "," }
 
-prefix_char = _{ "#" | "'" | "`" | "~" | "~@" | "@" | "\\" | ":" }
-special_char = _{ "!" | "$" | "%" | "&" | "-" | "=" | "^" | "+" | "*" | "<" | ">" | "?" | "_" | "/"}
+prefix_char = _{ "'" | "`" | "~" | "~@" | "@" | "\\" | ":" }
+special_char = _{ "!" | "$" | "%" | "&" | "-" | "=" | "^" | "+" | "*" | "<" | ">" | "?" | "_" | "/" | "#" }
 separation_char = _{ "." | "|" }
 
 identifier = _{ ( ASCII_ALPHA | special_char) ~ (ASCII_ALPHANUMERIC | special_char)*}
@@ -53,12 +53,8 @@ slice = { slice_start? ~ ws* ~ "|" ~ ws* ~ slice_end? ~ ws* ~ ("|" ~ ws* ~ slice
 slice_start = { slice_member }
 slice_end = { slice_member }
 slice_step = { slice_member }
-slice_member = _{ nil | i64 | symbol | quote | list }
+slice_member = _{ nil | i64 | symbol | quote | list | syntax_quote | unquote | unquote_splicing }
 // TODO: other slice member such as syntax_quote
-
-// at cannot distinguish from vector
-// if [0], [sym], [:key], ["str"] is first element of list
-// they are evaluated as 'at' function
 
 expr = _{ slice | nil | bool | i64 | f64 | symbol | keyword | regex | string
         | list | vector | map | set
@@ -70,4 +66,3 @@ scilisp = { SOI ~ ws* ~ scilisp_inner* ~ ws* ~ EOI }
 
 // TODO:
 // (symbol.member) dot
-// ([0:2] expr)([-1] expr) slice / at

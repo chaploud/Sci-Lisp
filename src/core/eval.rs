@@ -11,6 +11,7 @@ use crate::core::types::list::List;
 use crate::core::value::Value;
 
 use super::types::function::Function;
+use super::types::slice::Slice;
 
 pub fn is_need_eval(environment: &Rc<RefCell<Environment>>) -> bool {
     let in_syntax_quote = environment.borrow().get(SYMBOL_SYNTAX_QUOTING).is_ok();
@@ -52,6 +53,7 @@ pub fn eval_list(
     let first = match first {
         Value::Symbol(sym) => environment.borrow().get(sym.clone())?.1.clone(),
         Value::List(list) => ast_eval(environment, ast, Value::List(list.clone()))?,
+        Value::Vector(v) => ast_eval(environment, ast, Value::Vector(v.clone()))?,
         f => f.clone(),
     };
 
@@ -95,8 +97,13 @@ pub fn eval(environment: &Rc<RefCell<Environment>>, ast: &mut Vec<Value>) -> Res
         | Value::F64(_)
         | Value::Regex(_)
         | Value::String(_)
-        | Value::Keyword(_)
-        | Value::Slice(_) => Ok(val),
+        | Value::Keyword(_) => Ok(val),
+        Value::Slice(s) => {
+            let start = ast_eval(environment, ast, s.start.clone())?;
+            let end = ast_eval(environment, ast, s.end.clone())?;
+            let step = ast_eval(environment, ast, s.step.clone())?;
+            Ok(Value::Slice(Rc::new(Slice::new(start, end, step))))
+        }
         Value::Symbol(symbol) => {
             if !is_need_eval(environment) {
                 return Ok(Value::Symbol(symbol));

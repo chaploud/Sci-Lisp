@@ -244,6 +244,8 @@ key/index error
 - [ ] TODO Listを公開する(GitHubプロジェクトでもいいかもしれない)
 - [ ] GitHub Pagesの設置(Tailwind Componentによるドキュメンテーション)
 - [ ] let, defn, macroの引数デストラクチャリング
+- [ ] 並列・マルチスレッド対応
+- [ ] 非同期プログラミング対応
 
 ## cargo
 
