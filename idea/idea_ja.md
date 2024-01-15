@@ -51,6 +51,7 @@
 - spliceするのは受け手側の責務な気がする(List, Vector, Map)
 - 実行速度が遅い! 10^7で3.8秒かかる(リリースビルド)
 - 高速処理の世界へ足を踏み入れるか
+- polars(https://github.com/pola-rs/polars)のPython APIをシームレスに組み込む
 
 ## シンボルの評価
 
@@ -256,6 +257,7 @@ key/index error
 - [ ] デバッガーを作る
 - [ ] エラーメッセージの改善・スタックトレース
 - [ ] マクロの利用では極力(do)を減らしたい
+- [ ] environmentとのやり取りにめちゃくちゃ時間かかっている
 
 ## cargo
 
@@ -267,6 +269,14 @@ cargo test            # テストの実行
 cargo fmt             # フォーマット
 cargo clippy          # 静的解析Lint
 ```
+
+## profiler
+
+```bash
+perf record --call-graph dwarf target/release/scilisp tests/benchmark.lisp
+hospot perf.data
+```
+
 
 ## git hooks
 
