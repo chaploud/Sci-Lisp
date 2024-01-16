@@ -59,7 +59,7 @@ impl fmt::Display for Map {
     }
 }
 
-// 辞書の順序付けは、キーの順序付けによって決定される
+// The ordering of dictionaries is determined by the ordering of their keys.
 impl PartialOrd for Map {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
