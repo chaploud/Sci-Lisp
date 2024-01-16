@@ -29,7 +29,7 @@ fn eval_list(list: &List, environment: &Rc<RefCell<Environment>>) -> Result<Valu
     };
 
     let first: Value = match first {
-        Value::Symbol(sym) => environment.borrow().get(sym.clone())?.1.clone(),
+        Value::Symbol(sym) => environment.borrow().get(sym)?.1.clone(),
         Value::List(list) => eval(Value::List(list.clone()), environment)?,
         Value::Vector(v) => eval(Value::Vector(v.clone()), environment)?,
         f => f.clone(),
@@ -80,7 +80,7 @@ pub fn eval(val: Value, environment: &Rc<RefCell<Environment>>) -> Result<Value>
             }
             Ok(Value::Slice(Rc::new(Slice::new(start, end, step))))
         }
-        Value::Symbol(symbol) => Ok(environment.borrow().get(symbol)?.1.clone()),
+        Value::Symbol(symbol) => Ok(environment.borrow().get(&symbol)?.1.clone()),
         Value::List(list) => eval_list(&list, environment),
         Value::Vector(vector) => {
             let result: Vec<Value> = vector

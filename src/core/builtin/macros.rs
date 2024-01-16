@@ -62,9 +62,7 @@ impl Macro for DefMacro {
 
         let value = eval(body, environment)?;
 
-        environment
-            .borrow_mut()
-            .insert_to_root(symbol.clone(), value)?;
+        environment.borrow_mut().insert_to_root(&symbol, value)?;
 
         Ok(Value::Symbol(symbol))
     }
@@ -120,9 +118,7 @@ impl Macro for ConstMacro {
 
         symbol.meta.mutable = false;
 
-        environment
-            .borrow_mut()
-            .insert_to_root(symbol.clone(), value)?;
+        environment.borrow_mut().insert_to_root(&symbol, value)?;
 
         Ok(Value::Symbol(symbol))
     }
@@ -228,9 +224,7 @@ impl Macro for LetMacro {
 
             let val = pair[1].clone();
 
-            local_env
-                .borrow_mut()
-                .insert_to_current(key?.clone(), val)?;
+            local_env.borrow_mut().insert_to_current(key?, val)?;
         }
 
         let mut result = Value::Nil;
@@ -296,11 +290,11 @@ impl Macro for SyntaxQuoteMacro {
 
         let local_env = Environment::new_local_environment(environment.clone());
         local_env.borrow_mut().insert_to_current(
-            SYMBOL_UNQUOTE,
+            &SYMBOL_UNQUOTE,
             Value::Macro(Rc::new(RefCell::new(UnquoteMacro))),
         )?;
         local_env.borrow_mut().insert_to_current(
-            SYMBOL_UNQUOTE_SPLICING,
+            &SYMBOL_UNQUOTE_SPLICING,
             Value::SplicingMacro(Rc::new(RefCell::new(UnquoteSplicingMacro))),
         )?;
 
@@ -363,7 +357,7 @@ impl SplicingMacro for UnquoteSplicingMacro {
 
         let mut arg: Value = args[0].clone();
         if let Value::Symbol(sym) = arg {
-            arg = environment.borrow().get(sym)?.1.clone();
+            arg = environment.borrow().get(&sym)?.1.clone();
         }
 
         let mut result: Vec<Value> = vec![];
@@ -597,19 +591,19 @@ impl Macro for WhileMacro {
 
         let local_env = Environment::new_local_environment(environment.clone());
         local_env.borrow_mut().insert_to_current(
-            SYMBOL_BREAK,
+            &SYMBOL_BREAK,
             Value::Macro(Rc::new(RefCell::new(BreakMacro))),
         )?;
         local_env
             .borrow_mut()
-            .insert_to_current(SYMBOL_BREAKING, Value::Bool(false))?;
+            .insert_to_current(&SYMBOL_BREAKING, Value::Bool(false))?;
         local_env.borrow_mut().insert_to_current(
-            SYMBOL_CONTINUE,
+            &SYMBOL_CONTINUE,
             Value::Macro(Rc::new(RefCell::new(ContinueMacro))),
         )?;
         local_env
             .borrow_mut()
-            .insert_to_current(SYMBOL_CONTINUING, Value::Bool(false))?;
+            .insert_to_current(&SYMBOL_CONTINUING, Value::Bool(false))?;
 
         let condition = &args[0];
         let bodies = &args[1..];
@@ -624,13 +618,13 @@ impl Macro for WhileMacro {
             }
             for body in bodies {
                 ret = eval(body.clone(), &local_env)?;
-                if local_env.borrow().get(SYMBOL_BREAKING)?.1.is_truthy() {
+                if local_env.borrow().get(&SYMBOL_BREAKING)?.1.is_truthy() {
                     if ret == Value::Nil {
                         ret = prev_ret;
                     }
                     break 'looptop ret;
                 }
-                if local_env.borrow().get(SYMBOL_CONTINUING)?.1.is_truthy() {
+                if local_env.borrow().get(&SYMBOL_CONTINUING)?.1.is_truthy() {
                     local_env
                         .borrow_mut()
                         .set(&SYMBOL_CONTINUING, Value::Bool(false))?;
@@ -774,7 +768,7 @@ impl Macro for DocMacro {
             }
         };
 
-        let (key, val) = environment.borrow().get(sym.clone())?;
+        let (key, val) = environment.borrow().get(sym)?;
 
         let mut result = "------------------------------\n".to_string();
         result += format!("{}: {}\n", val.type_name(), sym.name).as_str();
@@ -924,10 +918,9 @@ impl Macro for DefnMacro {
             environment: environment.clone(),
         };
 
-        environment.borrow_mut().insert_to_root(
-            symbol.clone(),
-            Value::Function(Rc::new(RefCell::new(lambda))),
-        )?;
+        environment
+            .borrow_mut()
+            .insert_to_root(&symbol, Value::Function(Rc::new(RefCell::new(lambda))))?;
 
         Ok(Value::Symbol(symbol.clone()))
     }
@@ -1166,19 +1159,19 @@ impl Macro for ForMacro {
 
         let local_env = Environment::new_local_environment(environment.clone());
         local_env.borrow_mut().insert_to_current(
-            SYMBOL_BREAK,
+            &SYMBOL_BREAK,
             Value::Macro(Rc::new(RefCell::new(BreakMacro))),
         )?;
         local_env
             .borrow_mut()
-            .insert_to_current(SYMBOL_BREAKING, Value::Bool(false))?;
+            .insert_to_current(&SYMBOL_BREAKING, Value::Bool(false))?;
         local_env.borrow_mut().insert_to_current(
-            SYMBOL_CONTINUE,
+            &SYMBOL_CONTINUE,
             Value::Macro(Rc::new(RefCell::new(ContinueMacro))),
         )?;
         local_env
             .borrow_mut()
-            .insert_to_current(SYMBOL_CONTINUING, Value::Bool(false))?;
+            .insert_to_current(&SYMBOL_CONTINUING, Value::Bool(false))?;
 
         let binding = match args[0].clone() {
             Value::Vector(v) => v,
@@ -1216,6 +1209,10 @@ impl Macro for ForMacro {
         }
         .into_iter();
 
+        local_env
+            .borrow_mut()
+            .insert_to_current(&param_symbol, Value::Nil)?;
+
         let mut ret = Value::Nil;
         let result = 'looptop: loop {
             let v = iterator.next();
@@ -1223,19 +1220,18 @@ impl Macro for ForMacro {
                 break ret;
             }
 
-            local_env
-                .borrow_mut()
-                .insert_to_current(param_symbol.clone(), v.unwrap())?;
+            local_env.borrow_mut().set(&param_symbol, v.unwrap())?;
+
             let prev_ret = ret.clone();
             for arg in args.iter().skip(1) {
                 ret = eval(arg.clone(), &local_env)?;
-                if local_env.borrow().get(SYMBOL_BREAKING)?.1.is_truthy() {
+                if local_env.borrow().get(&SYMBOL_BREAKING)?.1.is_truthy() {
                     if ret == Value::Nil {
                         ret = prev_ret;
                     }
                     break 'looptop ret;
                 }
-                if local_env.borrow().get(SYMBOL_CONTINUING)?.1.is_truthy() {
+                if local_env.borrow().get(&SYMBOL_CONTINUING)?.1.is_truthy() {
                     local_env
                         .borrow_mut()
                         .set(&SYMBOL_CONTINUING, Value::Bool(false))?;
