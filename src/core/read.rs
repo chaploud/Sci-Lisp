@@ -4,9 +4,7 @@ use std::rc::Rc;
 
 use pest::iterators::Pair;
 
-use crate::core::builtin::macros::{
-    SYMBOL_QUOTE, SYMBOL_SYNTAX_QUOTE, SYMBOL_UNQUOTE, SYMBOL_UNQUOTE_SPLICING,
-};
+use crate::core::builtin::macros::*;
 use crate::core::parse::Rule;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
@@ -99,25 +97,28 @@ pub fn read(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<()> {
 fn quote_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
     let pair = pair.into_inner().next().unwrap();
     let value = read_scilisp(ast, pair)?;
-    Value::as_list(vec![Value::Symbol(SYMBOL_QUOTE), value])
+    Value::as_list(vec![Value::Symbol((*SYMBOL_QUOTE).clone()), value])
 }
 
 fn syntax_quote_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
     let pair = pair.into_inner().next().unwrap();
     let value = read_scilisp(ast, pair)?;
-    Value::as_list(vec![Value::Symbol(SYMBOL_SYNTAX_QUOTE), value])
+    Value::as_list(vec![Value::Symbol((*SYMBOL_SYNTAX_QUOTE).clone()), value])
 }
 
 fn unquote_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
     let pair = pair.into_inner().next().unwrap();
     let value = read_scilisp(ast, pair)?;
-    Value::as_list(vec![Value::Symbol(SYMBOL_UNQUOTE), value])
+    Value::as_list(vec![Value::Symbol((*SYMBOL_UNQUOTE).clone()), value])
 }
 
 fn unquote_splicing_to_ast(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {
     let pair = pair.into_inner().next().unwrap();
     let value = read_scilisp(ast, pair)?;
-    Value::as_list(vec![Value::Symbol(SYMBOL_UNQUOTE_SPLICING), value])
+    Value::as_list(vec![
+        Value::Symbol((*SYMBOL_UNQUOTE_SPLICING).clone()),
+        value,
+    ])
 }
 
 fn as_slice(ast: &mut Vec<Value>, pair: Pair<Rule>) -> Result<Value> {

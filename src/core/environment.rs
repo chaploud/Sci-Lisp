@@ -3,10 +3,9 @@
 use std::cell::RefCell;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
-use std::hash::BuildHasherDefault;
 use std::rc::Rc;
 
-use ahash::AHasher;
+use nohash::BuildNoHashHasher;
 
 use crate::core::builtin::functions::*;
 use crate::core::builtin::r#macros::*;
@@ -15,7 +14,7 @@ use crate::core::types::error::Result;
 use crate::core::types::symbol::Symbol;
 use crate::core::value::Value;
 
-type Lookup = HashMap<Symbol, Value, BuildHasherDefault<AHasher>>;
+type Lookup = HashMap<Symbol, Value, BuildNoHashHasher<u64>>;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Environment {

@@ -6,6 +6,8 @@ use std::fmt;
 use std::rc::Rc;
 use std::vec;
 
+use once_cell::sync::Lazy;
+
 use crate::core::environment::Environment;
 use crate::core::eval::eval;
 use crate::core::types::error::Error;
@@ -21,13 +23,14 @@ use crate::core::types::vector::Vector;
 use crate::core::value::Value;
 
 // def
-pub const SYMBOL_DEF: Symbol = Symbol {
+pub static SYMBOL_DEF: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("def"),
     meta: Meta {
         doc: Cow::Borrowed("Bind a value to a symbol."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("def"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DefMacro;
@@ -75,13 +78,14 @@ impl fmt::Display for DefMacro {
 }
 
 // const
-pub const SYMBOL_CONST: Symbol = Symbol {
+pub static SYMBOL_CONST: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("const"),
     meta: Meta {
         doc: Cow::Borrowed("Bind a value to a symbol."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("const"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConstMacro;
@@ -131,13 +135,14 @@ impl fmt::Display for ConstMacro {
 }
 
 // set!
-pub const SYMBOL_SET: Symbol = Symbol {
+pub static SYMBOL_SET: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("set!"),
     meta: Meta {
         doc: Cow::Borrowed("Bind a value to a symbol."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("set!"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SetMacro;
@@ -180,13 +185,14 @@ impl fmt::Display for SetMacro {
 }
 
 // let
-pub const SYMBOL_LET: Symbol = Symbol {
+pub static SYMBOL_LET: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("let"),
     meta: Meta {
         doc: Cow::Borrowed("Bind a value to a symbol in a local scope."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("let"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LetMacro;
@@ -243,13 +249,14 @@ impl fmt::Display for LetMacro {
 }
 
 // quote(')
-pub const SYMBOL_QUOTE: Symbol = Symbol {
+pub static SYMBOL_QUOTE: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("quote"),
     meta: Meta {
         doc: Cow::Borrowed("Quote a value."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("quote"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct QuoteMacro;
@@ -271,13 +278,14 @@ impl fmt::Display for QuoteMacro {
 }
 
 // syntax-quote(`)
-pub const SYMBOL_SYNTAX_QUOTE: Symbol = Symbol {
+pub static SYMBOL_SYNTAX_QUOTE: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("syntax-quote"),
     meta: Meta {
         doc: Cow::Borrowed("Syntax-quote a value."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("syntax-quote"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SyntaxQuoteMacro;
@@ -309,13 +317,14 @@ impl fmt::Display for SyntaxQuoteMacro {
 }
 
 // unquote(~)
-pub const SYMBOL_UNQUOTE: Symbol = Symbol {
+pub static SYMBOL_UNQUOTE: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("unquote"),
     meta: Meta {
         doc: Cow::Borrowed("Unquote a value."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("unquote"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UnquoteMacro;
@@ -337,13 +346,14 @@ impl fmt::Display for UnquoteMacro {
 }
 
 // unquote-splicing(~@)
-pub const SYMBOL_UNQUOTE_SPLICING: Symbol = Symbol {
+pub static SYMBOL_UNQUOTE_SPLICING: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("unquote-splicing"),
     meta: Meta {
         doc: Cow::Borrowed("Unquote-splicing a value."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("unquote-splicing"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UnquoteSplicingMacro;
@@ -417,13 +427,14 @@ impl fmt::Display for UnquoteSplicingMacro {
 }
 
 // do
-pub const SYMBOL_DO: Symbol = Symbol {
+pub static SYMBOL_DO: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("do"),
     meta: Meta {
         doc: Cow::Borrowed("Evaluate a series of expressions and return the last result."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("do"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DoMacro;
@@ -446,13 +457,16 @@ impl fmt::Display for DoMacro {
 }
 
 // if
-pub const SYMBOL_IF: Symbol = Symbol {
+pub static SYMBOL_IF: Lazy<Symbol> = Lazy::new(|| {
+    Symbol {
     name: Cow::Borrowed("if"),
     meta: Meta {
         doc: Cow::Borrowed("If the first argument is true, evaluate the second argument. Otherwise, evaluate the third argument."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("if")
+}
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IfMacro;
@@ -488,21 +502,23 @@ impl fmt::Display for IfMacro {
 }
 
 // break
-pub const SYMBOL_BREAK: Symbol = Symbol {
+pub static SYMBOL_BREAK: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("break"),
     meta: Meta {
         doc: Cow::Borrowed("Break out of a while/for loop."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("break"),
+});
 
-pub const SYMBOL_BREAKING: Symbol = Symbol {
+pub static SYMBOL_BREAKING: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("*breaking*"),
     meta: Meta {
         doc: Cow::Borrowed("Internal variable for break."),
         mutable: true,
     },
-};
+    hash: fxhash::hash("*breaking*"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BreakMacro;
@@ -532,21 +548,23 @@ impl fmt::Display for BreakMacro {
 }
 
 // continue
-pub const SYMBOL_CONTINUE: Symbol = Symbol {
+pub static SYMBOL_CONTINUE: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("continue"),
     meta: Meta {
         doc: Cow::Borrowed("Continue a while/for loop."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("continue"),
+});
 
-pub const SYMBOL_CONTINUING: Symbol = Symbol {
+pub static SYMBOL_CONTINUING: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("*continuing*"),
     meta: Meta {
         doc: Cow::Borrowed("Internal variable for continue."),
         mutable: true,
     },
-};
+    hash: fxhash::hash("*continuing*"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContinueMacro;
@@ -572,13 +590,14 @@ impl fmt::Display for ContinueMacro {
 }
 
 // while
-pub const SYMBOL_WHILE: Symbol = Symbol {
+pub static SYMBOL_WHILE: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("while"),
     meta: Meta {
         doc: Cow::Borrowed("While the first expression is true, evaluate the second expression."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("while"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WhileMacro;
@@ -644,13 +663,14 @@ impl fmt::Display for WhileMacro {
 }
 
 // switch
-pub const SYMBOL_SWITCH: Symbol = Symbol {
+pub static SYMBOL_SWITCH: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("switch"),
     meta: Meta {
         doc: Cow::Borrowed("Switch macro."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("switch"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SwitchMacro;
@@ -709,13 +729,14 @@ impl fmt::Display for SwitchMacro {
 }
 
 // time
-pub const SYMBOL_TIME: Symbol = Symbol {
+pub static SYMBOL_TIME: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("time"),
     meta: Meta {
         doc: Cow::Borrowed("Time the evaluation of an expression."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("time"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TimeMacro;
@@ -742,13 +763,14 @@ impl fmt::Display for TimeMacro {
 }
 
 // doc
-pub const SYMBOL_DOC: Symbol = Symbol {
+pub static SYMBOL_DOC: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("doc"),
     meta: Meta {
         doc: Cow::Borrowed("Get the documentation of a value."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("doc"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DocMacro;
@@ -790,13 +812,14 @@ impl fmt::Display for DocMacro {
 }
 
 // fn
-pub const SYMBOL_FN: Symbol = Symbol {
+pub static SYMBOL_FN: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("fn"),
     meta: Meta {
         doc: Cow::Borrowed("Create a anonymous/lambda function."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("fn"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FnMacro;
@@ -851,13 +874,14 @@ impl fmt::Display for FnMacro {
 }
 
 // defn
-pub const SYMBOL_DEFN: Symbol = Symbol {
+pub static SYMBOL_DEFN: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("defn"),
     meta: Meta {
         doc: Cow::Borrowed("Bind a function to a symbol."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("defn"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DefnMacro;
@@ -933,13 +957,14 @@ impl fmt::Display for DefnMacro {
 }
 
 // thread-first(->)
-pub const SYMBOL_THREAD_FIRST: Symbol = Symbol {
+pub static SYMBOL_THREAD_FIRST: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("->"),
     meta: Meta {
         doc: Cow::Borrowed("Thread-first macro."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("->"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ThreadFirstMacro;
@@ -981,13 +1006,14 @@ impl fmt::Display for ThreadFirstMacro {
 }
 
 // thread-last(->>)
-pub const SYMBOL_THREAD_LAST: Symbol = Symbol {
+pub static SYMBOL_THREAD_LAST: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("->>"),
     meta: Meta {
         doc: Cow::Borrowed("Thread-last macro."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("->>"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ThreadLastMacro;
@@ -1029,13 +1055,14 @@ impl fmt::Display for ThreadLastMacro {
 }
 
 // cond
-pub const SYMBOL_COND: Symbol = Symbol {
+pub static SYMBOL_COND: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("cond"),
     meta: Meta {
         doc: Cow::Borrowed("Cond macro."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("cond"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CondMacro;
@@ -1072,13 +1099,14 @@ impl fmt::Display for CondMacro {
 }
 
 // and
-pub const SYMBOL_AND: Symbol = Symbol {
+pub static SYMBOL_AND: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("and"),
     meta: Meta {
         doc: Cow::Borrowed("And macro."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("and"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AndMacro;
@@ -1106,13 +1134,14 @@ impl fmt::Display for AndMacro {
 }
 
 // or
-pub const SYMBOL_OR: Symbol = Symbol {
+pub static SYMBOL_OR: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("or"),
     meta: Meta {
         doc: Cow::Borrowed("Or macro."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("or"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OrMacro;
@@ -1140,13 +1169,14 @@ impl fmt::Display for OrMacro {
 }
 
 // for
-pub const SYMBOL_FOR: Symbol = Symbol {
+pub static SYMBOL_FOR: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("for"),
     meta: Meta {
         doc: Cow::Borrowed("For macro."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("for"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ForMacro;
@@ -1250,13 +1280,14 @@ impl fmt::Display for ForMacro {
 }
 
 // macro
-pub const SYMBOL_MACRO: Symbol = Symbol {
+pub static SYMBOL_MACRO: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("macro"),
     meta: Meta {
         doc: Cow::Borrowed("Create a macro."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("macro"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MacroMacro;

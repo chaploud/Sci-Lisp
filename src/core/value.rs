@@ -189,10 +189,11 @@ impl Value {
     }
 
     pub fn as_symbol(pair: Pair<Rule>) -> Result<Value> {
-        let result = pair.as_str().to_string().into();
+        let result = pair.as_str().to_string().to_owned();
         Ok(Value::Symbol(Symbol {
-            name: result,
+            name: result.clone().into(),
             meta: Default::default(),
+            hash: fxhash::hash(&result),
         }))
     }
 

@@ -11,6 +11,7 @@ use crate::core::types::meta::Meta;
 pub struct Symbol {
     pub name: Cow<'static, str>,
     pub meta: Meta,
+    pub hash: usize,
 }
 
 impl PartialEq for Symbol {
@@ -23,7 +24,7 @@ impl Eq for Symbol {}
 
 impl Hash for Symbol {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.name.hash(state);
+        state.write_usize(self.hash);
     }
 }
 
@@ -57,14 +58,17 @@ mod tests {
             let s1 = Symbol {
                 name: "abc".into(),
                 meta: Default::default(),
+                hash: fxhash::hash("abc"),
             };
             let s2 = Symbol {
                 name: "abc".into(),
                 meta: Default::default(),
+                hash: fxhash::hash("abc"),
             };
             let s3 = Symbol {
                 name: "def".into(),
                 meta: Default::default(),
+                hash: fxhash::hash("def"),
             };
             assert_eq!(s1, s2);
             assert_ne!(s1, s3);

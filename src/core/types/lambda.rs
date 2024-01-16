@@ -5,6 +5,8 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
+use once_cell::sync::Lazy;
+
 use crate::core::environment::Environment;
 use crate::core::eval::eval;
 use crate::core::types::error::arity_error;
@@ -16,13 +18,14 @@ use crate::core::types::meta::Meta;
 use crate::core::types::symbol::Symbol;
 use crate::core::value::Value;
 
-pub const SYMBOL_ANPERSAND: Symbol = Symbol {
+pub static SYMBOL_ANPERSAND: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("&"),
     meta: Meta {
         doc: Cow::Borrowed(""),
         mutable: false,
     },
-};
+    hash: fxhash::hash("&"),
+});
 
 #[derive(Debug, Clone)]
 pub struct Lambda {
@@ -40,7 +43,7 @@ impl Function for Lambda {
         let mut exist_rest = false;
 
         if argc >= 2 {
-            if self.args[argc - 2] == SYMBOL_ANPERSAND {
+            if self.args[argc - 2] == *SYMBOL_ANPERSAND {
                 exist_rest = true;
             }
             let rest_symbol = &self.args[argc - 1];
@@ -59,7 +62,7 @@ impl Function for Lambda {
 
         for (i, arg) in args.iter().enumerate() {
             let sym = &self.args[i];
-            if sym == &SYMBOL_ANPERSAND {
+            if *sym == *SYMBOL_ANPERSAND {
                 if !exist_rest {
                     return Err(Error::Type(format!("invalid argument: {}", sym)));
                 }

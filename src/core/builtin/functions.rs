@@ -5,6 +5,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::{fmt, ptr};
 
+use once_cell::sync::Lazy;
+
 use crate::core::builtin::generators::Range;
 use crate::core::types::error::{arity_error, arity_error_min, type_error};
 use crate::core::types::error::{arity_error_range, Result};
@@ -15,13 +17,14 @@ use crate::core::types::vector::Vector;
 use crate::core::value::Value;
 
 // type
-pub const SYMBOL_TYPE: Symbol = Symbol {
+pub static SYMBOL_TYPE: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("type"),
     meta: Meta {
         doc: Cow::Borrowed("Get the type of a value."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("type"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TypeFn;
@@ -43,13 +46,14 @@ impl fmt::Display for TypeFn {
 }
 
 // print
-pub const SYMBOL_PRINT: Symbol = Symbol {
+pub static SYMBOL_PRINT: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("print"),
     meta: Meta {
         doc: Cow::Borrowed("Print value(s) to stdout."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("print"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PrintFn;
@@ -82,13 +86,14 @@ fn helper_is_number(arg: Value) -> Result<Value> {
 }
 
 // add(+)
-pub const SYMBOL_ADD: Symbol = Symbol {
+pub static SYMBOL_ADD: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("+"),
     meta: Meta {
         doc: Cow::Borrowed("Adds all values. (+) returns 0."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("+"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AddFn;
@@ -111,7 +116,7 @@ impl fmt::Display for AddFn {
 }
 
 // sub(-)
-pub const SYMBOL_SUB: Symbol = Symbol {
+pub static SYMBOL_SUB: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("-"),
     meta: Meta {
         doc: Cow::Borrowed(
@@ -119,7 +124,8 @@ pub const SYMBOL_SUB: Symbol = Symbol {
         ),
         mutable: false,
     },
-};
+    hash: fxhash::hash("-"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SubFn;
@@ -151,13 +157,14 @@ impl fmt::Display for SubFn {
 }
 
 // mul(*)
-pub const SYMBOL_MUL: Symbol = Symbol {
+pub static SYMBOL_MUL: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("*"),
     meta: Meta {
         doc: Cow::Borrowed("Multiplies all values. (*) returns 1."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("*"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MulFn;
@@ -180,13 +187,14 @@ impl fmt::Display for MulFn {
 }
 
 // div(/)
-pub const SYMBOL_DIV: Symbol = Symbol {
+pub static SYMBOL_DIV: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("/"),
     meta: Meta {
         doc: Cow::Borrowed("Divide the first value by all remaining values."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("/"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DivFn;
@@ -214,13 +222,14 @@ impl fmt::Display for DivFn {
 }
 
 // floordiv(//)
-pub const SYMBOL_FLOORDIV: Symbol = Symbol {
+pub static SYMBOL_FLOORDIV: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("//"),
     meta: Meta {
         doc: Cow::Borrowed("Divide the first value by all remaining values and floor."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("//"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FloorDivFn;
@@ -248,13 +257,14 @@ impl fmt::Display for FloorDivFn {
 }
 
 // rem(%)
-pub const SYMBOL_REM: Symbol = Symbol {
+pub static SYMBOL_REM: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("%"),
     meta: Meta {
         doc: Cow::Borrowed("Remainder of the first value divided by the second value."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("%"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RemFn;
@@ -280,15 +290,18 @@ impl fmt::Display for RemFn {
 }
 
 // equal(=)
-pub const SYMBOL_EQUAL: Symbol = Symbol {
-    name: Cow::Borrowed("="),
-    meta: Meta {
-        doc: Cow::Borrowed(
-            "Returns true if all values are equal to each other and false otherwise. (= x) returns true.",
-        ),
-        mutable: false,
-    },
-};
+pub static SYMBOL_EQUAL: Lazy<Symbol> = Lazy::new(|| {
+    Symbol {
+        name: Cow::Borrowed("="),
+        meta: Meta {
+            doc: Cow::Borrowed(
+                "Returns true if all values are equal to each other and false otherwise. (= x) returns true.",
+            ),
+            mutable: false,
+        },
+        hash: fxhash::hash("=")
+    }
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EqualFn;
@@ -319,7 +332,8 @@ impl fmt::Display for EqualFn {
 }
 
 // notequal(!=)
-pub const SYMBOL_NOTEQUAL: Symbol = Symbol {
+pub static SYMBOL_NOTEQUAL: Lazy<Symbol> = Lazy::new(|| {
+    Symbol {
     name: Cow::Borrowed("!="),
     meta: Meta {
         doc: Cow::Borrowed(
@@ -327,7 +341,9 @@ pub const SYMBOL_NOTEQUAL: Symbol = Symbol {
         ),
         mutable: false,
     },
-};
+    hash: fxhash::hash("!=")
+}
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NotEqualFn;
@@ -358,13 +374,14 @@ impl fmt::Display for NotEqualFn {
 }
 
 // is
-pub const SYMBOL_IS: Symbol = Symbol {
+pub static SYMBOL_IS: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("is"),
     meta: Meta {
         doc: Cow::Borrowed("Check if two values are the same."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("is"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IsFn;
@@ -387,13 +404,16 @@ impl fmt::Display for IsFn {
 }
 
 // ge(>=)
-pub const SYMBOL_GE: Symbol = Symbol {
+pub static SYMBOL_GE: Lazy<Symbol> = Lazy::new(|| {
+    Symbol {
     name: Cow::Borrowed(">="),
     meta: Meta {
         doc: Cow::Borrowed("Returns true if all left values are greater than or equal to the right value. (>= x) returns true."),
         mutable: false,
     },
-};
+    hash: fxhash::hash(">=")
+    }
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GeFn;
@@ -424,7 +444,7 @@ impl fmt::Display for GeFn {
 }
 
 // gt(>)
-pub const SYMBOL_GT: Symbol = Symbol {
+pub static SYMBOL_GT: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed(">"),
     meta: Meta {
         doc: Cow::Borrowed(
@@ -432,8 +452,8 @@ pub const SYMBOL_GT: Symbol = Symbol {
         ),
         mutable: false,
     },
-};
-
+    hash: fxhash::hash(">"),
+});
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GtFn;
 
@@ -463,14 +483,16 @@ impl fmt::Display for GtFn {
 }
 
 // le(<=)
-pub const SYMBOL_LE: Symbol = Symbol {
+pub static SYMBOL_LE: Lazy<Symbol> = Lazy::new(|| {
+    Symbol {
     name: Cow::Borrowed("<="),
     meta: Meta {
         doc: Cow::Borrowed("Returns true if all left values are less than or equal to the right value. (<= x) returns true."),
         mutable: false,
     },
-};
-
+    hash: fxhash::hash("<=")
+}
+});
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LeFn;
 
@@ -500,7 +522,7 @@ impl fmt::Display for LeFn {
 }
 
 // lt(<)
-pub const SYMBOL_LT: Symbol = Symbol {
+pub static SYMBOL_LT: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("<"),
     meta: Meta {
         doc: Cow::Borrowed(
@@ -508,7 +530,8 @@ pub const SYMBOL_LT: Symbol = Symbol {
         ),
         mutable: false,
     },
-};
+    hash: fxhash::hash("<"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LtFn;
@@ -539,13 +562,14 @@ impl fmt::Display for LtFn {
 }
 
 // str
-pub const SYMBOL_STR: Symbol = Symbol {
+pub static SYMBOL_STR: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("str"),
     meta: Meta {
         doc: Cow::Borrowed("Convert a value to a string."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("str"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StrFn;
@@ -567,13 +591,14 @@ impl fmt::Display for StrFn {
 }
 
 // i64
-pub const SYMBOL_I64: Symbol = Symbol {
+pub static SYMBOL_I64: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("i64"),
     meta: Meta {
         doc: Cow::Borrowed("Convert a value to an i64."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("i64"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct I64Fn;
@@ -595,13 +620,14 @@ impl fmt::Display for I64Fn {
 }
 
 // f64
-pub const SYMBOL_F64: Symbol = Symbol {
+pub static SYMBOL_F64: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("f64"),
     meta: Meta {
         doc: Cow::Borrowed("Convert a value to an f64."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("f64"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct F64Fn;
@@ -623,13 +649,14 @@ impl fmt::Display for F64Fn {
 }
 
 // first
-pub const SYMBOL_FIRST: Symbol = Symbol {
+pub static SYMBOL_FIRST: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("first"),
     meta: Meta {
         doc: Cow::Borrowed("Get the first element of a collection."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("first"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FirstFn;
@@ -674,13 +701,14 @@ impl fmt::Display for FirstFn {
 }
 
 // rest
-pub const SYMBOL_REST: Symbol = Symbol {
+pub static SYMBOL_REST: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("rest"),
     meta: Meta {
         doc: Cow::Borrowed("Get the rest of a collection."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("rest"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RestFn;
@@ -743,13 +771,14 @@ impl fmt::Display for RestFn {
 }
 
 // range
-pub const SYMBOL_RANGE: Symbol = Symbol {
+pub static SYMBOL_RANGE: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("range"),
     meta: Meta {
         doc: Cow::Borrowed("Create a range of i64."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("range"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RangeFn;
@@ -806,13 +835,14 @@ impl fmt::Display for RangeFn {
 }
 
 // gensym
-pub const SYMBOL_GENSYM: Symbol = Symbol {
+pub static SYMBOL_GENSYM: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("gensym"),
     meta: Meta {
         doc: Cow::Borrowed("Create a unique symbol."),
         mutable: false,
     },
-};
+    hash: fxhash::hash("gensym"),
+});
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct GensymFn {
@@ -837,11 +867,12 @@ impl Function for GensymFn {
         self.id += 1;
 
         Ok(Value::Symbol(Symbol {
-            name: Cow::Owned(name),
+            name: Cow::Owned(name.clone()),
             meta: Meta {
                 doc: Cow::Borrowed("Generated symbol by gensym."),
                 mutable: false,
             },
+            hash: fxhash::hash(&name),
         }))
     }
 }
