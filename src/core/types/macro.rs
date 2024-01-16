@@ -11,12 +11,6 @@ use crate::core::types::error::Result;
 use crate::core::value::Value;
 
 pub trait Macro: Debug + Display + DynClone {
-    fn call(
-        &self,
-        args: Vec<Value>,
-        environment: &Rc<RefCell<Environment>>,
-        ast: &mut Vec<Value>,
-        evalfn: fn(&Rc<RefCell<Environment>>, &mut Vec<Value>) -> Result<Value>,
-    ) -> Result<Value>;
+    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value>;
 }
 dyn_clone::clone_trait_object!(Macro);

@@ -30,33 +30,16 @@ pub fn splicing_insert(values: Vec<Value>) -> Vec<Value> {
         .collect()
 }
 
-pub fn ast_eval(
-    environment: &Rc<RefCell<Environment>>,
-    ast: &mut Vec<Value>,
-    value: Value,
-) -> Result<Value> {
-    ast.push(value.clone());
-    eval(environment, ast)
-}
-
-pub fn eval_rest(
-    environment: &Rc<RefCell<Environment>>,
-    ast: &mut Vec<Value>,
-    rest: Vec<Value>,
-) -> Result<Vec<Value>> {
+fn eval_rest(rest: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Vec<Value>> {
     let result: Vec<Value> = rest
         .into_iter()
-        .map(|v| ast_eval(environment, ast, v))
+        .map(|v| eval(v, environment))
         .collect::<Result<Vec<Value>>>()?;
 
     Ok(splicing_insert(result))
 }
 
-pub fn eval_list(
-    environment: &Rc<RefCell<Environment>>,
-    ast: &mut Vec<Value>,
-    list: &List,
-) -> Result<Value> {
+fn eval_list(list: &List, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
     let list_inner = splicing_insert(list.value.clone());
 
     let first = match list_inner.first() {
@@ -66,8 +49,8 @@ pub fn eval_list(
 
     let mut first: Value = match first {
         Value::Symbol(sym) => environment.borrow().get(sym.clone())?.1.clone(),
-        Value::List(list) => ast_eval(environment, ast, Value::List(list.clone()))?,
-        Value::Vector(v) => ast_eval(environment, ast, Value::Vector(v.clone()))?,
+        Value::List(list) => eval(Value::List(list.clone()), environment)?,
+        Value::Vector(v) => eval(Value::Vector(v.clone()), environment)?,
         f => f.clone(),
     };
 
@@ -83,20 +66,20 @@ pub fn eval_list(
     }
 
     let result: Result<Value> = match first {
-        Value::Function(func) => func.borrow_mut().call(eval_rest(environment, ast, rest)?),
-        Value::I64(mut int) => int.call(eval_rest(environment, ast, rest)?),
-        Value::String(mut s) => s.call(eval_rest(environment, ast, rest)?),
-        Value::Keyword(mut k) => k.call(eval_rest(environment, ast, rest)?),
-        Value::Vector(v) => v.call(eval_rest(environment, ast, rest)?),
-        Value::Macro(mac) => mac.borrow_mut().call(rest, environment, ast, eval), // TODO: splicing for macro rest
+        Value::Function(func) => func.borrow_mut().call(eval_rest(rest, environment)?),
+        Value::I64(mut int) => int.call(eval_rest(rest, environment)?),
+        Value::String(mut s) => s.call(eval_rest(rest, environment)?),
+        Value::Keyword(mut k) => k.call(eval_rest(rest, environment)?),
+        Value::Vector(v) => v.call(eval_rest(rest, environment)?),
+        Value::Macro(mac) => mac.borrow_mut().call(rest, environment), // TODO: splicing for macro rest
         f => {
             if is_need_eval(environment) {
                 return Err(Error::Syntax(format!("cannot call '{}'", f)));
             }
-            let fst: Value = ast_eval(environment, ast, f)?;
+            let fst: Value = eval(f, environment)?;
             let mut ret: Vec<Value> = rest
                 .into_iter()
-                .map(|v| ast_eval(environment, ast, v))
+                .map(|v| eval(v, environment))
                 .collect::<Result<Vec<Value>>>()?;
 
             ret = splicing_insert(ret);
@@ -109,12 +92,15 @@ pub fn eval_list(
     result
 }
 
-pub fn eval(environment: &Rc<RefCell<Environment>>, ast: &mut Vec<Value>) -> Result<Value> {
+pub fn eval_ast(ast: &mut Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
     let val = match ast.pop() {
         Some(val) => val,
         None => Value::Nil,
     };
+    eval(val, environment)
+}
 
+pub fn eval(val: Value, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
     match val {
         Value::Nil
         | Value::Bool(_)
@@ -126,29 +112,25 @@ pub fn eval(environment: &Rc<RefCell<Environment>>, ast: &mut Vec<Value>) -> Res
         | Value::Function(_)
         | Value::Macro(_)
         | Value::Generator(_) => Ok(val),
-        Value::Splicing(_) => Ok(val), // TODO:
+        Value::Splicing(_) => Ok(val), // TODO: remove splicing
         Value::Slice(s) => {
-            let start = ast_eval(environment, ast, s.start.clone())?;
-            let end = ast_eval(environment, ast, s.end.clone())?;
-            let step = ast_eval(environment, ast, s.step.clone())?;
+            let start = eval(s.start.clone(), environment)?;
+            let end = eval(s.end.clone(), environment)?;
+            let step = eval(s.step.clone(), environment)?;
             match (&start, &end, &step) {
                 (Value::I64(_), Value::I64(_), Value::I64(_)) => {}
                 _ => return Err(Error::Type("slice can contain only i64".to_string())),
             }
             Ok(Value::Slice(Rc::new(Slice::new(start, end, step))))
         }
-        Value::Symbol(symbol) => {
-            if !is_need_eval(environment) {
-                return Ok(Value::Symbol(symbol));
-            }
-            Ok(environment.borrow().get(symbol)?.1.clone())
-        }
-        Value::List(list) => eval_list(environment, ast, &list),
+        // TODO: removed is_need_eval
+        Value::Symbol(symbol) => Ok(environment.borrow().get(symbol)?.1.clone()),
+        Value::List(list) => eval_list(&list, environment),
         Value::Vector(vector) => {
             let mut result: Vec<Value> = vector
                 .value
                 .into_iter()
-                .map(|v| ast_eval(environment, ast, v))
+                .map(|v| eval(v, environment))
                 .collect::<Result<Vec<Value>>>()?;
 
             result = splicing_insert(result);
@@ -165,12 +147,12 @@ pub fn eval(environment: &Rc<RefCell<Environment>>, ast: &mut Vec<Value>) -> Res
                             Value::Splicing(_) => {
                                 return Err(Error::Syntax("splicing in map".to_string()))
                             }
-                            _ => ast_eval(environment, ast, k),
+                            _ => eval(k, environment),
                         }
                     }
                     .and_then(|ek| match v {
                         Value::Splicing(_) => Err(Error::Syntax("splicing in map".to_string())),
-                        _ => ast_eval(environment, ast, v).map(|ev| (ek, ev)),
+                        _ => eval(v, environment).map(|ev| (ek, ev)),
                     })
                 })
                 .collect::<Result<Vec<(Value, Value)>>>()?;
@@ -181,7 +163,7 @@ pub fn eval(environment: &Rc<RefCell<Environment>>, ast: &mut Vec<Value>) -> Res
             let mut result: Vec<Value> = set
                 .value
                 .into_iter()
-                .map(|v| ast_eval(environment, ast, v))
+                .map(|v| eval(v, environment))
                 .collect::<Result<Vec<Value>>>()?;
 
             result = splicing_insert(result);

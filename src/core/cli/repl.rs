@@ -12,7 +12,7 @@ use rustyline::{CompletionType, Config, EditMode, Editor};
 use rustyline_derive::{Completer, Helper, Hinter, Validator};
 
 use crate::core::environment::Environment;
-use crate::core::eval::eval;
+use crate::core::eval::eval_ast;
 use crate::core::parse::parse;
 use crate::core::read::read;
 use crate::core::types::error::Result;
@@ -116,7 +116,7 @@ pub fn repl() -> Result<()> {
                     continue;
                 }
 
-                let value = eval(&environment, &mut ast);
+                let value = eval_ast(&mut ast, &environment);
                 if let Err(err) = value {
                     eprintln!("{}", err);
                     continue;
@@ -141,7 +141,7 @@ pub fn execute(file: Option<PathBuf>) -> Result<()> {
     // Eval
     let root = Environment::new_root_environment();
     let environment = Environment::new_local_environment(root.clone());
-    eval(&environment, &mut ast)?;
+    eval_ast(&mut ast, &environment)?;
 
     Ok(())
 }
