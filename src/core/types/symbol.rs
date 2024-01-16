@@ -22,10 +22,12 @@ impl PartialEq for Symbol {
 impl Eq for Symbol {}
 
 impl Hash for Symbol {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.name.hash(state);
+    fn hash<H: Hasher>(&self, _state: &mut H) {
+        fxhash::hash(&self.name);
     }
 }
+
+impl nohash::IsEnabled for Symbol {}
 
 impl fmt::Display for Symbol {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
