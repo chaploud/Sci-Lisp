@@ -22,8 +22,8 @@ impl PartialEq for Symbol {
 impl Eq for Symbol {}
 
 impl Hash for Symbol {
-    fn hash<H: Hasher>(&self, _state: &mut H) {
-        fxhash::hash(&self.name);
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.name.hash(state);
     }
 }
 

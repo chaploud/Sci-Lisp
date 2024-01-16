@@ -58,8 +58,8 @@ pub fn eval_ast(ast: &mut Vec<Value>, environment: &Rc<RefCell<Environment>>) ->
     eval(val, environment)
 }
 
-pub fn eval(val: Value, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
-    match val {
+pub fn eval(value: Value, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    match value {
         Value::Nil
         | Value::Bool(_)
         | Value::I64(_)
@@ -69,7 +69,7 @@ pub fn eval(val: Value, environment: &Rc<RefCell<Environment>>) -> Result<Value>
         | Value::Keyword(_)
         | Value::Function(_)
         | Value::Macro(_)
-        | Value::Generator(_) => Ok(val),
+        | Value::Generator(_) => Ok(value),
         Value::Slice(s) => {
             let start = eval(s.start.clone(), environment)?;
             let end = eval(s.end.clone(), environment)?;

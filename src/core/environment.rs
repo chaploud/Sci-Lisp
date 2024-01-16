@@ -3,9 +3,10 @@
 use std::cell::RefCell;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use std::hash::BuildHasherDefault;
 use std::rc::Rc;
 
-use nohash::BuildNoHashHasher;
+use ahash::AHasher;
 
 use crate::core::builtin::functions::*;
 use crate::core::builtin::r#macros::*;
@@ -14,7 +15,7 @@ use crate::core::types::error::Result;
 use crate::core::types::symbol::Symbol;
 use crate::core::value::Value;
 
-type Lookup = HashMap<Symbol, Value, BuildNoHashHasher<usize>>;
+type Lookup = HashMap<Symbol, Value, BuildHasherDefault<AHasher>>;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Environment {
@@ -25,9 +26,7 @@ pub struct Environment {
 
 impl Environment {
     pub fn new_root_environment() -> Rc<RefCell<Self>> {
-        let root: Rc<RefCell<Lookup>> = Rc::new(RefCell::new(HashMap::with_hasher(
-            BuildNoHashHasher::default(),
-        )));
+        let root: Rc<RefCell<Lookup>> = Rc::new(RefCell::new(HashMap::default()));
         let result = Rc::new(RefCell::new(Self {
             root,
             parent: None,
@@ -44,9 +43,7 @@ impl Environment {
         let result = Rc::new(RefCell::new(Self {
             root: parent.borrow_mut().root.clone(),
             parent: Some(parent.clone()),
-            current: Some(Rc::new(RefCell::new(HashMap::with_hasher(
-                BuildNoHashHasher::default(),
-            )))),
+            current: Some(Rc::new(RefCell::new(HashMap::default()))),
         }));
         result
     }
