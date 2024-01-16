@@ -1,4 +1,5 @@
 /target
 scilisp
+scilisp-release
 .scilisp-history.txt
 perf*

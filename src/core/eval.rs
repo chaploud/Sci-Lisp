@@ -3,7 +3,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::core::builtin::macros::{SYMBOL_SYNTAX_QUOTING, SYMBOL_UNQUOTING};
 use crate::core::environment::Environment;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
@@ -11,14 +10,6 @@ use crate::core::types::function::Function;
 use crate::core::types::list::List;
 use crate::core::types::slice::Slice;
 use crate::core::value::Value;
-
-pub fn is_need_eval(environment: &Rc<RefCell<Environment>>) -> bool {
-    let in_syntax_quote = environment.borrow().get(SYMBOL_SYNTAX_QUOTING).is_ok();
-
-    let in_unquoting = environment.borrow().get(SYMBOL_UNQUOTING).is_ok();
-
-    !in_syntax_quote || in_unquoting
-}
 
 pub fn splicing_insert(values: Vec<Value>) -> Vec<Value> {
     values
@@ -72,21 +63,7 @@ fn eval_list(list: &List, environment: &Rc<RefCell<Environment>>) -> Result<Valu
         Value::Keyword(mut k) => k.call(eval_rest(rest, environment)?),
         Value::Vector(v) => v.call(eval_rest(rest, environment)?),
         Value::Macro(mac) => mac.borrow_mut().call(rest, environment), // TODO: splicing for macro rest
-        f => {
-            if is_need_eval(environment) {
-                return Err(Error::Syntax(format!("cannot call '{}'", f)));
-            }
-            let fst: Value = eval(f, environment)?;
-            let mut ret: Vec<Value> = rest
-                .into_iter()
-                .map(|v| eval(v, environment))
-                .collect::<Result<Vec<Value>>>()?;
-
-            ret = splicing_insert(ret);
-
-            ret.insert(0, fst);
-            Value::as_list(ret)
-        }
+        f => Err(Error::Syntax(format!("cannot call '{}'", f))),
     };
 
     result

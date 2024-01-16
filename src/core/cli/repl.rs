@@ -46,11 +46,11 @@ impl Highlighter for RLHelper {
 }
 
 fn say_goodbye() {
-    println!("{}", "[Bye!]".purple());
+    eprintln!("{}", "[Bye!]".purple());
 }
 
 pub fn repl() -> Result<()> {
-    println!("Sci-Lisp v{}", env!("CARGO_PKG_VERSION"));
+    eprintln!("Sci-Lisp v{}", env!("CARGO_PKG_VERSION"));
 
     let config = Config::builder()
         .history_ignore_space(true)
@@ -78,11 +78,11 @@ pub fn repl() -> Result<()> {
         let readline = rl.readline("λ > ".bold().purple().to_string().as_str());
         match readline {
             Err(ReadlineError::Interrupted) => {
-                println!("Ctrl-C");
+                eprintln!("Ctrl-C");
                 continue;
             }
             Err(ReadlineError::Eof) => {
-                println!("Ctrl-D");
+                eprintln!("Ctrl-D");
                 say_goodbye();
                 break;
             }

@@ -1,4 +1,5 @@
 use assert_cmd::prelude::*;
+use assert_cmd::Command as AssertCmd;
 use predicates::prelude::*;
 use std::process::Command;
 
@@ -32,4 +33,15 @@ fn execute_fail() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-// TODO: repl test
+#[test]
+fn execute_success_repl_00001() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r#"
+        (+ 1 1)
+        "#,
+    );
+    let out = "2";
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
