@@ -12,18 +12,20 @@ use pest::iterators::Pair;
 use crate::core::parse::Rule;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
+use crate::core::types::error::{arity_error, index_out_of_range_error, key_not_found_error};
 use crate::core::types::function::Function;
 use crate::core::types::generator::Generator;
 use crate::core::types::keyword::Keyword;
 use crate::core::types::list::List;
 use crate::core::types::map::Map;
 use crate::core::types::r#macro::Macro;
+use crate::core::types::r#macro::SplicingMacro;
 use crate::core::types::set::Set;
 use crate::core::types::slice::Slice;
-use crate::core::types::splicing::Splicing;
 use crate::core::types::symbol::Symbol;
 use crate::core::types::type_name::TypeName;
 use crate::core::types::vector::Vector;
+use crate::core::value::Value::*;
 
 #[derive(Clone)]
 pub enum Value {
@@ -41,14 +43,10 @@ pub enum Value {
     Set(Set),
     Function(Rc<RefCell<dyn Function>>),
     Macro(Rc<RefCell<dyn Macro>>),
+    SplicingMacro(Rc<RefCell<dyn SplicingMacro>>),
     Generator(Rc<RefCell<dyn Generator>>),
     Slice(Rc<Slice>),
-    Splicing(Splicing),
 }
-
-use crate::core::value::Value::*;
-
-use super::types::error::{arity_error, index_out_of_range_error, key_not_found_error};
 
 impl PartialEq for Value {
     fn eq(&self, other: &Value) -> bool {
@@ -66,7 +64,6 @@ impl PartialEq for Value {
             (Map(h1), Map(h2)) => h1 == h2,
             (Set(s1), Set(s2)) => s1 == s2,
             (Slice(s1), Slice(s2)) => s1 == s2,
-            (Splicing(s1), Splicing(s2)) => s1 == s2,
             _ => false,
         }
     }
@@ -76,21 +73,11 @@ impl Eq for Value {}
 impl Hash for Value {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         match self {
-            Nil => Value::Nil.hash(state),
-            Bool(b) => b.hash(state),
             I64(i) => i.hash(state),
-            F64(f) => f.to_bits().hash(state),
             Symbol(s) => s.hash(state),
             Keyword(k) => k.hash(state),
-            Regex(r) => r.as_str().hash(state),
             String(s) => s.hash(state),
-            List(l) => l.hash(state),
-            Vector(v) => v.hash(state),
-            Map(h) => h.hash(state),
-            Set(s) => s.hash(state),
-            Slice(s) => s.hash(state),
-            Splicing(s) => s.hash(state),
-            _ => 0.hash(state), // HACK: other not hashable
+            _ => panic!("Cannot hash {}", self.type_name()), // OK
         }
     }
 }
@@ -115,7 +102,7 @@ impl fmt::Display for Value {
             Macro(mac) => write!(f, "{}", mac.borrow()),
             Generator(g) => write!(f, "{}", g.borrow()),
             Slice(s) => write!(f, "{}", s),
-            Splicing(s) => write!(f, "{}", s),
+            _ => panic!("Cannot display {}", self.type_name()), // OK
         }
     }
 }
@@ -140,7 +127,7 @@ impl fmt::Debug for Value {
             Macro(mac) => write!(f, "{}", mac.borrow()),
             Generator(g) => write!(f, "{}", g.borrow()),
             Slice(s) => write!(f, "{}", s),
-            Splicing(s) => write!(f, "{}", s),
+            _ => panic!("Cannot debug {}", self.type_name()), // OK
         }
     }
 }
@@ -164,7 +151,7 @@ impl Value {
             Value::Macro(_) => TypeName::Macro,
             Value::Generator(_) => TypeName::Generator,
             Value::Slice(_) => TypeName::Slice,
-            Value::Splicing(_) => TypeName::Splicing,
+            _ => panic!("Cannot get type name of {}", self.type_name()), // OK
         };
         result.to_string()
     }
@@ -430,8 +417,6 @@ impl Ord for Value {
             (Value::Set(s1), Value::Set(s2)) => s1.cmp(s2),
             (Value::Nil, Value::Nil) => Ordering::Equal,
             (Value::Bool(b1), Value::Bool(b2)) => b1.cmp(b2),
-            // TODO: Function and Macro
-            // TODO: Do not panic
             (s, o) => panic!("Cannot compare {:?} and {:?}", s.type_name(), o.type_name()),
         }
     }
@@ -510,6 +495,7 @@ impl IntoIterator for Value {
     }
 }
 
+// call i64
 impl Function for i64 {
     fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
@@ -544,6 +530,7 @@ impl Function for i64 {
     }
 }
 
+// call String
 impl Function for std::string::String {
     fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {

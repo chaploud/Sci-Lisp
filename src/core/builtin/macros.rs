@@ -15,7 +15,7 @@ use crate::core::types::keyword::Keyword;
 use crate::core::types::lambda::Lambda;
 use crate::core::types::meta::Meta;
 use crate::core::types::r#macro::Macro;
-use crate::core::types::splicing::Splicing;
+use crate::core::types::r#macro::SplicingMacro;
 use crate::core::types::symbol::Symbol;
 use crate::core::types::vector::Vector;
 use crate::core::value::Value;
@@ -301,11 +301,8 @@ impl Macro for SyntaxQuoteMacro {
         )?;
         local_env.borrow_mut().insert_to_current(
             SYMBOL_UNQUOTE_SPLICING,
-            Value::Macro(Rc::new(RefCell::new(UnquoteSplicingMacro))),
+            Value::SplicingMacro(Rc::new(RefCell::new(UnquoteSplicingMacro))),
         )?;
-        local_env
-            .borrow_mut()
-            .insert_to_current(SYMBOL_SYNTAX_QUOTING, Value::Bool(true))?;
 
         eval(args[0].clone(), &local_env)
     }
@@ -335,12 +332,7 @@ impl Macro for UnquoteMacro {
             return Err(arity_error(1, args.len()));
         }
 
-        let local_env = Environment::new_local_environment(environment.clone());
-        local_env
-            .borrow_mut()
-            .insert_to_current(SYMBOL_UNQUOTING, Value::Bool(true))?;
-
-        eval(args[0].clone(), &local_env)
+        eval(args[0].clone(), environment)
     }
 }
 
@@ -362,16 +354,12 @@ pub const SYMBOL_UNQUOTE_SPLICING: Symbol = Symbol {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UnquoteSplicingMacro;
 
-impl Macro for UnquoteSplicingMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+// NOTE: impl 'SplicingMacro'
+impl SplicingMacro for UnquoteSplicingMacro {
+    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Vec<Value>> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
-
-        let local_env = Environment::new_local_environment(environment.clone());
-        local_env
-            .borrow_mut()
-            .insert_to_current(SYMBOL_UNQUOTING, Value::Bool(true))?;
 
         let mut arg: Value = args[0].clone();
         if let Value::Symbol(sym) = arg {
@@ -383,23 +371,23 @@ impl Macro for UnquoteSplicingMacro {
         match arg {
             Value::List(x) => {
                 for x in x.value.iter() {
-                    result.push(eval(x.clone(), &local_env)?);
+                    result.push(eval(x.clone(), environment)?);
                 }
             }
             Value::Vector(x) => {
                 for x in x.value.iter() {
-                    result.push(eval(x.clone(), &local_env)?);
+                    result.push(eval(x.clone(), environment)?);
                 }
             }
             Value::Set(x) => {
                 for x in x.value.iter() {
-                    result.push(eval(x.clone(), &local_env)?);
+                    result.push(eval(x.clone(), environment)?);
                 }
             }
             Value::Map(m) => {
                 for (k, v) in m.value.iter() {
                     let x = Value::Vector(Vector::from([k.clone(), v.clone()].to_vec()));
-                    result.push(eval(x.clone(), &local_env)?);
+                    result.push(eval(x.clone(), environment)?);
                 }
             }
             Value::String(s) => {
@@ -422,7 +410,7 @@ impl Macro for UnquoteSplicingMacro {
             ))?,
         }
 
-        Ok(Value::Splicing(Splicing::from(result)))
+        Ok(result)
     }
 }
 
@@ -1300,19 +1288,3 @@ impl fmt::Display for MacroMacro {
 // ClassMacro,
 // NameSpaceMacro
 // ReturnMacro
-
-pub const SYMBOL_SYNTAX_QUOTING: Symbol = Symbol {
-    name: Cow::Borrowed("*syntax-quoting*"),
-    meta: Meta {
-        doc: Cow::Borrowed("Internal variable for syntax-quoting."),
-        mutable: false,
-    },
-};
-
-pub const SYMBOL_UNQUOTING: Symbol = Symbol {
-    name: Cow::Borrowed("*unquoting*"),
-    meta: Meta {
-        doc: Cow::Borrowed("Internal variable for unquoting."),
-        mutable: false,
-    },
-};

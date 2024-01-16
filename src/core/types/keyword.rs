@@ -21,6 +21,7 @@ impl fmt::Display for Keyword {
     }
 }
 
+// call keyword
 impl Function for Keyword {
     fn call(&mut self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {

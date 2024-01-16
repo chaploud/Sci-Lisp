@@ -14,3 +14,8 @@ pub trait Macro: Debug + Display + DynClone {
     fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value>;
 }
 dyn_clone::clone_trait_object!(Macro);
+
+pub trait SplicingMacro: Debug + Display + DynClone {
+    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Vec<Value>>;
+}
+dyn_clone::clone_trait_object!(SplicingMacro);
