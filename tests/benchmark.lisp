@@ -1,1 +1,1 @@
-(time (for [i (range 1000000)] i))
+(time (for [i (range 10000000)] i))

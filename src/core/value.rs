@@ -90,7 +90,7 @@ impl Hash for Value {
             Set(s) => s.hash(state),
             Slice(s) => s.hash(state),
             Splicing(s) => s.hash(state),
-            _ => 0.hash(state), // other not hashable
+            _ => 0.hash(state), // HACK: other not hashable
         }
     }
 }

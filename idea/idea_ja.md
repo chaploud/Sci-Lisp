@@ -259,6 +259,25 @@ key/index error
 - [ ] マクロの利用では極力(do)を減らしたい
 - [ ] environmentとのやり取りにめちゃくちゃ時間かかっている
 
+## 最適化について
+
+- environmentとのやり取りを極力減らす
+- ast.push + eval などは最初の解析以降は不要だろう
+- 特にforループや局所変数の扱いでショートカットというか何か最適化を行うべき
+
+### 記録
+
+```bash
+Python
+%time for i in range(10**7): i
+CPU times: user 244 ms, sys: 6.02 ms, total: 250 ms
+Wall time: 250 ms
+
+Sci-Lisp
+λ > (time (for [i (range 10000000)] i))
+Elapsed time: 3.73963745s
+```
+
 ## cargo
 
 ```bash
