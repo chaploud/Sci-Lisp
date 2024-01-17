@@ -264,6 +264,7 @@ key/index error
 - environmentとのやり取りを極力減らす
 - ast.push + eval などは最初の解析以降は不要だろう
 - 特にforループや局所変数の扱いでショートカットというか何か最適化を行うべき
+- cloneを減らす
 
 ### 記録
 
