@@ -48,14 +48,17 @@ impl Environment {
     }
 
     pub fn get(&self, key: &Symbol) -> Result<(Symbol, Value)> {
-        let result = match self
-            .current
-            .clone()
-            .unwrap_or_default()
-            .borrow()
-            .get_key_value(key)
-        {
-            Some((key, val)) => Ok((key.clone(), val.clone())),
+        match self.current.clone() {
+            Some(c) => match c.borrow().get_key_value(key) {
+                Some((key, val)) => Ok((key.clone(), val.clone())),
+                None => match &self.parent {
+                    Some(parent) => parent.borrow().get(key),
+                    None => match self.root.borrow().get_key_value(key) {
+                        Some((k, v)) => Ok((k.clone(), v.clone())),
+                        None => Err(Error::Name(key.to_string())),
+                    },
+                },
+            },
             None => match &self.parent {
                 Some(parent) => parent.borrow().get(key),
                 None => match self.root.borrow().get_key_value(key) {
@@ -63,8 +66,7 @@ impl Environment {
                     None => Err(Error::Name(key.to_string())),
                 },
             },
-        };
-        result
+        }
     }
 
     pub fn insert_to_root(&mut self, key: &Symbol, value: Value) -> Result<Value> {
