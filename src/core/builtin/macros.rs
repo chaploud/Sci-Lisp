@@ -3,6 +3,7 @@
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::fmt;
+use std::ops::ControlFlow;
 use std::rc::Rc;
 use std::vec;
 
@@ -16,6 +17,7 @@ use crate::core::types::error::{arity_error, arity_error_min, arity_error_range}
 use crate::core::types::keyword::Keyword;
 use crate::core::types::lambda::Lambda;
 use crate::core::types::meta::Meta;
+use crate::core::types::r#macro::ControlFlowMacro;
 use crate::core::types::r#macro::Macro;
 use crate::core::types::r#macro::SplicingMacro;
 use crate::core::types::symbol::Symbol;
@@ -511,33 +513,20 @@ pub static SYMBOL_BREAK: Lazy<Symbol> = Lazy::new(|| Symbol {
     hash: fxhash::hash("break"),
 });
 
-pub static SYMBOL_BREAKING: Lazy<Symbol> = Lazy::new(|| Symbol {
-    name: Cow::Borrowed("*breaking*"),
-    meta: Meta {
-        doc: Cow::Borrowed("Internal variable for break."),
-        mutable: true,
-    },
-    hash: fxhash::hash("*breaking*"),
-});
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BreakMacro;
 
-impl Macro for BreakMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+impl ControlFlowMacro for BreakMacro {
+    fn call(&self, args: Vec<Value>) -> Result<ControlFlow<Value, Value>> {
         if args.len() > 2 {
             return Err(arity_error_range(0, 1, args.len()));
         }
-
-        environment
-            .borrow_mut()
-            .set(&SYMBOL_BREAKING, Value::Bool(true))?;
 
         let mut result = Value::Nil;
         if args.len() == 1 {
             result = args[0].clone();
         }
-        Ok(result)
+        Ok(ControlFlow::Break(result))
     }
 }
 
@@ -557,29 +546,16 @@ pub static SYMBOL_CONTINUE: Lazy<Symbol> = Lazy::new(|| Symbol {
     hash: fxhash::hash("continue"),
 });
 
-pub static SYMBOL_CONTINUING: Lazy<Symbol> = Lazy::new(|| Symbol {
-    name: Cow::Borrowed("*continuing*"),
-    meta: Meta {
-        doc: Cow::Borrowed("Internal variable for continue."),
-        mutable: true,
-    },
-    hash: fxhash::hash("*continuing*"),
-});
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContinueMacro;
 
-impl Macro for ContinueMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+impl ControlFlowMacro for ContinueMacro {
+    fn call(&self, args: Vec<Value>) -> Result<ControlFlow<Value, Value>> {
         if !args.is_empty() {
             return Err(arity_error(0, args.len()));
         }
 
-        environment
-            .borrow_mut()
-            .set(&SYMBOL_CONTINUING, Value::Bool(true))?;
-
-        Ok(Value::Nil)
+        Ok(ControlFlow::Continue(Value::Nil))
     }
 }
 
@@ -611,18 +587,12 @@ impl Macro for WhileMacro {
         let local_env = Environment::new_local_environment(environment.clone());
         local_env.borrow_mut().insert_to_current(
             &SYMBOL_BREAK,
-            Value::Macro(Rc::new(RefCell::new(BreakMacro))),
+            Value::ControlFlowMacro(Rc::new(RefCell::new(BreakMacro))),
         )?;
-        local_env
-            .borrow_mut()
-            .insert_to_current(&SYMBOL_BREAKING, Value::Bool(false))?;
         local_env.borrow_mut().insert_to_current(
             &SYMBOL_CONTINUE,
-            Value::Macro(Rc::new(RefCell::new(ContinueMacro))),
+            Value::ControlFlowMacro(Rc::new(RefCell::new(ContinueMacro))),
         )?;
-        local_env
-            .borrow_mut()
-            .insert_to_current(&SYMBOL_CONTINUING, Value::Bool(false))?;
 
         let condition = &args[0];
         let bodies = &args[1..];
@@ -631,23 +601,17 @@ impl Macro for WhileMacro {
         let result = 'looptop: loop {
             let truthy = eval(condition.clone(), &local_env)?;
 
-            let prev_ret = ret.clone();
             if !truthy.is_truthy() {
                 break ret;
             }
+
             for body in bodies {
                 ret = eval(body.clone(), &local_env)?;
-                if local_env.borrow().get(&SYMBOL_BREAKING)?.1.is_truthy() {
-                    if ret == Value::Nil {
-                        ret = prev_ret;
+                if let Value::ControlFlow(c) = ret.clone() {
+                    match c.as_ref() {
+                        ControlFlow::Break(v) => break 'looptop v.clone(),
+                        ControlFlow::Continue(_) => continue 'looptop,
                     }
-                    break 'looptop ret;
-                }
-                if local_env.borrow().get(&SYMBOL_CONTINUING)?.1.is_truthy() {
-                    local_env
-                        .borrow_mut()
-                        .set(&SYMBOL_CONTINUING, Value::Bool(false))?;
-                    continue 'looptop;
                 }
             }
         };
@@ -1190,18 +1154,12 @@ impl Macro for ForMacro {
         let local_env = Environment::new_local_environment(environment.clone());
         local_env.borrow_mut().insert_to_current(
             &SYMBOL_BREAK,
-            Value::Macro(Rc::new(RefCell::new(BreakMacro))),
+            Value::ControlFlowMacro(Rc::new(RefCell::new(BreakMacro))),
         )?;
-        local_env
-            .borrow_mut()
-            .insert_to_current(&SYMBOL_BREAKING, Value::Bool(false))?;
         local_env.borrow_mut().insert_to_current(
             &SYMBOL_CONTINUE,
-            Value::Macro(Rc::new(RefCell::new(ContinueMacro))),
+            Value::ControlFlowMacro(Rc::new(RefCell::new(ContinueMacro))),
         )?;
-        local_env
-            .borrow_mut()
-            .insert_to_current(&SYMBOL_CONTINUING, Value::Bool(false))?;
 
         let binding = match args[0].clone() {
             Value::Vector(v) => v,
@@ -1239,6 +1197,7 @@ impl Macro for ForMacro {
         }
         .into_iter();
 
+        // TODO: slow down
         local_env
             .borrow_mut()
             .insert_to_current(&param_symbol, Value::Nil)?;
@@ -1250,22 +1209,16 @@ impl Macro for ForMacro {
                 break ret;
             }
 
+            // TODO: slow down
             local_env.borrow_mut().set(&param_symbol, v.unwrap())?;
 
-            let prev_ret = ret.clone();
             for arg in args.iter().skip(1) {
                 ret = eval(arg.clone(), &local_env)?;
-                if local_env.borrow().get(&SYMBOL_BREAKING)?.1.is_truthy() {
-                    if ret == Value::Nil {
-                        ret = prev_ret;
+                if let Value::ControlFlow(c) = ret.clone() {
+                    match c.as_ref() {
+                        ControlFlow::Break(v) => break 'looptop v.clone(),
+                        ControlFlow::Continue(_) => continue 'looptop,
                     }
-                    break 'looptop ret;
-                }
-                if local_env.borrow().get(&SYMBOL_CONTINUING)?.1.is_truthy() {
-                    local_env
-                        .borrow_mut()
-                        .set(&SYMBOL_CONTINUING, Value::Bool(false))?;
-                    continue 'looptop;
                 }
             }
         };

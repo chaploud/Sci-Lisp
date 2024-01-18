@@ -48,3 +48,6 @@ path = "src/main.rs"
 [[bench]]
 name = "benchmark"
 harness = false
+
+[profile.release]
+lto = true

@@ -69,6 +69,8 @@ pub fn eval(value: Value, environment: &Rc<RefCell<Environment>>) -> Result<Valu
         | Value::Keyword(_)
         | Value::Function(_)
         | Value::Macro(_)
+        | Value::ControlFlowMacro(_)
+        | Value::ControlFlow(_)
         | Value::Generator(_) => Ok(value),
         Value::Slice(s) => {
             let start = eval(s.start.clone(), environment)?;

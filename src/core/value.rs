@@ -4,7 +4,7 @@ use std::cell::RefCell;
 use std::cmp::Ordering;
 use std::fmt;
 use std::hash::Hash;
-use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
+use std::ops::{Add, ControlFlow, Div, Mul, Neg, Rem, Sub};
 use std::rc::Rc;
 
 use pest::iterators::Pair;
@@ -18,6 +18,7 @@ use crate::core::types::generator::Generator;
 use crate::core::types::keyword::Keyword;
 use crate::core::types::list::List;
 use crate::core::types::map::Map;
+use crate::core::types::r#macro::ControlFlowMacro;
 use crate::core::types::r#macro::Macro;
 use crate::core::types::r#macro::SplicingMacro;
 use crate::core::types::set::Set;
@@ -46,6 +47,8 @@ pub enum Value {
     SplicingMacro(Rc<RefCell<dyn SplicingMacro>>),
     Generator(Rc<RefCell<dyn Generator>>),
     Slice(Rc<Slice>),
+    ControlFlow(Rc<ControlFlow<Value, Value>>),
+    ControlFlowMacro(Rc<RefCell<dyn ControlFlowMacro>>),
 }
 
 impl PartialEq for Value {
