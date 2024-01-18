@@ -79,7 +79,7 @@ pub fn eval(value: Value, environment: Rc<RefCell<Environment>>) -> Result<Value
             for v in vec![start.clone(), end.clone(), step.clone()] {
                 match v {
                     Value::I64(_) | Value::Nil => {}
-                    _ => return Err(Error::Type("slice can contain only i64".to_string())),
+                    _ => return Err(Error::Type("slice can contain only i64 or nil".to_string())),
                 }
             }
             Ok(Value::Slice(Rc::new(Slice::new(start, end, step))))

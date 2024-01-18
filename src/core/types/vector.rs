@@ -129,6 +129,10 @@ impl Vector {
             return Err(arity_error(1, args.len()));
         }
 
+        if self.value.is_empty() {
+            return Err(Error::Syntax("cannot call empty vector".to_string()));
+        }
+
         for member in self.value.clone() {
             match member {
                 Value::Slice(_) | Value::I64(_) => {}
