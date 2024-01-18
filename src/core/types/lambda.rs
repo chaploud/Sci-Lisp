@@ -47,9 +47,7 @@ impl Function for Lambda {
                 exist_rest = true;
             }
             let rest_symbol = &self.args[argc - 1];
-            local_env
-                .borrow_mut()
-                .insert_to_current(rest_symbol, Value::Nil)?;
+            local_env.borrow_mut().insert(rest_symbol, Value::Nil)?;
         }
 
         if exist_rest && args.len() < argc - 2 {
@@ -71,12 +69,12 @@ impl Function for Lambda {
                 local_env.borrow_mut().set(rest_sym, rest_args)?;
                 break;
             }
-            let _ = local_env.borrow_mut().insert_to_current(sym, arg.clone());
+            let _ = local_env.borrow_mut().insert(sym, arg.clone());
         }
 
         let mut result = Value::Nil;
         for val in &self.body {
-            result = eval(val.clone(), &local_env)?;
+            result = eval(val.clone(), local_env.clone())?;
         }
 
         Ok(result)

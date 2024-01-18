@@ -38,7 +38,7 @@ pub static SYMBOL_DEF: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct DefMacro;
 
 impl Macro for DefMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.len() < 2 && args.len() > 3 {
             return Err(arity_error_range(2, 3, args.len()));
         }
@@ -65,9 +65,9 @@ impl Macro for DefMacro {
             body = args[1].clone();
         }
 
-        let value = eval(body, environment)?;
+        let value = eval(body, environment.clone())?;
 
-        environment.borrow_mut().insert_to_root(&symbol, value)?;
+        environment.borrow_mut().insert(&symbol, value)?;
 
         Ok(Value::Symbol(symbol))
     }
@@ -93,7 +93,7 @@ pub static SYMBOL_CONST: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct ConstMacro;
 
 impl Macro for ConstMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.len() < 2 && args.len() > 3 {
             return Err(arity_error_range(2, 3, args.len()));
         }
@@ -120,11 +120,11 @@ impl Macro for ConstMacro {
             body = args[1].clone();
         }
 
-        let value = eval(body, environment)?;
+        let value = eval(body, environment.clone())?;
 
         symbol.meta.mutable = false;
 
-        environment.borrow_mut().insert_to_root(&symbol, value)?;
+        environment.borrow_mut().insert(&symbol, value)?;
 
         Ok(Value::Symbol(symbol))
     }
@@ -150,7 +150,7 @@ pub static SYMBOL_SET: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct SetMacro;
 
 impl Macro for SetMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.len() != 2 {
             return Err(arity_error(2, args.len()));
         }
@@ -160,7 +160,7 @@ impl Macro for SetMacro {
             if i == 0 {
                 args_for_set.push(v);
             } else {
-                args_for_set.push(eval(v, environment)?);
+                args_for_set.push(eval(v, environment.clone())?);
             }
         }
 
@@ -200,12 +200,12 @@ pub static SYMBOL_LET: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct LetMacro;
 
 impl Macro for LetMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
 
-        let local_env = Environment::new_local_environment(environment.clone());
+        let local_env = Environment::new_local_environment(environment);
 
         let bind_form = match &args[0] {
             Value::Vector(v) => v,
@@ -232,12 +232,12 @@ impl Macro for LetMacro {
 
             let val = pair[1].clone();
 
-            local_env.borrow_mut().insert_to_current(key?, val)?;
+            local_env.borrow_mut().insert(key?, val)?;
         }
 
         let mut result = Value::Nil;
         for arg in args.into_iter().skip(1) {
-            result = eval(arg, environment)?
+            result = eval(arg, local_env.clone())?
         }
 
         Ok(result)
@@ -264,7 +264,7 @@ pub static SYMBOL_QUOTE: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct QuoteMacro;
 
 impl Macro for QuoteMacro {
-    fn call(&self, args: Vec<Value>, _environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, _environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -293,22 +293,22 @@ pub static SYMBOL_SYNTAX_QUOTE: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct SyntaxQuoteMacro;
 
 impl Macro for SyntaxQuoteMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
 
         let local_env = Environment::new_local_environment(environment.clone());
-        local_env.borrow_mut().insert_to_current(
+        local_env.borrow_mut().insert(
             &SYMBOL_UNQUOTE,
             Value::Macro(Rc::new(RefCell::new(UnquoteMacro))),
         )?;
-        local_env.borrow_mut().insert_to_current(
+        local_env.borrow_mut().insert(
             &SYMBOL_UNQUOTE_SPLICING,
             Value::SplicingMacro(Rc::new(RefCell::new(UnquoteSplicingMacro))),
         )?;
 
-        eval(args[0].clone(), &local_env)
+        eval(args[0].clone(), local_env)
     }
 }
 
@@ -332,7 +332,7 @@ pub static SYMBOL_UNQUOTE: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct UnquoteMacro;
 
 impl Macro for UnquoteMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -362,14 +362,14 @@ pub struct UnquoteSplicingMacro;
 
 // NOTE: impl 'SplicingMacro'
 impl SplicingMacro for UnquoteSplicingMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Vec<Value>> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Vec<Value>> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
 
         let mut arg: Value = args[0].clone();
         if let Value::Symbol(sym) = arg {
-            arg = environment.borrow().get(&sym)?.1.clone();
+            arg = environment.borrow().get(&sym)?;
         }
 
         let mut result: Vec<Value> = vec![];
@@ -377,23 +377,23 @@ impl SplicingMacro for UnquoteSplicingMacro {
         match arg {
             Value::List(x) => {
                 for x in x.value.iter() {
-                    result.push(eval(x.clone(), environment)?);
+                    result.push(eval(x.clone(), environment.clone())?);
                 }
             }
             Value::Vector(x) => {
                 for x in x.value.iter() {
-                    result.push(eval(x.clone(), environment)?);
+                    result.push(eval(x.clone(), environment.clone())?);
                 }
             }
             Value::Set(x) => {
                 for x in x.value.iter() {
-                    result.push(eval(x.clone(), environment)?);
+                    result.push(eval(x.clone(), environment.clone())?);
                 }
             }
             Value::Map(m) => {
                 for (k, v) in m.value.iter() {
                     let x = Value::Vector(Vector::from([k.clone(), v.clone()].to_vec()));
-                    result.push(eval(x.clone(), environment)?);
+                    result.push(eval(x.clone(), environment.clone())?);
                 }
             }
             Value::String(s) => {
@@ -442,10 +442,10 @@ pub static SYMBOL_DO: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct DoMacro;
 
 impl Macro for DoMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         let mut result = Value::Nil;
         for arg in args {
-            result = eval(arg, environment)?;
+            result = eval(arg, environment.clone())?;
         }
 
         Ok(result)
@@ -474,24 +474,24 @@ pub static SYMBOL_IF: Lazy<Symbol> = Lazy::new(|| {
 pub struct IfMacro;
 
 impl Macro for IfMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.len() < 2 || args.len() > 3 {
             return Err(arity_error_range(2, 3, args.len()));
         }
 
         let condition = &args[0];
-        let truthy = eval(condition.clone(), environment)?;
+        let truthy = eval(condition.clone(), environment.clone())?;
 
         let result = if truthy.is_truthy() {
             let true_branch = &args[1];
-            eval(true_branch.clone(), environment)?
+            eval(true_branch.clone(), environment.clone())?
         } else {
             let false_branch = if args.len() == 3 {
                 &args[2]
             } else {
                 &Value::Nil
             };
-            eval(false_branch.clone(), environment)?
+            eval(false_branch.clone(), environment.clone())?
         };
         Ok(result)
     }
@@ -579,17 +579,17 @@ pub static SYMBOL_WHILE: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct WhileMacro;
 
 impl Macro for WhileMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
 
         let local_env = Environment::new_local_environment(environment.clone());
-        local_env.borrow_mut().insert_to_current(
+        local_env.borrow_mut().insert(
             &SYMBOL_BREAK,
             Value::ControlFlowMacro(Rc::new(RefCell::new(BreakMacro))),
         )?;
-        local_env.borrow_mut().insert_to_current(
+        local_env.borrow_mut().insert(
             &SYMBOL_CONTINUE,
             Value::ControlFlowMacro(Rc::new(RefCell::new(ContinueMacro))),
         )?;
@@ -599,14 +599,14 @@ impl Macro for WhileMacro {
 
         let mut ret = Value::Nil;
         let result = 'looptop: loop {
-            let truthy = eval(condition.clone(), &local_env)?;
+            let truthy = eval(condition.clone(), local_env.clone())?;
 
             if !truthy.is_truthy() {
                 break ret;
             }
 
             for body in bodies {
-                ret = eval(body.clone(), &local_env)?;
+                ret = eval(body.clone(), local_env.clone())?;
                 if let Value::ControlFlow(c) = ret.clone() {
                     match c.as_ref() {
                         ControlFlow::Break(v) => break 'looptop v.clone(),
@@ -640,7 +640,7 @@ pub static SYMBOL_SWITCH: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct SwitchMacro;
 
 impl Macro for SwitchMacro {
-    fn call(&self, args: Vec<Value>, _environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, _environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
@@ -706,7 +706,7 @@ pub static SYMBOL_TIME: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct TimeMacro;
 
 impl Macro for TimeMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -740,7 +740,7 @@ pub static SYMBOL_DOC: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct DocMacro;
 
 impl Macro for DocMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -754,10 +754,10 @@ impl Macro for DocMacro {
             }
         };
 
-        let (key, val) = environment.borrow().get(sym)?;
+        let (key, val) = environment.borrow().get_key_value(sym)?;
 
         let mut result = "------------------------------\n".to_string();
-        result += format!("{}: {}\n", val.type_name(), sym.name).as_str();
+        result += format!("{}: {}\n", val.type_name(), key.name).as_str();
         result += format!("{}\n", key.meta.doc).as_str();
         result += "------------------------------";
 
@@ -789,7 +789,7 @@ pub static SYMBOL_FN: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct FnMacro;
 
 impl Macro for FnMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.len() < 2 {
             return Err(arity_error_min(2, args.len()));
         }
@@ -851,7 +851,7 @@ pub static SYMBOL_DEFN: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct DefnMacro;
 
 impl Macro for DefnMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.len() < 3 || args.len() > 4 {
             return Err(arity_error_range(3, 4, args.len()));
         }
@@ -908,7 +908,7 @@ impl Macro for DefnMacro {
 
         environment
             .borrow_mut()
-            .insert_to_root(&symbol, Value::Function(Rc::new(RefCell::new(lambda))))?;
+            .insert(&symbol, Value::Function(Rc::new(RefCell::new(lambda))))?;
 
         Ok(Value::Symbol(symbol.clone()))
     }
@@ -934,22 +934,22 @@ pub static SYMBOL_THREAD_FIRST: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct ThreadFirstMacro;
 
 impl Macro for ThreadFirstMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
 
-        let mut result = eval(args[0].clone(), environment)?;
+        let mut result = eval(args[0].clone(), environment.clone())?;
 
         for arg in args.into_iter().skip(1) {
             match arg {
                 Value::List(mut list) => {
                     list.value.insert(1, result.clone());
-                    result = eval(Value::List(list), environment)?;
+                    result = eval(Value::List(list), environment.clone())?;
                 }
                 Value::Symbol(sym) => {
                     let new_list = Value::as_list(vec![Value::Symbol(sym), result.clone()])?;
-                    result = eval(new_list, environment)?;
+                    result = eval(new_list, environment.clone())?;
                 }
                 _ => {
                     return Err(Error::Type(
@@ -983,22 +983,22 @@ pub static SYMBOL_THREAD_LAST: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct ThreadLastMacro;
 
 impl Macro for ThreadLastMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
 
-        let mut result = eval(args[0].clone(), environment)?;
+        let mut result = eval(args[0].clone(), environment.clone())?;
 
         for arg in args.into_iter().skip(1) {
             match arg {
                 Value::List(mut list) => {
                     list.value.push(result);
-                    result = eval(Value::List(list), environment)?;
+                    result = eval(Value::List(list), environment.clone())?;
                 }
                 Value::Symbol(sym) => {
                     let new_list = Value::as_list(vec![Value::Symbol(sym), result.clone()])?;
-                    result = eval(new_list, environment)?;
+                    result = eval(new_list, environment.clone())?;
                 }
                 _ => {
                     return Err(Error::Type(
@@ -1032,7 +1032,7 @@ pub static SYMBOL_COND: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct CondMacro;
 
 impl Macro for CondMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.len() % 2 != 0 {
             return Err(Error::Syntax(
                 "cond: case and expression must be in pairs".to_string(),
@@ -1045,7 +1045,7 @@ impl Macro for CondMacro {
         });
 
         for chunk in args.chunks(2) {
-            let case = eval(chunk[0].clone(), environment)?;
+            let case = eval(chunk[0].clone(), environment.clone())?;
 
             if case.is_truthy() || case == keyword_else {
                 result = eval(chunk[1].clone(), environment)?;
@@ -1076,13 +1076,13 @@ pub static SYMBOL_AND: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct AndMacro;
 
 impl Macro for AndMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.is_empty() {
             return Ok(Value::Bool(true));
         }
         let mut result = Value::Bool(true);
         for arg in args {
-            result = eval(arg, environment)?;
+            result = eval(arg, environment.clone())?;
             if !result.is_truthy() {
                 break;
             }
@@ -1111,13 +1111,13 @@ pub static SYMBOL_OR: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct OrMacro;
 
 impl Macro for OrMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.is_empty() {
             return Ok(Value::Nil);
         }
         let mut result = Value::Bool(false);
         for arg in args {
-            result = eval(arg, environment)?;
+            result = eval(arg, environment.clone())?;
             if result.is_truthy() {
                 break;
             }
@@ -1146,17 +1146,17 @@ pub static SYMBOL_FOR: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct ForMacro;
 
 impl Macro for ForMacro {
-    fn call(&self, args: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.len() < 2 {
             return Err(arity_error_min(2, args.len()));
         }
 
         let local_env = Environment::new_local_environment(environment.clone());
-        local_env.borrow_mut().insert_to_current(
+        local_env.borrow_mut().insert(
             &SYMBOL_BREAK,
             Value::ControlFlowMacro(Rc::new(RefCell::new(BreakMacro))),
         )?;
-        local_env.borrow_mut().insert_to_current(
+        local_env.borrow_mut().insert(
             &SYMBOL_CONTINUE,
             Value::ControlFlowMacro(Rc::new(RefCell::new(ContinueMacro))),
         )?;
@@ -1188,7 +1188,7 @@ impl Macro for ForMacro {
             | Value::List(_)
             | Value::Vector(_)
             | Value::Set(_)
-            | Value::Map(_) => eval(param_body, &local_env)?,
+            | Value::Map(_) => eval(param_body, local_env.clone())?,
             Value::Generator(g) => Value::Generator(g),
             _ => Err(Error::Type(
                 "for: second element of binding must be a symbol, list, vector, set, or map"
@@ -1198,30 +1198,33 @@ impl Macro for ForMacro {
         .into_iter();
 
         // TODO: slow down
-        local_env
-            .borrow_mut()
-            .insert_to_current(&param_symbol, Value::Nil)?;
+        local_env.borrow_mut().insert(&param_symbol, Value::Nil)?;
 
-        let mut ret = Value::Nil;
-        let result = 'looptop: loop {
+        let mut result = Value::Nil;
+        'looptop: loop {
             let v = iterator.next();
             if v.is_none() {
-                break ret;
+                break;
             }
 
             // TODO: slow down
             local_env.borrow_mut().set(&param_symbol, v.unwrap())?;
 
             for arg in args.iter().skip(1) {
-                ret = eval(arg.clone(), &local_env)?;
-                if let Value::ControlFlow(c) = ret.clone() {
+                let ret = eval(arg.clone(), local_env.clone())?;
+                if let Value::ControlFlow(c) = ret {
                     match c.as_ref() {
-                        ControlFlow::Break(v) => break 'looptop v.clone(),
+                        ControlFlow::Break(v) => {
+                            result = v.clone();
+                            break 'looptop;
+                        }
                         ControlFlow::Continue(_) => continue 'looptop,
                     }
+                } else {
+                    result = ret;
                 }
             }
-        };
+        }
         Ok(result)
     }
 }
@@ -1246,7 +1249,7 @@ pub static SYMBOL_MACRO: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct MacroMacro;
 
 impl Macro for MacroMacro {
-    fn call(&self, args: Vec<Value>, _environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>, _environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.len() < 2 {
             return Err(arity_error_min(2, args.len()));
         }

@@ -11,16 +11,16 @@ use crate::core::types::list::List;
 use crate::core::types::slice::Slice;
 use crate::core::value::Value;
 
-fn eval_rest(rest: Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Vec<Value>> {
+fn eval_rest(rest: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Vec<Value>> {
     let result: Vec<Value> = rest
         .into_iter()
-        .map(|v| eval(v, environment))
+        .map(|v| eval(v, environment.clone()))
         .collect::<Result<Vec<Value>>>()?;
 
     Ok(result)
 }
 
-fn eval_list(list: &List, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+fn eval_list(list: List, environment: Rc<RefCell<Environment>>) -> Result<Value> {
     let list_inner = list.value.clone();
 
     let first = match list_inner.first() {
@@ -29,9 +29,9 @@ fn eval_list(list: &List, environment: &Rc<RefCell<Environment>>) -> Result<Valu
     };
 
     let first: Value = match first {
-        Value::Symbol(sym) => environment.borrow().get(sym)?.1.clone(),
-        Value::List(list) => eval(Value::List(list.clone()), environment)?,
-        Value::Vector(v) => eval(Value::Vector(v.clone()), environment)?,
+        Value::Symbol(sym) => environment.borrow().get(sym)?,
+        Value::List(list) => eval(Value::List(list.clone()), environment.clone())?,
+        Value::Vector(v) => eval(Value::Vector(v.clone()), environment.clone())?,
         f => f.clone(),
     };
 
@@ -50,7 +50,7 @@ fn eval_list(list: &List, environment: &Rc<RefCell<Environment>>) -> Result<Valu
     result
 }
 
-pub fn eval_ast(ast: &mut Vec<Value>, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+pub fn eval_ast(ast: &mut Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
     let val = match ast.pop() {
         Some(val) => val,
         None => Value::Nil,
@@ -58,7 +58,7 @@ pub fn eval_ast(ast: &mut Vec<Value>, environment: &Rc<RefCell<Environment>>) ->
     eval(val, environment)
 }
 
-pub fn eval(value: Value, environment: &Rc<RefCell<Environment>>) -> Result<Value> {
+pub fn eval(value: Value, environment: Rc<RefCell<Environment>>) -> Result<Value> {
     match value {
         Value::Nil
         | Value::Bool(_)
@@ -73,22 +73,22 @@ pub fn eval(value: Value, environment: &Rc<RefCell<Environment>>) -> Result<Valu
         | Value::ControlFlow(_)
         | Value::Generator(_) => Ok(value),
         Value::Slice(s) => {
-            let start = eval(s.start.clone(), environment)?;
-            let end = eval(s.end.clone(), environment)?;
-            let step = eval(s.step.clone(), environment)?;
+            let start = eval(s.start.clone(), environment.clone())?;
+            let end = eval(s.end.clone(), environment.clone())?;
+            let step = eval(s.step.clone(), environment.clone())?;
             match (&start, &end, &step) {
                 (Value::I64(_), Value::I64(_), Value::I64(_)) => {}
                 _ => return Err(Error::Type("slice can contain only i64".to_string())),
             }
             Ok(Value::Slice(Rc::new(Slice::new(start, end, step))))
         }
-        Value::Symbol(symbol) => Ok(environment.borrow().get(&symbol)?.1.clone()),
-        Value::List(list) => eval_list(&list, environment),
+        Value::Symbol(symbol) => Ok(environment.borrow().get(&symbol)?),
+        Value::List(list) => eval_list(list, environment),
         Value::Vector(vector) => {
             let result: Vec<Value> = vector
                 .value
                 .into_iter()
-                .map(|v| eval(v, environment))
+                .map(|v| eval(v, environment.clone()))
                 .collect::<Result<Vec<Value>>>()?;
 
             Value::as_vector(result)
@@ -98,7 +98,8 @@ pub fn eval(value: Value, environment: &Rc<RefCell<Environment>>) -> Result<Valu
                 .value
                 .into_iter()
                 .map(|(k, v)| {
-                    { eval(k, environment) }.and_then(|ek| eval(v, environment).map(|ev| (ek, ev)))
+                    { eval(k, environment.clone()) }
+                        .and_then(|ek| eval(v, environment.clone()).map(|ev| (ek, ev)))
                 })
                 .collect::<Result<Vec<(Value, Value)>>>()?;
 
@@ -108,7 +109,7 @@ pub fn eval(value: Value, environment: &Rc<RefCell<Environment>>) -> Result<Valu
             let result: Vec<Value> = set
                 .value
                 .into_iter()
-                .map(|v| eval(v, environment))
+                .map(|v| eval(v, environment.clone()))
                 .collect::<Result<Vec<Value>>>()?;
 
             Value::as_set(result)

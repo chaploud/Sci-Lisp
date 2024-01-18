@@ -103,6 +103,10 @@ syntax-quoteの内部のみ、unquoteとunquote-splicingが定義される
   - macro
   - defn (def + fn)
 
+## defの仕様変えよう
+
+- スコープの中に定義するでOK
+
 ## スライスの種類
 
 - 適用先はVector, List, Map
