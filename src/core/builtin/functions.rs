@@ -6,6 +6,7 @@ use std::rc::Rc;
 use std::{fmt, ptr};
 
 use once_cell::sync::Lazy;
+use unescape;
 
 use crate::core::builtin::generators::Range;
 use crate::core::types::error::{arity_error, arity_error_min, type_error};
@@ -64,7 +65,11 @@ impl Function for PrintFn {
             if n > 0 {
                 print!(" ");
             }
-            print!("{}", arg);
+            if let Value::String(s) = arg {
+                print!("{}", unescape::unescape(&s).unwrap());
+            } else {
+                print!("{}", arg);
+            }
         }
         println!();
         Ok(Value::Nil)

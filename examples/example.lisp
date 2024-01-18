@@ -20,15 +20,15 @@ inf                 ; positive infinity
 
 ;; ===== Collection
 ; comma is treated as whitespace
-'(1, "a", :b)       ; list
-[1.0, 2.0, 3.0]     ; vector
-{:a "a", :b "a"}    ; map (holds the insersion order)
-#{:a, :b, :c}       ; set (holds the insersion order)
+'(1, "a", :b)                ; list
+[1.0, 2.0, 3.0]              ; vector
+{:a "a", :b "b", :c "c"}     ; map (holds the insersion order)
+#{:a, :b, :c}                ; set (holds the insersion order)
 
 ;; ===== Function Call
 (type [1, 2, 3])             ; show type
 (time (+ 1 2))               ; measure processing time
-(print {:a 2, :b 3})         ; print any
+(print [1, 2] "abc\n" 123)   ; print any
 
 ;; ===== Variable Binding
 (def a "abcde")              ; variable (mutable, global scope)
