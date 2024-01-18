@@ -381,3 +381,17 @@ fn execute_success_repl_00028() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert().success().stdout(format!("{}\n", out));
     Ok(())
 }
+
+#[test]
+fn execute_success_repl_00029() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r#"
+        (def a "abcde")
+        a
+        "#,
+    );
+    let out = "a\n\"abcde\"";
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}

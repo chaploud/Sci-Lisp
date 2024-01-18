@@ -42,13 +42,13 @@ pub enum Value {
     Vector(Vector),
     Map(Map),
     Set(Set),
-    Function(Rc<RefCell<dyn Function>>),
-    Macro(Rc<RefCell<dyn Macro>>),
-    SplicingMacro(Rc<RefCell<dyn SplicingMacro>>),
+    Function(Rc<dyn Function>),
+    Macro(Rc<dyn Macro>),
+    SplicingMacro(Rc<dyn SplicingMacro>),
     Generator(Rc<RefCell<dyn Generator>>),
     Slice(Rc<Slice>),
     ControlFlow(Rc<ControlFlow<Value, Value>>),
-    ControlFlowMacro(Rc<RefCell<dyn ControlFlowMacro>>),
+    ControlFlowMacro(Rc<dyn ControlFlowMacro>),
 }
 
 impl PartialEq for Value {
@@ -101,8 +101,8 @@ impl fmt::Display for Value {
             Vector(v) => write!(f, "{}", v),
             Map(m) => write!(f, "{}", m),
             Set(s) => write!(f, "{}", s),
-            Function(func) => write!(f, "{}", func.borrow()),
-            Macro(mac) => write!(f, "{}", mac.borrow()),
+            Function(func) => write!(f, "{}", func),
+            Macro(mac) => write!(f, "{}", mac),
             Generator(g) => write!(f, "{}", g.borrow()),
             Slice(s) => write!(f, "{}", s),
             _ => panic!("Cannot display {}", self.type_name()), // OK
@@ -126,8 +126,8 @@ impl fmt::Debug for Value {
             Vector(v) => write!(f, "{}", v),
             Map(m) => write!(f, "{}", m),
             Set(s) => write!(f, "{}", s),
-            Function(func) => write!(f, "{}", func.borrow()),
-            Macro(mac) => write!(f, "{}", mac.borrow()),
+            Function(func) => write!(f, "{}", func),
+            Macro(mac) => write!(f, "{}", mac),
             Generator(g) => write!(f, "{}", g.borrow()),
             Slice(s) => write!(f, "{}", s),
             _ => panic!("Cannot debug {}", self.type_name()), // OK
@@ -501,7 +501,7 @@ impl IntoIterator for Value {
 
 // call i64
 impl Function for i64 {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -536,7 +536,7 @@ impl Function for i64 {
 
 // call String
 impl Function for std::string::String {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }

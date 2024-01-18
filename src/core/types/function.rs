@@ -8,6 +8,6 @@ use crate::core::types::error::Result;
 use crate::core::value::Value;
 
 pub trait Function: Debug + Display + DynClone {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value>;
+    fn call(&self, args: Vec<Value>) -> Result<Value>;
 }
 dyn_clone::clone_trait_object!(Function);

@@ -116,13 +116,17 @@ pub fn repl() -> Result<()> {
                     continue;
                 }
 
-                let value = eval_ast(&mut ast, environment.clone());
+                // eval
+                let value = eval_ast(ast, environment.clone());
                 if let Err(err) = value {
                     eprintln!("{}", err);
                     continue;
                 }
 
-                println!("{:?}", value.unwrap());
+                // print
+                if let Ok(Some(value)) = value {
+                    println!("{:?}", value);
+                }
             }
         };
     }
@@ -141,7 +145,7 @@ pub fn execute(file: Option<PathBuf>) -> Result<()> {
     // Eval
     let root = Environment::new_root_environment();
     let environment = Environment::new_local_environment(root.clone());
-    eval_ast(&mut ast, environment)?;
+    eval_ast(ast, environment)?;
 
     Ok(())
 }

@@ -62,7 +62,7 @@ expr = _{ slice | nil | bool | i64 | f64 | symbol | keyword | regex | string
 
 // top level
 scilisp = { SOI ~ ws* ~ scilisp_inner* ~ ws* ~ EOI }
-  scilisp_inner = _{ expr ~ (ws+ ~ expr)* }
+  scilisp_inner = { expr ~ (ws+ ~ expr)* }
 
 // TODO:
 // (symbol.member) dot

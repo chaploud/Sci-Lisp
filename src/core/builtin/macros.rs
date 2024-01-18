@@ -11,6 +11,7 @@ use once_cell::sync::Lazy;
 
 use crate::core::environment::Environment;
 use crate::core::eval::eval;
+use crate::core::types::error::type_error;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
 use crate::core::types::error::{arity_error, arity_error_min, arity_error_range};
@@ -303,13 +304,12 @@ impl Macro for SyntaxQuoteMacro {
         }
 
         let local_env = Environment::new_local_environment(environment.clone());
-        local_env.borrow_mut().insert(
-            &SYMBOL_UNQUOTE,
-            Value::Macro(Rc::new(RefCell::new(UnquoteMacro))),
-        )?;
+        local_env
+            .borrow_mut()
+            .insert(&SYMBOL_UNQUOTE, Value::Macro(Rc::new(UnquoteMacro)))?;
         local_env.borrow_mut().insert(
             &SYMBOL_UNQUOTE_SPLICING,
-            Value::SplicingMacro(Rc::new(RefCell::new(UnquoteSplicingMacro))),
+            Value::SplicingMacro(Rc::new(UnquoteSplicingMacro)),
         )?;
 
         eval(args[0].clone(), local_env)
@@ -589,13 +589,12 @@ impl Macro for WhileMacro {
         }
 
         let local_env = Environment::new_local_environment(environment.clone());
-        local_env.borrow_mut().insert(
-            &SYMBOL_BREAK,
-            Value::ControlFlowMacro(Rc::new(RefCell::new(BreakMacro))),
-        )?;
+        local_env
+            .borrow_mut()
+            .insert(&SYMBOL_BREAK, Value::ControlFlowMacro(Rc::new(BreakMacro)))?;
         local_env.borrow_mut().insert(
             &SYMBOL_CONTINUE,
-            Value::ControlFlowMacro(Rc::new(RefCell::new(ContinueMacro))),
+            Value::ControlFlowMacro(Rc::new(ContinueMacro)),
         )?;
 
         let condition = &args[0];
@@ -827,11 +826,11 @@ impl Macro for FnMacro {
             }
         }
 
-        Ok(Value::Function(Rc::new(RefCell::new(Lambda {
+        Ok(Value::Function(Rc::new(Lambda {
             args: params,
             body,
             environment: environment.clone(),
-        }))))
+        })))
     }
 }
 
@@ -912,7 +911,7 @@ impl Macro for DefnMacro {
 
         environment
             .borrow_mut()
-            .insert(&symbol, Value::Function(Rc::new(RefCell::new(lambda))))?;
+            .insert(&symbol, Value::Function(Rc::new(lambda)))?;
 
         Ok(Value::Symbol(symbol.clone()))
     }
@@ -1156,13 +1155,12 @@ impl Macro for ForMacro {
         }
 
         let local_env = Environment::new_local_environment(environment.clone());
-        local_env.borrow_mut().insert(
-            &SYMBOL_BREAK,
-            Value::ControlFlowMacro(Rc::new(RefCell::new(BreakMacro))),
-        )?;
+        local_env
+            .borrow_mut()
+            .insert(&SYMBOL_BREAK, Value::ControlFlowMacro(Rc::new(BreakMacro)))?;
         local_env.borrow_mut().insert(
             &SYMBOL_CONTINUE,
-            Value::ControlFlowMacro(Rc::new(RefCell::new(ContinueMacro))),
+            Value::ControlFlowMacro(Rc::new(ContinueMacro)),
         )?;
 
         let binding = match args[0].clone() {
@@ -1236,6 +1234,53 @@ impl Macro for ForMacro {
 impl fmt::Display for ForMacro {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "<builtin macro: for>")
+    }
+}
+
+// gensym
+pub static SYMBOL_GENSYM: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("gensym"),
+    meta: Meta {
+        doc: Cow::Borrowed("Create a unique symbol."),
+        mutable: false,
+    },
+    hash: fxhash::hash("gensym"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct GensymMacro;
+
+impl Macro for GensymMacro {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
+        if args.len() > 1 {
+            return Err(arity_error_range(0, 1, args.len()));
+        }
+
+        let name = if args.is_empty() {
+            format!("gensym-{}", environment.borrow().gensym_id)
+        } else {
+            match args[0] {
+                Value::String(ref s) => format!("{}-{}", s, environment.borrow().gensym_id),
+                _ => return Err(type_error("string", args[0].type_name().as_str())),
+            }
+        };
+
+        environment.borrow_mut().gensym_id += 1;
+
+        Ok(Value::Symbol(Symbol {
+            name: Cow::Owned(name.clone()),
+            meta: Meta {
+                doc: Cow::Borrowed("Generated symbol by gensym."),
+                mutable: false,
+            },
+            hash: fxhash::hash(&name),
+        }))
+    }
+}
+
+impl fmt::Display for GensymMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: gensym>")
     }
 }
 

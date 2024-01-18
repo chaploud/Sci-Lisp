@@ -31,7 +31,7 @@ pub static SYMBOL_TYPE: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct TypeFn;
 
 impl Function for TypeFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -60,7 +60,7 @@ pub static SYMBOL_PRINT: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct PrintFn;
 
 impl Function for PrintFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         for (n, arg) in args.into_iter().enumerate() {
             if n > 0 {
                 print!(" ");
@@ -104,7 +104,7 @@ pub static SYMBOL_ADD: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct AddFn;
 
 impl Function for AddFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         let mut result: Value = Value::I64(0);
         for arg in args {
             helper_is_number(arg.clone())?;
@@ -136,7 +136,7 @@ pub static SYMBOL_SUB: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct SubFn;
 
 impl Function for SubFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
@@ -175,7 +175,7 @@ pub static SYMBOL_MUL: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct MulFn;
 
 impl Function for MulFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         let mut result: Value = Value::I64(1);
         for arg in args {
             helper_is_number(arg.clone())?;
@@ -205,7 +205,7 @@ pub static SYMBOL_DIV: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct DivFn;
 
 impl Function for DivFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.len() < 2 {
             return Err(arity_error_min(2, args.len()));
         }
@@ -240,7 +240,7 @@ pub static SYMBOL_FLOORDIV: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct FloorDivFn;
 
 impl Function for FloorDivFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.len() < 2 {
             return Err(arity_error_min(2, args.len()));
         }
@@ -275,7 +275,7 @@ pub static SYMBOL_REM: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct RemFn;
 
 impl Function for RemFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.len() < 2 || args.len() > 2 {
             return Err(arity_error(2, args.len()));
         }
@@ -312,7 +312,7 @@ pub static SYMBOL_EQUAL: Lazy<Symbol> = Lazy::new(|| {
 pub struct EqualFn;
 
 impl Function for EqualFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
@@ -354,7 +354,7 @@ pub static SYMBOL_NOTEQUAL: Lazy<Symbol> = Lazy::new(|| {
 pub struct NotEqualFn;
 
 impl Function for NotEqualFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
@@ -392,7 +392,7 @@ pub static SYMBOL_IS: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct IsFn;
 
 impl Function for IsFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 2 {
             return Err(arity_error(2, args.len()));
         }
@@ -424,7 +424,7 @@ pub static SYMBOL_GE: Lazy<Symbol> = Lazy::new(|| {
 pub struct GeFn;
 
 impl Function for GeFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
@@ -463,7 +463,7 @@ pub static SYMBOL_GT: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct GtFn;
 
 impl Function for GtFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
@@ -502,7 +502,7 @@ pub static SYMBOL_LE: Lazy<Symbol> = Lazy::new(|| {
 pub struct LeFn;
 
 impl Function for LeFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
@@ -542,7 +542,7 @@ pub static SYMBOL_LT: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct LtFn;
 
 impl Function for LtFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.is_empty() {
             return Err(arity_error_min(1, args.len()));
         }
@@ -580,7 +580,7 @@ pub static SYMBOL_STR: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct StrFn;
 
 impl Function for StrFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -609,7 +609,7 @@ pub static SYMBOL_I64: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct I64Fn;
 
 impl Function for I64Fn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -638,7 +638,7 @@ pub static SYMBOL_F64: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct F64Fn;
 
 impl Function for F64Fn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -667,7 +667,7 @@ pub static SYMBOL_FIRST: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct FirstFn;
 
 impl Function for FirstFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -719,7 +719,7 @@ pub static SYMBOL_REST: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct RestFn;
 
 impl Function for RestFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -789,7 +789,7 @@ pub static SYMBOL_RANGE: Lazy<Symbol> = Lazy::new(|| Symbol {
 pub struct RangeFn;
 
 impl Function for RangeFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.is_empty() || args.len() > 3 {
             return Err(arity_error_range(1, 3, args.len()));
         }
@@ -836,55 +836,6 @@ impl Function for RangeFn {
 impl fmt::Display for RangeFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "<builtin function: range>")
-    }
-}
-
-// gensym
-pub static SYMBOL_GENSYM: Lazy<Symbol> = Lazy::new(|| Symbol {
-    name: Cow::Borrowed("gensym"),
-    meta: Meta {
-        doc: Cow::Borrowed("Create a unique symbol."),
-        mutable: false,
-    },
-    hash: fxhash::hash("gensym"),
-});
-
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
-pub struct GensymFn {
-    pub id: u64,
-}
-
-impl Function for GensymFn {
-    fn call(&mut self, args: Vec<Value>) -> Result<Value> {
-        if args.len() > 1 {
-            return Err(arity_error_range(0, 1, args.len()));
-        }
-
-        let name = if args.is_empty() {
-            format!("gensym-{}", self.id)
-        } else {
-            match args[0] {
-                Value::String(ref s) => format!("{}-{}", s, self.id),
-                _ => return Err(type_error("string", args[0].type_name().as_str())),
-            }
-        };
-
-        self.id += 1;
-
-        Ok(Value::Symbol(Symbol {
-            name: Cow::Owned(name.clone()),
-            meta: Meta {
-                doc: Cow::Borrowed("Generated symbol by gensym."),
-                mutable: false,
-            },
-            hash: fxhash::hash(&name),
-        }))
-    }
-}
-
-impl fmt::Display for GensymFn {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin function: gensym>")
     }
 }
 

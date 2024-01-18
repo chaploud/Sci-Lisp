@@ -38,24 +38,24 @@ fn eval_list(list: List, environment: Rc<RefCell<Environment>>) -> Result<Value>
     let rest: Vec<Value> = list_inner[1..].to_vec();
 
     let result: Result<Value> = match first {
-        Value::Function(func) => func.borrow_mut().call(eval_rest(rest, environment)?),
-        Value::I64(mut int) => int.call(eval_rest(rest, environment)?),
-        Value::String(mut s) => s.call(eval_rest(rest, environment)?),
-        Value::Keyword(mut k) => k.call(eval_rest(rest, environment)?),
+        Value::Function(func) => func.call(eval_rest(rest, environment)?),
+        Value::I64(int) => int.call(eval_rest(rest, environment)?),
+        Value::String(s) => s.call(eval_rest(rest, environment)?),
+        Value::Keyword(k) => k.call(eval_rest(rest, environment)?),
         Value::Vector(v) => v.call(eval_rest(rest, environment)?),
-        Value::Macro(mac) => mac.borrow_mut().call(rest, environment), // TODO: splicing for macro rest
+        Value::Macro(mac) => mac.call(rest, environment), // TODO: splicing for macro rest
         f => Err(Error::Syntax(format!("cannot call '{}'", f))),
     };
 
     result
 }
 
-pub fn eval_ast(ast: &mut Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
-    let val = match ast.pop() {
-        Some(val) => val,
-        None => Value::Nil,
-    };
-    eval(val, environment)
+pub fn eval_ast(ast: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Option<Value>> {
+    let mut result = None;
+    for expr in ast {
+        result = Some(eval(expr, environment.clone())?);
+    }
+    Ok(result)
 }
 
 pub fn eval(value: Value, environment: Rc<RefCell<Environment>>) -> Result<Value> {
