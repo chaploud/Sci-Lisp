@@ -95,31 +95,55 @@ impl Sliceable for Vector {
         }
         Some(self.value[index as usize].clone())
     }
-    fn slice(&self, start: i64, end: i64, step: i64) -> Value {
+    fn slice(&self, start: Option<i64>, end: Option<i64>, step: Option<i64>) -> Result<Value> {
         let mut new_slice = Vec::<Value>::new();
-        let start = if start < 0 {
-            self.len() as i64 + start
-        } else {
-            start
-        };
-        let end = if end < 0 {
-            self.len() as i64 + end
-        } else {
-            end
-        };
-        let mut current = start;
-        loop {
-            if (step > 0 && current >= end) || (step < 0 && current <= end) {
-                break;
-            }
-            let v = self.at(current);
-            current += step;
-            if v.is_none() {
-                continue;
-            }
-            new_slice.push(v.unwrap().clone());
+
+        let step = step.unwrap_or(1);
+
+        if step == 0 {
+            return Err(Error::Syntax("step cannot be zero".to_string()));
         }
-        Value::Vector(Vector::from(new_slice))
+
+        if step > 0 {
+            let mut start = start.unwrap_or(0);
+            let mut end = end.unwrap_or(self.len() as i64);
+            if start < 0 {
+                start += self.len() as i64;
+            }
+            if end < 0 {
+                end += self.len() as i64;
+            }
+
+            start = start.clamp(0, self.len() as i64);
+            end = end.clamp(0, self.len() as i64);
+
+            let mut current = start;
+            while current < end {
+                new_slice.push(self.at(current).unwrap());
+                current += step;
+            }
+        } else {
+            let mut start = start.unwrap_or(-1);
+            let mut end = end.unwrap_or(-(self.len() as i64) - 1);
+
+            if start > -1 {
+                start -= self.len() as i64;
+            }
+            if end > -1 {
+                end -= self.len() as i64;
+            }
+
+            start = start.clamp(-(self.len() as i64) - 1, -1);
+            end = end.clamp(-(self.len() as i64) - 1, -1);
+
+            let mut current = start;
+            while current > end {
+                new_slice.push(self.at(current).unwrap());
+                current += step;
+            }
+        }
+
+        Ok(Value::Vector(Vector::from(new_slice)))
     }
 }
 

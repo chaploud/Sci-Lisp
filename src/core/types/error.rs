@@ -30,6 +30,7 @@ pub enum Error {
     Const(String),
     Index(String),
     Key(String),
+    Value(String),
 }
 
 impl fmt::Display for Error {
@@ -62,6 +63,7 @@ impl fmt::Display for Error {
             Const(msg) => write!(f, "Const Error: {}", msg),
             Index(msg) => write!(f, "Index Error: {}", msg),
             Key(msg) => write!(f, "Key Error: {}", msg),
+            Value(msg) => write!(f, "Value Error: {}", msg),
         }
     }
 }
@@ -85,6 +87,7 @@ impl std::error::Error for Error {
             Const(_) => None,
             Index(_) => None,
             Key(_) => None,
+            Value(_) => None,
         }
     }
 }

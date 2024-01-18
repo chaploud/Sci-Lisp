@@ -50,8 +50,8 @@ impl Function for Slice {
         }
 
         let start = match self.start {
-            Value::Nil => 0,
-            Value::I64(i) => i,
+            Value::Nil => None,
+            Value::I64(i) => Some(i),
             _ => {
                 return Err(Error::Type(format!(
                     "Cannot slice with {}",
@@ -61,8 +61,8 @@ impl Function for Slice {
         };
 
         let end = match self.end {
-            Value::Nil => -1,
-            Value::I64(i) => i,
+            Value::Nil => None,
+            Value::I64(i) => Some(i),
             _ => {
                 return Err(Error::Type(format!(
                     "Cannot slice with {}",
@@ -72,8 +72,8 @@ impl Function for Slice {
         };
 
         let step = match self.step {
-            Value::Nil => 1,
-            Value::I64(i) => i,
+            Value::Nil => None,
+            Value::I64(i) => Some(i),
             _ => {
                 return Err(Error::Type(format!(
                     "Cannot slice with {}",
@@ -94,6 +94,6 @@ impl Function for Slice {
             }
         };
 
-        Ok(result)
+        result
     }
 }

@@ -1,5 +1,7 @@
 use std::fmt;
 
+use crate::core::types::error::Error;
+use crate::core::types::error::Result;
 use crate::core::types::generator::Generator;
 use crate::core::types::sliceable::Sliceable;
 use crate::core::types::vector::Vector;
@@ -42,8 +44,8 @@ impl Sliceable for EmptyGenerator {
     fn at(&self, _index: i64) -> Option<Value> {
         None
     }
-    fn slice(&self, _start: i64, _end: i64, _step: i64) -> Value {
-        Value::Nil
+    fn slice(&self, _start: Option<i64>, _end: Option<i64>, _step: Option<i64>) -> Result<Value> {
+        Ok(Value::Nil)
     }
 }
 
@@ -133,25 +135,55 @@ impl Sliceable for Range {
             Some(Value::I64(self.start + self.step * index))
         }
     }
-    fn slice(&self, start: i64, end: i64, step: i64) -> Value {
-        let mut result = Vec::<Value>::new();
-        let mut current = start;
+    fn slice(&self, start: Option<i64>, end: Option<i64>, step: Option<i64>) -> Result<Value> {
+        let mut new_slice = Vec::<Value>::new();
+
+        let step = step.unwrap_or(1);
+
+        if step == 0 {
+            return Err(Error::Syntax("step cannot be zero".to_string()));
+        }
+
         if step > 0 {
+            let mut start = start.unwrap_or(0);
+            let mut end = end.unwrap_or(self.len() as i64);
+            if start < 0 {
+                start += self.len() as i64;
+            }
+            if end < 0 {
+                end += self.len() as i64;
+            }
+
+            start = start.clamp(0, self.len() as i64);
+            end = end.clamp(0, self.len() as i64);
+
+            let mut current = start;
             while current < end {
-                if let Some(val) = self.at(current) {
-                    result.push(val.clone());
-                }
+                new_slice.push(self.at(current).unwrap());
                 current += step;
             }
         } else {
+            let mut start = start.unwrap_or(-1);
+            let mut end = end.unwrap_or(-(self.len() as i64) - 1);
+
+            if start > -1 {
+                start -= self.len() as i64;
+            }
+            if end > -1 {
+                end -= self.len() as i64;
+            }
+
+            start = start.clamp(-(self.len() as i64) - 1, -1);
+            end = end.clamp(-(self.len() as i64) - 1, -1);
+
+            let mut current = start;
             while current > end {
-                if let Some(val) = self.at(current) {
-                    result.push(val.clone());
-                }
+                new_slice.push(self.at(current).unwrap());
                 current += step;
             }
         }
-        Value::Vector(Vector::from(result))
+
+        Ok(Value::Vector(Vector::from(new_slice)))
     }
 }
 

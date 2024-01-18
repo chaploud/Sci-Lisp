@@ -594,30 +594,57 @@ impl Sliceable for std::string::String {
             self.chars().nth(index as usize).unwrap().to_string(),
         ))
     }
-    fn slice(&self, start: i64, end: i64, step: i64) -> Value {
+    fn slice(&self, start: Option<i64>, end: Option<i64>, step: Option<i64>) -> Result<Value> {
         let mut new_slice = std::string::String::new();
-        let start = if start < 0 {
-            self.len() as i64 + start
-        } else {
-            start
-        };
-        let end = if end < 0 {
-            self.len() as i64 + end
-        } else {
-            end
-        };
-        let mut current = start;
-        loop {
-            if (step > 0 && current >= end) || (step < 0 && current <= end) {
-                break;
-            }
-            let v = self.at(current);
-            current += step;
-            if v.is_none() {
-                continue;
-            }
-            new_slice.push_str(v.unwrap().to_string().as_str());
+
+        let step = step.unwrap_or(1);
+
+        if step == 0 {
+            return Err(Error::Syntax("step cannot be zero".to_string()));
         }
-        Value::String(new_slice)
+
+        if step > 0 {
+            let mut start = start.unwrap_or(0);
+            let mut end = end.unwrap_or(self.len() as i64);
+            if start < 0 {
+                start += self.len() as i64;
+            }
+            if end < 0 {
+                end += self.len() as i64;
+            }
+
+            start = start.clamp(0, self.len() as i64);
+            end = end.clamp(0, self.len() as i64);
+
+            let mut current = start;
+            while current < end {
+                if let Some(Value::String(s)) = self.at(current) {
+                    new_slice.push_str(&s);
+                    current += step;
+                }
+            }
+        } else {
+            let mut start = start.unwrap_or(-1);
+            let mut end = end.unwrap_or(-(self.len() as i64) - 1);
+
+            if start > -1 {
+                start -= self.len() as i64;
+            }
+            if end > -1 {
+                end -= self.len() as i64;
+            }
+
+            start = start.clamp(-(self.len() as i64) - 1, -1);
+            end = end.clamp(-(self.len() as i64) - 1, -1);
+
+            let mut current = start;
+            while current > end {
+                if let Some(Value::String(s)) = self.at(current) {
+                    new_slice.push_str(&s);
+                    current += step;
+                }
+            }
+        }
+        Ok(Value::String(new_slice))
     }
 }
