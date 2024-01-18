@@ -39,8 +39,8 @@ pub struct DefMacro;
 
 impl Macro for DefMacro {
     fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
-        if args.len() < 2 && args.len() > 3 {
-            return Err(arity_error_range(2, 3, args.len()));
+        if args.is_empty() || args.len() > 3 {
+            return Err(arity_error_range(1, 3, args.len()));
         }
 
         let mut symbol = match args[0].clone() {
@@ -53,7 +53,11 @@ impl Macro for DefMacro {
         };
         let body: Value;
 
-        if args.len() == 3 {
+        if args.len() == 1 {
+            body = Value::Nil;
+        } else if args.len() == 2 {
+            body = args[1].clone();
+        } else {
             let docstring = match &args[1] {
                 Value::String(s) => s.clone(),
                 _ => return Err(Error::Type("def: docstring must be a string".to_string())),
@@ -61,8 +65,6 @@ impl Macro for DefMacro {
 
             symbol.meta.doc = Cow::Owned(docstring);
             body = args[2].clone();
-        } else {
-            body = args[1].clone();
         }
 
         let value = eval(body, environment.clone())?;
@@ -94,8 +96,8 @@ pub struct ConstMacro;
 
 impl Macro for ConstMacro {
     fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
-        if args.len() < 2 && args.len() > 3 {
-            return Err(arity_error_range(2, 3, args.len()));
+        if args.is_empty() || args.len() > 3 {
+            return Err(arity_error_range(1, 3, args.len()));
         }
 
         let mut symbol = match args[0].clone() {
@@ -108,16 +110,18 @@ impl Macro for ConstMacro {
         };
         let body: Value;
 
-        if args.len() == 3 {
+        if args.len() == 1 {
+            body = Value::Nil;
+        } else if args.len() == 2 {
+            body = args[1].clone();
+        } else {
             let docstring = match &args[1] {
                 Value::String(s) => s.clone(),
-                _ => return Err(Error::Type("const: docstring must be a string".to_string())),
+                _ => return Err(Error::Type("def: docstring must be a string".to_string())),
             };
 
             symbol.meta.doc = Cow::Owned(docstring);
             body = args[2].clone();
-        } else {
-            body = args[1].clone();
         }
 
         let value = eval(body, environment.clone())?;
