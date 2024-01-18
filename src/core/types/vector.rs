@@ -147,7 +147,7 @@ impl Vector {
                     result = slice.call(vec![result])?;
                 }
                 Value::I64(i) => {
-                    result = i.call(vec![Value::I64(i)])?;
+                    result = i.call(vec![result])?;
                 }
                 _ => unreachable!(),
             }

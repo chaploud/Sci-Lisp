@@ -533,6 +533,10 @@ impl Function for i64 {
                 Some(value) => return Ok(value.clone()),
                 None => return Err(key_not_found_error(Value::I64(*self))),
             },
+            Value::String(ref s) => match s.at(*self) {
+                Some(value) => value,
+                None => return Err(index_out_of_range_error(*self)),
+            },
             _ => {
                 return Err(Error::Type(format!(
                     "Cannot index {} with {}",
