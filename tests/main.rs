@@ -410,3 +410,64 @@ fn execute_repl_00030() -> Result<(), Box<dyn std::error::Error>> {
         .stderr(predicate::str::contains("Const Error"));
     Ok(())
 }
+
+#[test]
+fn execute_repl_00031() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (def a "abcde")
+        ([0|2] a)
+        "##,
+    );
+    let out = "a\n\"ab\"";
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00032() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (const C [1, 2, 3])
+        (-1 C)
+        "##,
+    );
+    let out = "C\n3";
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00033() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (let [a 2]
+          (set! a 3)
+          a)
+        "##,
+    );
+    let out = "3";
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00034() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (defn sum [a b]
+         "sum two value"
+          (print a b)
+          (+ a b))
+
+        (sum 1 2)
+        "##,
+    );
+    let out = "sum\n1 2\n3";
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}

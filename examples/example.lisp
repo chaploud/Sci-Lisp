@@ -31,7 +31,8 @@ inf                 ; positive infinity
 (print [1, 2] "abc\n" 123)   ; print any
 
 ;; ===== Variable Binding
-(def a "abcde")              ; variable (mutable, global scope)
+;; NOTE: Different from Clojure
+(def a "abcde")              ; variable (mutable, 'local' scope)
 (const C [1, 2, 3])          ; constant value (immutable)
 
 ([0|2] a)                    ; slicing => "ab"

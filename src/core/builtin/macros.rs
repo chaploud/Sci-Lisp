@@ -855,8 +855,8 @@ pub struct DefnMacro;
 
 impl Macro for DefnMacro {
     fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
-        if args.len() < 3 || args.len() > 4 {
-            return Err(arity_error_range(3, 4, args.len()));
+        if args.len() < 2 {
+            return Err(arity_error_min(2, args.len()));
         }
 
         let mut symbol = match args[0].clone() {
@@ -867,37 +867,45 @@ impl Macro for DefnMacro {
                 ))
             }
         };
+
         let params;
         let bodies: &[Value];
 
-        if args.len() == 4 {
-            let docstring = match &args[1] {
-                Value::String(s) => s.clone(),
-                _ => return Err(Error::Type("defn: docstring must be a string".to_string())),
-            };
-
-            symbol.meta.doc = Cow::Owned(docstring);
-            params = args[2].clone();
-            bodies = &args[2..];
-        } else {
-            params = args[1].clone();
-            bodies = &args[1..];
-        }
-
-        let params = match params {
-            Value::Vector(v) => v.value,
-            _ => {
-                return Err(Error::Type(
-                    "defn: parameters must be given via vector".to_string(),
-                ))
+        if args.len() == 2 {
+            if let Value::Vector(_) = args[1] {
+                params = args[1].clone();
+                bodies = &[Value::Nil];
+            } else {
+                return Err(Error::Syntax("defn: informal form".to_string()));
             }
-        };
+        } else {
+            match &args[1] {
+                Value::String(s) => {
+                    if let Value::Vector(_) = args[2] {
+                        symbol.meta.doc = Cow::Owned(s.clone());
+                        params = args[2].clone();
+                        bodies = &[Value::Nil];
+                    } else {
+                        return Err(Error::Syntax("defn: informal form".to_string()));
+                    }
+                }
+                Value::Vector(_) => {
+                    params = args[1].clone();
+                    bodies = &args[2..];
+                }
+                _ => return Err(Error::Syntax("defn: informal form".to_string())),
+            }
+        }
 
         let mut symbols = vec![];
         for p in params {
             match p {
                 Value::Symbol(sym) => symbols.push(sym),
-                _ => return Err(Error::Type("defn: parameters must be symbols".to_string())),
+                _ => {
+                    return Err(Error::Syntax(
+                        "defn: parameters must be symbols".to_string(),
+                    ))
+                }
             }
         }
 
