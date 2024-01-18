@@ -73,14 +73,14 @@ impl Environment {
                 if entry.key().meta.mutable {
                     if !key.meta.mutable {
                         // overwrite with const
-                        return Err(Error::Immutable(format!(
+                        return Err(Error::Const(format!(
                             "cannot overwrite '{}' with const",
                             key
                         )));
                     }
                     entry.insert(value);
                 } else {
-                    return Err(Error::Immutable(format!(
+                    return Err(Error::Const(format!(
                         "cannot overwrite immutable binding '{}'",
                         key
                     )));
@@ -99,7 +99,7 @@ impl Environment {
                 if entry.key().meta.mutable {
                     entry.insert(value);
                 } else {
-                    return Err(Error::Immutable(format!(
+                    return Err(Error::Const(format!(
                         "cannot overwrite immutable binding '{}'",
                         key
                     )));

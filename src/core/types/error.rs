@@ -27,7 +27,7 @@ pub enum Error {
     Syntax(String),
     Cast(String, String),
     Arity(String),
-    Immutable(String),
+    Const(String),
     Index(String),
     Key(String),
 }
@@ -59,7 +59,7 @@ impl fmt::Display for Error {
             Syntax(msg) => write!(f, "Syntax Error: {}", msg),
             Cast(src, dest) => write!(f, "Cast Error: cannot cast {} to {}", src, dest),
             Arity(msg) => write!(f, "Arity Error: {}", msg),
-            Immutable(msg) => write!(f, "Immutable Error: {}", msg),
+            Const(msg) => write!(f, "Const Error: {}", msg),
             Index(msg) => write!(f, "Index Error: {}", msg),
             Key(msg) => write!(f, "Key Error: {}", msg),
         }
@@ -82,7 +82,7 @@ impl std::error::Error for Error {
             Syntax(_) => None,
             Cast(_, _) => None,
             Arity(_) => None,
-            Immutable(_) => None,
+            Const(_) => None,
             Index(_) => None,
             Key(_) => None,
         }
