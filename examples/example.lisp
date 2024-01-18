@@ -34,8 +34,8 @@ inf                 ; positive infinity
 (def a "abcde")              ; variable (mutable, global scope)
 (const C [1, 2, 3])          ; constant value (immutable)
 
-([0:2] a)                    ; slicing => "ab"
-([-1] C)                     ; back => 3
+([0|2] a)                    ; slicing => "ab"
+(-1 C)                       ; back => 3
 
 (let [a 2]                   ; bind variable (local scope)
   (set! a 3)                 ; assign(destructive)

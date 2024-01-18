@@ -6,11 +6,14 @@ use std::ops::{Index, IndexMut};
 use std::rc::Rc;
 
 use crate::core::builtin::generators::EmptyGenerator;
+use crate::core::types::error::arity_error;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
-use crate::core::types::error::{arity_error, index_out_of_range_error};
+use crate::core::types::sliceable::Sliceable;
 use crate::core::value::Value;
 use crate::core::value::ValueIter;
+
+use super::function::Function;
 
 #[derive(Debug, Clone, PartialEq, Hash, Eq, PartialOrd, Ord)]
 pub struct Vector {
@@ -75,11 +78,11 @@ impl IntoIterator for Vector {
     }
 }
 
-impl Vector {
-    pub fn len(&self) -> usize {
+impl Sliceable for Vector {
+    fn len(&self) -> usize {
         self.value.len()
     }
-    pub fn at(&self, index: i64) -> Option<Value> {
+    fn at(&self, index: i64) -> Option<Value> {
         if index < 0 {
             let index = self.len() as i64 + index;
             if index < 0 {
@@ -92,6 +95,35 @@ impl Vector {
         }
         Some(self.value[index as usize].clone())
     }
+    fn slice(&self, start: i64, end: i64, step: i64) -> Value {
+        let mut new_slice = Vec::<Value>::new();
+        let start = if start < 0 {
+            self.len() as i64 + start
+        } else {
+            start
+        };
+        let end = if end < 0 {
+            self.len() as i64 + end
+        } else {
+            end
+        };
+        let mut current = start;
+        loop {
+            if (step > 0 && current >= end) || (step < 0 && current <= end) {
+                break;
+            }
+            let v = self.at(current);
+            current += step;
+            if v.is_none() {
+                continue;
+            }
+            new_slice.push(v.unwrap().clone());
+        }
+        Value::Vector(Vector::from(new_slice))
+    }
+}
+
+impl Vector {
     pub fn call(&self, args: Vec<Value>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
@@ -110,68 +142,16 @@ impl Vector {
 
         let mut result = args[0].clone();
         for member in self.value.clone() {
-            result = Self::slice_index(member, result)?;
-        }
-        Ok(result)
-    }
-
-    fn slice_index(member: Value, value: Value) -> Result<Value> {
-        match value {
-            Value::Vector(vector) => match member {
-                Value::Slice(s) => {
-                    let mut new_slice = Vec::<Value>::new();
-                    let start = match s.start {
-                        Value::I64(i) => {
-                            if i < 0 {
-                                vector.len() as i64 + i
-                            } else {
-                                i
-                            }
-                        }
-                        _ => 0,
-                    };
-                    let end = match s.end {
-                        Value::I64(i) => {
-                            if i < 0 {
-                                vector.len() as i64 + i
-                            } else {
-                                i
-                            }
-                        }
-                        _ => vector.len() as i64,
-                    };
-                    let step = match s.step {
-                        Value::I64(i) => i,
-                        _ => 1,
-                    };
-                    let mut current = start;
-                    loop {
-                        if (step > 0 && current >= end) || (step < 0 && current <= end) {
-                            break;
-                        }
-                        let v = vector.at(current);
-                        current += step;
-                        if v.is_none() {
-                            continue;
-                        }
-                        new_slice.push(v.unwrap());
-                    }
-                    Value::as_vector(new_slice)
+            match member {
+                Value::Slice(slice) => {
+                    result = slice.call(vec![result])?;
                 }
                 Value::I64(i) => {
-                    let v = vector.at(i);
-                    if v.is_none() {
-                        return Err(index_out_of_range_error(i));
-                    }
-                    Ok(v.unwrap())
+                    result = i.call(vec![Value::I64(i)])?;
                 }
-                _ => Err(Error::Type(
-                    "slicing vector can contain only slice or i64".to_string(),
-                )),
-            },
-            _ => Err(Error::Type(
-                "slice or index access is allowed only for vector and list".to_string(),
-            )),
+                _ => unreachable!(),
+            }
         }
+        Ok(result)
     }
 }

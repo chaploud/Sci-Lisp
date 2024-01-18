@@ -1,7 +1,8 @@
 use std::fmt;
-use std::ops::Index;
 
 use crate::core::types::generator::Generator;
+use crate::core::types::sliceable::Sliceable;
+use crate::core::types::vector::Vector;
 use crate::core::value::Value;
 
 // EmptyGenerator
@@ -34,28 +35,19 @@ impl DoubleEndedIterator for EmptyGenerator {
     }
 }
 
-impl Index<usize> for EmptyGenerator {
-    type Output = Value;
-
-    fn index(&self, _index: usize) -> &Self::Output {
-        &Value::Nil
-    }
-}
-
-impl ExactSizeIterator for EmptyGenerator {
+impl Sliceable for EmptyGenerator {
     fn len(&self) -> usize {
         0
     }
+    fn at(&self, _index: i64) -> Option<Value> {
+        None
+    }
+    fn slice(&self, _start: i64, _end: i64, _step: i64) -> Value {
+        Value::Nil
+    }
 }
 
-impl Generator for EmptyGenerator {
-    fn can_reverse(&self) -> bool {
-        true
-    }
-    fn at(&self, _index: i64) -> Option<Value> {
-        Some(Value::Nil)
-    }
-}
+impl Generator for EmptyGenerator {}
 
 // range
 // TODO: Performance and can call multiple times
@@ -119,19 +111,13 @@ impl DoubleEndedIterator for Range {
     }
 }
 
-impl ExactSizeIterator for Range {
+impl Sliceable for Range {
     fn len(&self) -> usize {
         if self.step == 0 {
             0
         } else {
             ((self.end - self.start) / self.step) as usize
         }
-    }
-}
-
-impl Generator for Range {
-    fn can_reverse(&self) -> bool {
-        true
     }
     fn at(&self, index: i64) -> Option<Value> {
         if index < 0 {
@@ -147,4 +133,26 @@ impl Generator for Range {
             Some(Value::I64(self.start + self.step * index))
         }
     }
+    fn slice(&self, start: i64, end: i64, step: i64) -> Value {
+        let mut result = Vec::<Value>::new();
+        let mut current = start;
+        if step > 0 {
+            while current < end {
+                if let Some(val) = self.at(current) {
+                    result.push(val.clone());
+                }
+                current += step;
+            }
+        } else {
+            while current > end {
+                if let Some(val) = self.at(current) {
+                    result.push(val.clone());
+                }
+                current += step;
+            }
+        }
+        Value::Vector(Vector::from(result))
+    }
 }
+
+impl Generator for Range {}

@@ -23,6 +23,7 @@ use crate::core::types::r#macro::Macro;
 use crate::core::types::r#macro::SplicingMacro;
 use crate::core::types::set::Set;
 use crate::core::types::slice::Slice;
+use crate::core::types::sliceable::Sliceable;
 use crate::core::types::symbol::Symbol;
 use crate::core::types::type_name::TypeName;
 use crate::core::types::vector::Vector;
@@ -248,6 +249,16 @@ impl Value {
             Value::Bool(b) => *b,
             _ => true,
         }
+    }
+}
+
+impl Value {
+    pub fn is_nil(&self) -> bool {
+        matches!(self, Value::Nil)
+    }
+
+    pub fn is_i64(&self) -> bool {
+        matches!(self, Value::I64(_))
     }
 }
 
@@ -515,11 +526,11 @@ impl Function for i64 {
                 None => return Err(index_out_of_range_error(*self)),
             },
             Value::Generator(ref g) => match g.borrow().at(*self) {
-                Some(value) => value,
+                Some(value) => return Ok(value.clone()), // TODO: mutable referenece
                 None => return Err(index_out_of_range_error(*self)),
             },
             Value::Map(ref m) => match m.get(&Value::I64(*self)) {
-                Some(value) => value.clone(),
+                Some(value) => return Ok(value.clone()),
                 None => return Err(key_not_found_error(Value::I64(*self))),
             },
             _ => {
@@ -530,7 +541,7 @@ impl Function for i64 {
                 )));
             }
         };
-        Ok(result)
+        Ok(result.clone()) // TODO: mutable reference
     }
 }
 
@@ -554,5 +565,55 @@ impl Function for std::string::String {
             }
         };
         Ok(result)
+    }
+}
+
+// sliceable string
+impl Sliceable for std::string::String {
+    fn len(&self) -> usize {
+        self.len()
+    }
+    fn at(&self, index: i64) -> Option<Value> {
+        if index < 0 {
+            let index = self.len() as i64 + index;
+            if index < 0 {
+                return None;
+            }
+            return Some(Value::String(
+                self.chars().nth(index as usize).unwrap().to_string(),
+            ));
+        }
+        if index as usize >= self.len() {
+            return None;
+        }
+        Some(Value::String(
+            self.chars().nth(index as usize).unwrap().to_string(),
+        ))
+    }
+    fn slice(&self, start: i64, end: i64, step: i64) -> Value {
+        let mut new_slice = std::string::String::new();
+        let start = if start < 0 {
+            self.len() as i64 + start
+        } else {
+            start
+        };
+        let end = if end < 0 {
+            self.len() as i64 + end
+        } else {
+            end
+        };
+        let mut current = start;
+        loop {
+            if (step > 0 && current >= end) || (step < 0 && current <= end) {
+                break;
+            }
+            let v = self.at(current);
+            current += step;
+            if v.is_none() {
+                continue;
+            }
+            new_slice.push_str(v.unwrap().to_string().as_str());
+        }
+        Value::String(new_slice)
     }
 }

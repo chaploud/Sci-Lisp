@@ -7,6 +7,7 @@ use std::ops::{Index, IndexMut};
 use std::rc::Rc;
 
 use crate::core::builtin::generators::EmptyGenerator;
+use crate::core::types::sliceable::Sliceable;
 use crate::core::value::Value;
 use crate::core::value::ValueIter;
 
@@ -85,11 +86,11 @@ impl IntoIterator for List {
     }
 }
 
-impl List {
-    pub fn len(&self) -> usize {
+impl Sliceable for List {
+    fn len(&self) -> usize {
         self.value.len()
     }
-    pub fn at(&self, index: i64) -> Option<Value> {
+    fn at(&self, index: i64) -> Option<Value> {
         if index < 0 {
             let index = self.len() as i64 + index;
             if index < 0 {
@@ -101,5 +102,25 @@ impl List {
             return None;
         }
         Some(self.value[index as usize].clone())
+    }
+    fn slice(&self, start: i64, end: i64, step: i64) -> Value {
+        let mut result = Vec::<Value>::new();
+        let mut current = start;
+        if step > 0 {
+            while current < end {
+                if let Some(val) = self.at(current) {
+                    result.push(val.clone());
+                }
+                current += step;
+            }
+        } else {
+            while current > end {
+                if let Some(val) = self.at(current) {
+                    result.push(val.clone());
+                }
+                current += step;
+            }
+        }
+        Value::List(List::from(result))
     }
 }
