@@ -368,6 +368,7 @@ impl Value {
             Value::F64(f) => Ok(Value::String(f.to_string())),
             Value::String(s) => Ok(Value::String(s.to_string())),
             Value::Symbol(s) => Ok(Value::String(s.name.to_string())),
+            Value::Keyword(k) => Ok(Value::String(k.name.to_string())),
             _ => Err(Error::Type(format!(
                 "Cannot convert {} to string.",
                 self.type_name()

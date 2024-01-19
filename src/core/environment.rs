@@ -7,6 +7,7 @@ use std::rc::Rc;
 
 use nohash::BuildNoHashHasher;
 
+use crate::core::builtin::constants::*;
 use crate::core::builtin::functions::*;
 use crate::core::builtin::r#macros::*;
 use crate::core::types::error::Error;
@@ -33,6 +34,7 @@ impl Environment {
 
         insert_builtin_macros(&mut result.borrow_mut());
         insert_builtin_functions(&mut result.borrow_mut());
+        insert_builtin_constants(&mut result.borrow_mut());
 
         result
     }
@@ -160,6 +162,19 @@ fn insert_builtin_functions(env: &mut Environment) {
     let _ = env.insert(&SYMBOL_FIRST, Value::Function(Rc::new(FirstFn)));
     let _ = env.insert(&SYMBOL_REST, Value::Function(Rc::new(RestFn)));
     let _ = env.insert(&SYMBOL_RANGE, Value::Function(Rc::new(RangeFn)));
+    let _ = env.insert(&SYMBOL_SQRT, Value::Function(Rc::new(SqrtFn)));
+    let _ = env.insert(&SYMBOL_ABS, Value::Function(Rc::new(AbsFn)));
+    let _ = env.insert(&SYMBOL_COS, Value::Function(Rc::new(CosFn)));
+    let _ = env.insert(&SYMBOL_SIN, Value::Function(Rc::new(SinFn)));
+    let _ = env.insert(&SYMBOL_TAN, Value::Function(Rc::new(TanFn)));
+    let _ = env.insert(&SYMBOL_ACOS, Value::Function(Rc::new(AcosFn)));
+    let _ = env.insert(&SYMBOL_ASIN, Value::Function(Rc::new(AsinFn)));
+    let _ = env.insert(&SYMBOL_ATAN, Value::Function(Rc::new(AtanFn)));
+    let _ = env.insert(&SYMBOL_LOG, Value::Function(Rc::new(LogFn)));
+    let _ = env.insert(&SYMBOL_LN, Value::Function(Rc::new(LnFn)));
+    let _ = env.insert(&SYMBOL_LOG10, Value::Function(Rc::new(Log10Fn)));
+    let _ = env.insert(&SYMBOL_RAND, Value::Function(Rc::new(RandFn)));
+    let _ = env.insert(&SYMBOL_RANDINT, Value::Function(Rc::new(RandIntFn)));
 }
 
 fn insert_builtin_macros(env: &mut Environment) {
@@ -192,4 +207,9 @@ fn insert_builtin_macros(env: &mut Environment) {
     let _ = env.insert(&SYMBOL_FOR, Value::Macro(Rc::new(ForMacro)));
     let _ = env.insert(&SYMBOL_GENSYM, Value::Macro(Rc::new(GensymMacro)));
     let _ = env.insert(&SYMBOL_MACRO, Value::Macro(Rc::new(MacroMacro)));
+}
+
+fn insert_builtin_constants(env: &mut Environment) {
+    let _ = env.insert(&SYMBOL_PI, CONST_PI);
+    let _ = env.insert(&SYMBOL_E, CONST_E);
 }

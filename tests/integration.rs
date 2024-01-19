@@ -685,7 +685,192 @@ fn execute_repl_00045() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-// str
+#[test]
+fn execute_repl_00046() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (str 3.14)
+        (str 'abc)
+        (str :abc)
+        (i64 "2")
+        (f64 "3.14")
+        "##,
+    );
+    let out = "\"3.14\"\n\"abc\"\n\":abc\"\n2\n3.14";
+
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00047() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (sqrt 2)
+        "##,
+    );
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("1.41421356"));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00048() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (abs -2)
+        "##,
+    );
+    cmd.assert().success().stdout(predicate::str::contains("2"));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00049() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (cos (* 2.0 *pi*))
+        "##,
+    );
+    cmd.assert().success().stdout(predicate::str::contains("1"));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00050() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (sin (/ *pi* 2))
+        "##,
+    );
+    cmd.assert().success().stdout(predicate::str::contains("1"));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00051() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (tan 2.0)
+        "##,
+    );
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("-2.1850398"));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00052() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (acos 0.5)
+        "##,
+    );
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("1.04719"));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00053() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (asin 0.5)
+        "##,
+    );
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("0.523598"));
+    Ok(())
+}
+#[test]
+fn execute_repl_00054() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (atan 0.5)
+        "##,
+    );
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("0.463647"));
+    Ok(())
+}
+#[test]
+fn execute_repl_00055() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (log 2 10)
+        "##,
+    );
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("3.321928"));
+    Ok(())
+}
+#[test]
+fn execute_repl_00056() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (ln *e*)
+        "##,
+    );
+    cmd.assert().success().stdout(predicate::str::contains("1"));
+    Ok(())
+}
+#[test]
+fn execute_repl_00058() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (log10 2.0)
+        "##,
+    );
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("0.301029"));
+    Ok(())
+}
+#[test]
+fn execute_repl_00059() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (when (< 0 (rand) 1) "ok")
+        "##,
+    );
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("ok"));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00060() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (when (<= 5 (randint 5 30) 29) "ok")
+        "##,
+    );
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("ok"));
+    Ok(())
+}
 // type
 // print
 // doc

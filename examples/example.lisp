@@ -196,19 +196,27 @@ inf                 ; positive infinity
 (map? {:a 1, :b 2})
 (set? #{1, 2, 3})
 
+;; Cast
+(str 3.14)           ; to string
+(str 'abc)
+(str :abc)
+(i64 "2")            ; to i64
+(f64 "2.0")          ; to f64
+
 ;; Math
+(sqrt 2)
 (abs -2)             ; absolute value
-(abs [-2, 3, 4])     ; absolute value applying to vector
-(cos 2.0)            ; cosine
-(sin 2.0)            ; sine
+(cos (* 2.0 *pi*))   ; cosine
+(sin (/ *pi* 2))     ; sine
 (tan 2.0)            ; tangent
-(acos 2.0)           ; arccosine
-(asin 2.0)           ; arcsine
-(atan 2.0)           ; arctangent
-(log 2.0)            ; log_e
-(log10 2.0)          ; log_10
+(acos 0.5)           ; arccosine
+(asin 0.5)           ; arcsine
+(atan 0.5)           ; arctangent
+(log 2 10)           ; log_2(10)
+(ln *e*)             ; log_e(e), natural logarithm
+(log10 2.0)          ; log_10(2.0)
 (rand)               ; rondom value 0.0 to 1.0
-(randint 30)         ; random integer 0 to n
+(randint 0 30)       ; random integer 0 to n
 
 ;; Utility
 (type [1, 2, 3])              ; show type
@@ -248,3 +256,6 @@ inf                 ; positive infinity
 (shuffle! v)                          ; shuffle (destructive)
 (push! v 4)                           ; push_back (destructive)
 (cons! v 4)                           ; push_front (destructive)
+
+; first
+; rest

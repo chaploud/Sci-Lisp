@@ -6,6 +6,7 @@ use std::rc::Rc;
 use std::{fmt, ptr};
 
 use once_cell::sync::Lazy;
+use rand::Rng;
 use unescape;
 
 use crate::core::builtin::generators::Range;
@@ -1444,6 +1445,443 @@ impl Function for RangeFn {
 impl fmt::Display for RangeFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "<builtin function: range>")
+    }
+}
+
+// sqrt
+pub static SYMBOL_SQRT: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("sqrt"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the square root of a number."),
+        mutable: false,
+    },
+    hash: fxhash::hash("sqrt"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SqrtFn;
+
+impl Function for SqrtFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::I64(i) => Ok(Value::F64((i as f64).sqrt())),
+            Value::F64(f) => Ok(Value::F64(f.sqrt())),
+            _ => Err(type_error("i64 or f64", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for SqrtFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: sqrt>")
+    }
+}
+
+// abs
+pub static SYMBOL_ABS: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("abs"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the absolute value of a number."),
+        mutable: false,
+    },
+    hash: fxhash::hash("abs"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AbsFn;
+
+impl Function for AbsFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::I64(i) => Ok(Value::I64(i.abs())),
+            Value::F64(f) => Ok(Value::F64(f.abs())),
+            _ => Err(type_error("i64 or f64", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for AbsFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: abs>")
+    }
+}
+
+// cos
+pub static SYMBOL_COS: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("cos"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the cosine of a number."),
+        mutable: false,
+    },
+    hash: fxhash::hash("cos"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CosFn;
+
+impl Function for CosFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(type_error("i64 or f64", args[0].type_name().as_str()));
+        }
+
+        match args[0].clone() {
+            Value::I64(i) => Ok(Value::F64((i as f64).cos())),
+            Value::F64(f) => Ok(Value::F64(f.cos())),
+            _ => Err(type_error("i64 or f64", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for CosFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: cos>")
+    }
+}
+
+// sin
+pub static SYMBOL_SIN: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("sin"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the sine of a number."),
+        mutable: false,
+    },
+    hash: fxhash::hash("sin"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SinFn;
+
+impl Function for SinFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(type_error("i64 or f64", args[0].type_name().as_str()));
+        }
+
+        match args[0].clone() {
+            Value::I64(i) => Ok(Value::F64((i as f64).sin())),
+            Value::F64(f) => Ok(Value::F64(f.sin())),
+            _ => Err(type_error("i64 or f64", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for SinFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: sin>")
+    }
+}
+
+// tan
+pub static SYMBOL_TAN: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("tan"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the tangent of a number."),
+        mutable: false,
+    },
+    hash: fxhash::hash("tan"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TanFn;
+
+impl Function for TanFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(type_error("i64 or f64", args[0].type_name().as_str()));
+        }
+
+        match args[0].clone() {
+            Value::I64(i) => Ok(Value::F64((i as f64).tan())),
+            Value::F64(f) => Ok(Value::F64(f.tan())),
+            _ => Err(type_error("i64 or f64", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for TanFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: tan>")
+    }
+}
+
+// acos
+pub static SYMBOL_ACOS: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("acos"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the arccosine of a number."),
+        mutable: false,
+    },
+    hash: fxhash::hash("acos"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AcosFn;
+
+impl Function for AcosFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(type_error("i64 or f64", args[0].type_name().as_str()));
+        }
+
+        match args[0].clone() {
+            Value::I64(i) => Ok(Value::F64((i as f64).acos())),
+            Value::F64(f) => Ok(Value::F64(f.acos())),
+            _ => Err(type_error("i64 or f64", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for AcosFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: acos>")
+    }
+}
+
+// asin
+pub static SYMBOL_ASIN: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("asin"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the arcsine of a number."),
+        mutable: false,
+    },
+    hash: fxhash::hash("asin"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AsinFn;
+
+impl Function for AsinFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(type_error("i64 or f64", args[0].type_name().as_str()));
+        }
+
+        match args[0].clone() {
+            Value::I64(i) => Ok(Value::F64((i as f64).asin())),
+            Value::F64(f) => Ok(Value::F64(f.asin())),
+            _ => Err(type_error("i64 or f64", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for AsinFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: asin>")
+    }
+}
+
+// atan
+pub static SYMBOL_ATAN: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("atan"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the arctangent of a number."),
+        mutable: false,
+    },
+    hash: fxhash::hash("atan"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AtanFn;
+
+impl Function for AtanFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(type_error("i64 or f64", args[0].type_name().as_str()));
+        }
+
+        match args[0].clone() {
+            Value::I64(i) => Ok(Value::F64((i as f64).atan())),
+            Value::F64(f) => Ok(Value::F64(f.atan())),
+            _ => Err(type_error("i64 or f64", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for AtanFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: atan>")
+    }
+}
+
+// log
+pub static SYMBOL_LOG: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("log"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the natural logarithm of a number."),
+        mutable: false,
+    },
+    hash: fxhash::hash("log"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LogFn;
+
+impl Function for LogFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        let base = match args[0].clone() {
+            Value::I64(i) => i as f64,
+            Value::F64(f) => f,
+            _ => return Err(type_error("i64 or f64", args[1].type_name().as_str())),
+        };
+
+        match args[1].clone() {
+            Value::I64(i) => Ok(Value::F64((i as f64).log(base))),
+            Value::F64(f) => Ok(Value::F64(f.log(base))),
+            _ => Err(type_error("i64 or f64", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for LogFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: log>")
+    }
+}
+
+// loge
+pub static SYMBOL_LN: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("ln"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the natural logarithm of a number."),
+        mutable: false,
+    },
+    hash: fxhash::hash("ln"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LnFn;
+
+impl Function for LnFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::I64(i) => Ok(Value::F64((i as f64).ln())),
+            Value::F64(f) => Ok(Value::F64(f.ln())),
+            _ => Err(type_error("i64 or f64", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for LnFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: ln>")
+    }
+}
+
+// log10
+pub static SYMBOL_LOG10: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("log10"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the base 10 logarithm of a number."),
+        mutable: false,
+    },
+    hash: fxhash::hash("log10"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Log10Fn;
+
+impl Function for Log10Fn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::I64(i) => Ok(Value::F64((i as f64).log10())),
+            Value::F64(f) => Ok(Value::F64(f.log10())),
+            _ => Err(type_error("i64 or f64", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for Log10Fn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: log10>")
+    }
+}
+
+// rand
+pub static SYMBOL_RAND: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("rand"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get a random number between 0 and 1."),
+        mutable: false,
+    },
+    hash: fxhash::hash("rand"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RandFn;
+
+impl Function for RandFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if !args.is_empty() {
+            return Err(arity_error(0, args.len()));
+        }
+
+        Ok(Value::F64(rand::random::<f64>()))
+    }
+}
+
+impl fmt::Display for RandFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: rand>")
+    }
+}
+
+// randint
+pub static SYMBOL_RANDINT: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("randint"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get a random integer between two numbers."),
+        mutable: false,
+    },
+    hash: fxhash::hash("randint"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RandIntFn;
+
+impl Function for RandIntFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        let start = match args[0].clone() {
+            Value::I64(i) => i,
+            _ => return Err(type_error("i64", args[0].type_name().as_str())),
+        };
+
+        let end = match args[1].clone() {
+            Value::I64(i) => i,
+            _ => return Err(type_error("i64", args[1].type_name().as_str())),
+        };
+
+        Ok(Value::I64(rand::thread_rng().gen_range(start..end)))
+    }
+}
+
+impl fmt::Display for RandIntFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: randint>")
     }
 }
 
