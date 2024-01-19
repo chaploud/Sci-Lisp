@@ -43,7 +43,7 @@ fn eval_list(list: List, environment: Rc<RefCell<Environment>>) -> Result<Value>
         Value::String(s) => s.call(eval_rest(rest, environment)?),
         Value::Keyword(k) => k.call(eval_rest(rest, environment)?),
         Value::Vector(v) => v.call(eval_rest(rest, environment)?),
-        Value::Macro(mac) => mac.call(rest, environment), // TODO: splicing for macro rest
+        Value::Macro(mac) => mac.call(rest, environment),
         f => Err(Error::Syntax(format!("cannot call '{}'", f))),
     };
 
@@ -69,7 +69,6 @@ pub fn eval(value: Value, environment: Rc<RefCell<Environment>>) -> Result<Value
         | Value::Keyword(_)
         | Value::Function(_)
         | Value::Macro(_)
-        | Value::ControlFlowMacro(_)
         | Value::ControlFlow(_)
         | Value::Generator(_) => Ok(value),
         Value::Slice(s) => {

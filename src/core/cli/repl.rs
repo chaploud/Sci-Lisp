@@ -70,8 +70,7 @@ pub fn repl() -> Result<()> {
         println!("No previous history.");
     }
 
-    let root = Environment::new_root_environment();
-    let environment = Environment::new_local_environment(root.clone());
+    let environment = Environment::new_root_environment();
     // TODO: show completion list from environment (with tab key)
 
     loop {
@@ -143,8 +142,7 @@ pub fn execute(file: Option<PathBuf>) -> Result<()> {
     read(&mut ast, parsed)?;
 
     // Eval
-    let root = Environment::new_root_environment();
-    let environment = Environment::new_local_environment(root.clone());
+    let environment = Environment::new_root_environment();
     eval_ast(ast, environment)?;
 
     Ok(())

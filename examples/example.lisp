@@ -50,13 +50,13 @@ inf                 ; positive infinity
 
 (def sum                     ; bind function using def
   (fn [a b]                  ; anonymous/lambda function
-    (return (+ a b)          ; can use early return
-    (- a b))))
+    (return (+ a b))         ; can use early return
+    (- a b)))
 
 ;; ===== Control Flow
 (if (< 2 3)                  ; if
-  "true"                     ; true form
-  "false")                   ; false form (must)
+  true                       ; true form
+  false)                     ; false form (must)
 
 (when (< 2 3)                ; when
   (do                        ; true form
@@ -81,12 +81,13 @@ inf                 ; positive infinity
   (print i))
 
 (def a 0)
-(while (< a 100)             ; while loop
+(while (< a 10)              ; while loop
   (print a)
   (set! a (+ a 1))
-  (if (> a 50)
-     (break)                 ; break
-     (continue)))            ; continue
+  (if (> a 5)
+    (break (+ a 9994))       ; break with return value
+    (continue))              ; continue
+  (print "never print"))
 
 ;; ******************* WIP **********************
 ;; ===== enum

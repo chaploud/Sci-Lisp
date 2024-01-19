@@ -18,7 +18,6 @@ use crate::core::types::generator::Generator;
 use crate::core::types::keyword::Keyword;
 use crate::core::types::list::List;
 use crate::core::types::map::Map;
-use crate::core::types::r#macro::ControlFlowMacro;
 use crate::core::types::r#macro::Macro;
 use crate::core::types::r#macro::SplicingMacro;
 use crate::core::types::set::Set;
@@ -49,7 +48,6 @@ pub enum Value {
     Generator(Rc<RefCell<dyn Generator>>),
     Slice(Rc<Slice>),
     ControlFlow(Rc<ControlFlow<Value, Value>>),
-    ControlFlowMacro(Rc<dyn ControlFlowMacro>),
 }
 
 impl PartialEq for Value {
@@ -106,6 +104,7 @@ impl fmt::Display for Value {
             Macro(mac) => write!(f, "{}", mac),
             Generator(g) => write!(f, "{}", g.borrow()),
             Slice(s) => write!(f, "{}", s),
+            ControlFlow(cf) => write!(f, "{:?}", cf),
             _ => panic!("Cannot display {}", self.type_name()), // OK
         }
     }
@@ -131,6 +130,7 @@ impl fmt::Debug for Value {
             Macro(mac) => write!(f, "{}", mac),
             Generator(g) => write!(f, "{}", g.borrow()),
             Slice(s) => write!(f, "{}", s),
+            ControlFlow(cf) => write!(f, "{:?}", cf),
             _ => panic!("Cannot debug {}", self.type_name()), // OK
         }
     }

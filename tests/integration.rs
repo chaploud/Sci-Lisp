@@ -16,7 +16,7 @@ fn show_help() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn execute_success() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("scilisp")?;
-    cmd.arg("tests/main.lisp");
+    cmd.arg("tests/execute.lisp");
     cmd.assert().success().stdout(predicate::str::contains(
         "Hello from Sci-Lisp! [2024, 2024]",
     ));
@@ -468,6 +468,128 @@ fn execute_repl_00034() -> Result<(), Box<dyn std::error::Error>> {
         "##,
     );
     let out = "sum\n1 2\n3";
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00035() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (def sum
+          (fn [a b]
+            (return (+ a b))
+            (+ a b)))
+
+        (sum 1 2)
+        "##,
+    );
+    let out = "sum\n3";
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00036() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (if (< 2 3)
+          true
+          false)
+        "##,
+    );
+    let out = "true";
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00037() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (when (< 2 3)
+           (do
+             (print "2 < 3")
+             "retval"))
+        "##,
+    );
+    let out = "2 < 3\n\"retval\"";
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00038() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (def n 0)
+        (cond
+          (< n 0) "negative"
+          (> n 0) "positive"
+          :else "default")
+        "##,
+    );
+    let out = "n\n\"default\"";
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00039() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (def val "c")
+        (switch val
+          ["a"]
+            (print "A")
+          ["b", "c"]
+            (print "B or C")
+          :default "DEFAULT")
+        "##,
+    );
+    let out = "val\nB or C\nnil";
+
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00040() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (for [i (range 5)]
+          (print i))
+        "##,
+    );
+    let out = "0\n1\n2\n3\n4\nnil";
+
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00041() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (def a 0)
+        (while (< a 10)
+          (print a)
+          (set! a (+ a 1))
+          (if (> a 5)
+            (break (+ a 9994))
+            (continue))
+          (print "never print"))
+        "##,
+    );
+    let out = "a\n0\n1\n2\n3\n4\n5\n10000";
+
     cmd.assert().success().stdout(format!("{}\n", out));
     Ok(())
 }

@@ -108,8 +108,9 @@ impl Environment {
             Entry::Vacant(_) => {
                 if let Some(parent) = self.parent.clone() {
                     parent.borrow_mut().set(key, value)?;
+                } else {
+                    return Err(Error::Name(key.to_string()));
                 }
-                return Err(Error::Name(key.to_string()));
             }
         }
         Ok(())
@@ -152,6 +153,7 @@ fn insert_builtin_macros(env: &mut Environment) {
     );
     let _ = env.insert(&SYMBOL_DO, Value::Macro(Rc::new(DoMacro)));
     let _ = env.insert(&SYMBOL_IF, Value::Macro(Rc::new(IfMacro)));
+    let _ = env.insert(&SYMBOL_WHEN, Value::Macro(Rc::new(WhenMacro)));
     let _ = env.insert(&SYMBOL_WHILE, Value::Macro(Rc::new(WhileMacro)));
     let _ = env.insert(&SYMBOL_SWITCH, Value::Macro(Rc::new(SwitchMacro)));
     let _ = env.insert(&SYMBOL_TIME, Value::Macro(Rc::new(TimeMacro)));

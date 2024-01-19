@@ -7,6 +7,7 @@ use std::rc::Rc;
 
 use once_cell::sync::Lazy;
 
+use crate::core::builtin::macros::{ReturnMacro, SYMBOL_RETURN};
 use crate::core::environment::Environment;
 use crate::core::eval::eval;
 use crate::core::types::error::arity_error;
@@ -72,12 +73,19 @@ impl Function for Lambda {
             let _ = local_env.borrow_mut().insert(sym, arg.clone());
         }
 
-        let mut result = Value::Nil;
+        local_env
+            .borrow_mut()
+            .insert(&SYMBOL_RETURN, Value::Macro(Rc::new(ReturnMacro)))?;
+
+        let mut result = Ok(Value::Nil);
         for val in &self.body {
-            result = eval(val.clone(), local_env.clone())?;
+            result = eval(val.clone(), local_env.clone());
+            if let Err(Error::Return(v)) = result {
+                return Ok(v);
+            }
         }
 
-        Ok(result)
+        result
     }
 }
 

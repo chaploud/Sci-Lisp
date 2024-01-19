@@ -31,6 +31,9 @@ pub enum Error {
     Index(String),
     Key(String),
     Value(String),
+
+    // return
+    Return(Value),
 }
 
 impl fmt::Display for Error {
@@ -64,6 +67,7 @@ impl fmt::Display for Error {
             Index(msg) => write!(f, "Index Error: {}", msg),
             Key(msg) => write!(f, "Key Error: {}", msg),
             Value(msg) => write!(f, "Value Error: {}", msg),
+            Return(val) => write!(f, "Return: {}", val),
         }
     }
 }
@@ -88,6 +92,7 @@ impl std::error::Error for Error {
             Index(_) => None,
             Key(_) => None,
             Value(_) => None,
+            Return(_) => None,
         }
     }
 }
