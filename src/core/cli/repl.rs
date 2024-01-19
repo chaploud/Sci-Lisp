@@ -67,7 +67,7 @@ pub fn repl() -> Result<()> {
     rl.set_helper(Some(helper));
 
     if rl.load_history(HISTORY_FILE).is_err() {
-        println!("No previous history.");
+        eprintln!("No previous history.");
     }
 
     let environment = Environment::new_root_environment();
