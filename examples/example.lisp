@@ -151,7 +151,7 @@ inf                 ; positive infinity
 (my-and "a" "b" "c")              ; => "c"
 ;; ******************************************
 
-;; ===== Built-in Functions
+;; ===== Built-in Functions/Macros
 
 ;; Arithmetic
 (inc 1)              ; add 1
@@ -164,8 +164,8 @@ inf                 ; positive infinity
 (% 3 2)              ; remainder
 
 ;; Compare
-(= 2 2)              ; equal
-(is [1, 2] [1, 2])   ; ident (=> false)
+(= 2 2 2)            ; equal
+(!= 2 3)             ; not equal
 (< 2 3)              ; less
 (<= 2 3)             ; less equal
 (> 2 3)              ; greater
@@ -176,6 +176,25 @@ inf                 ; positive infinity
 (or true false)      ; or
 (xor true true)      ; xor
 (not false)          ; not
+
+;; Predicates
+(nil? nil)
+(true? true)
+(false? false)
+(number? 1)
+(i64? 1)
+(f64? 1.0)
+(zero? 0)
+(even? 2)
+(odd? 3)
+(empty? [])
+(string? "abc")
+(keyword? :abc)
+(symbol? 'abc)
+(list? '(1, 2, 3))
+(vector? [1, 2, 3])
+(map? {:a 1, :b 2})
+(set? #{1, 2, 3})
 
 ;; Math
 (abs -2)             ; absolute value

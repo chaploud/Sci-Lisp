@@ -82,6 +82,72 @@ impl fmt::Display for PrintFn {
     }
 }
 
+// inc
+pub static SYMBOL_INC: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("inc"),
+    meta: Meta {
+        doc: Cow::Borrowed("Increment a value by 1."),
+        mutable: false,
+    },
+    hash: fxhash::hash("inc"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct IncFn;
+
+impl Function for IncFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::I64(i) => Ok(Value::I64(i + 1)),
+            Value::F64(f) => Ok(Value::F64(f + 1.0)),
+            _ => Err(type_error("i64 or f64", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for IncFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: inc>")
+    }
+}
+
+// dec
+pub static SYMBOL_DEC: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("dec"),
+    meta: Meta {
+        doc: Cow::Borrowed("Decrement a value by 1."),
+        mutable: false,
+    },
+    hash: fxhash::hash("dec"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DecFn;
+
+impl Function for DecFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::I64(i) => Ok(Value::I64(i - 1)),
+            Value::F64(f) => Ok(Value::F64(f - 1.0)),
+            _ => Err(type_error("i64 or f64", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for DecFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: dec>")
+    }
+}
+
 fn helper_is_number(arg: Value) -> Result<Value> {
     match arg {
         Value::I64(i) => Ok(Value::I64(i)),
@@ -378,7 +444,7 @@ impl fmt::Display for NotEqualFn {
     }
 }
 
-// is
+// is TODO: This returns almost always false. need another approach
 pub static SYMBOL_IS: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("is"),
     meta: Meta {
@@ -563,6 +629,548 @@ impl Function for LtFn {
 impl fmt::Display for LtFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "<builtin function: < >")
+    }
+}
+
+// xor
+pub static SYMBOL_XOR: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("xor"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if one of the values is truthy and the other is falsy."),
+        mutable: false,
+    },
+    hash: fxhash::hash("xor"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct XorFn;
+
+impl Function for XorFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+        Ok(Value::Bool(args[0].is_truthy() ^ args[1].is_truthy()))
+    }
+}
+
+impl fmt::Display for XorFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: xor>")
+    }
+}
+
+// not
+pub static SYMBOL_NOT: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("not"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if the value is falsy or nil."),
+        mutable: false,
+    },
+    hash: fxhash::hash("not"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NotFn;
+
+impl Function for NotFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+        Ok(Value::Bool(!args[0].is_truthy()))
+    }
+}
+
+impl fmt::Display for NotFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: not>")
+    }
+}
+
+// zero?
+pub static SYMBOL_ZEROQ: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("zero?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if the value is zero."),
+        mutable: false,
+    },
+    hash: fxhash::hash("zero?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ZeroQFn;
+
+impl Function for ZeroQFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+        match args[0].clone() {
+            Value::I64(i) => Ok(Value::Bool(i == 0)),
+            Value::F64(f) => Ok(Value::Bool(f == 0.0)),
+            _ => Err(type_error("i64 or f64", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for ZeroQFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: zero?>")
+    }
+}
+
+// nil?
+pub static SYMBOL_NILQ: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("nil?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if the value is nil."),
+        mutable: false,
+    },
+    hash: fxhash::hash("nil?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NilQFn;
+
+impl Function for NilQFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+        Ok(Value::Bool(args[0].is_nil()))
+    }
+}
+
+impl fmt::Display for NilQFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: nil?>")
+    }
+}
+
+// true?
+pub static SYMBOL_TRUEQ: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("true?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if the value is true."),
+        mutable: false,
+    },
+    hash: fxhash::hash("true?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TrueQFn;
+
+impl Function for TrueQFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+        Ok(Value::Bool(args[0].is_true()))
+    }
+}
+
+impl fmt::Display for TrueQFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: true?>")
+    }
+}
+
+// false?
+pub static SYMBOL_FALSEQ: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("false?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if the value is false."),
+        mutable: false,
+    },
+    hash: fxhash::hash("false?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FalseQFn;
+
+impl Function for FalseQFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+        Ok(Value::Bool(args[0].is_false()))
+    }
+}
+
+impl fmt::Display for FalseQFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: false?>")
+    }
+}
+
+// number?
+pub static SYMBOL_NUMBERQ: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("number?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if the value is a number."),
+        mutable: false,
+    },
+    hash: fxhash::hash("number?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NumberQFn;
+
+impl Function for NumberQFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+        Ok(Value::Bool(args[0].is_number()))
+    }
+}
+
+impl fmt::Display for NumberQFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: number?>")
+    }
+}
+
+// i64?
+pub static SYMBOL_I64Q: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("i64?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if the value is an i64."),
+        mutable: false,
+    },
+    hash: fxhash::hash("i64?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct I64QFn;
+
+impl Function for I64QFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+        Ok(Value::Bool(args[0].is_i64()))
+    }
+}
+
+impl fmt::Display for I64QFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: i64?>")
+    }
+}
+
+// f64?
+pub static SYMBOL_F64Q: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("f64?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if the value is an f64."),
+        mutable: false,
+    },
+    hash: fxhash::hash("f64?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct F64QFn;
+
+impl Function for F64QFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+        Ok(Value::Bool(args[0].is_f64()))
+    }
+}
+
+impl fmt::Display for F64QFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: f64?>")
+    }
+}
+
+// even?
+pub static SYMBOL_EVENQ: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("even?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if the value is an even number."),
+        mutable: false,
+    },
+    hash: fxhash::hash("even?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EvenQFn;
+
+impl Function for EvenQFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+        match args[0].clone() {
+            Value::I64(i) => Ok(Value::Bool(i % 2 == 0)),
+            _ => Err(type_error("i64", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for EvenQFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: even?>")
+    }
+}
+
+// odd?
+pub static SYMBOL_ODDQ: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("odd?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if the value is an odd number."),
+        mutable: false,
+    },
+    hash: fxhash::hash("odd?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OddQFn;
+
+impl Function for OddQFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+        match args[0].clone() {
+            Value::I64(i) => Ok(Value::Bool(i % 2 != 0)),
+            _ => Err(type_error("i64", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for OddQFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: odd?>")
+    }
+}
+
+// empty?
+pub static SYMBOL_EMPTYQ: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("empty?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if the value is empty."),
+        mutable: false,
+    },
+    hash: fxhash::hash("empty?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EmptyQFn;
+
+impl Function for EmptyQFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+        Ok(Value::Bool(args[0].is_empty()))
+    }
+}
+
+impl fmt::Display for EmptyQFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: empty?>")
+    }
+}
+
+// string?
+pub static SYMBOL_STRINGQ: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("string?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if the value is a string."),
+        mutable: false,
+    },
+    hash: fxhash::hash("string?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StringQFn;
+
+impl Function for StringQFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+        Ok(Value::Bool(args[0].is_string()))
+    }
+}
+
+impl fmt::Display for StringQFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: string?>")
+    }
+}
+
+// keyword?
+pub static SYMBOL_KEYWORDQ: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("keyword?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if the value is a keyword."),
+        mutable: false,
+    },
+    hash: fxhash::hash("keyword?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct KeywordQFn;
+
+impl Function for KeywordQFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+        Ok(Value::Bool(args[0].is_keyword()))
+    }
+}
+
+impl fmt::Display for KeywordQFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: keyword?>")
+    }
+}
+
+// symbol?
+pub static SYMBOL_SYMBOLQ: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("symbol?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if the value is a symbol."),
+        mutable: false,
+    },
+    hash: fxhash::hash("symbol?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SymbolQFn;
+
+impl Function for SymbolQFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+        Ok(Value::Bool(args[0].is_symbol()))
+    }
+}
+
+impl fmt::Display for SymbolQFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: symbol?>")
+    }
+}
+
+// list?
+pub static SYMBOL_LISTQ: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("list?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if the value is a list."),
+        mutable: false,
+    },
+    hash: fxhash::hash("list?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ListQFn;
+
+impl Function for ListQFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+        Ok(Value::Bool(args[0].is_list()))
+    }
+}
+
+impl fmt::Display for ListQFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: list?>")
+    }
+}
+
+// vector?
+pub static SYMBOL_VECTORQ: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("vector?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if the value is a vector."),
+        mutable: false,
+    },
+    hash: fxhash::hash("vector?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct VectorQFn;
+
+impl Function for VectorQFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+        Ok(Value::Bool(args[0].is_vector()))
+    }
+}
+
+impl fmt::Display for VectorQFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: vector?>")
+    }
+}
+
+// map?
+pub static SYMBOL_MAPQ: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("map?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if the value is a map."),
+        mutable: false,
+    },
+    hash: fxhash::hash("map?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MapQFn;
+
+impl Function for MapQFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+        Ok(Value::Bool(args[0].is_map()))
+    }
+}
+
+impl fmt::Display for MapQFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: map?>")
+    }
+}
+
+// set?
+pub static SYMBOL_SETQ: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("set?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if the value is a set."),
+        mutable: false,
+    },
+    hash: fxhash::hash("set?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SetQFn;
+
+impl Function for SetQFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+        Ok(Value::Bool(args[0].is_set()))
+    }
+}
+
+impl fmt::Display for SetQFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: set?>")
     }
 }
 

@@ -8,8 +8,8 @@ separation_char = _{ "." | "|" }
 identifier = _{ ( ASCII_ALPHA | special_char) ~ (ASCII_ALPHANUMERIC | special_char)*}
 
 // atom
-nil = @{ "nil" }
-bool = @{ "true" | "false" }
+nil = @{ "nil" ~ !"?" }
+bool = @{ ("true" | "false") ~ !"?" }
 f64 = @{ int ~ "." ~ int? ~ exp?
        | int ~ exp                                  // -0_2e+02
        | pm? ~ "." ~ digit ~ (digit | "_")* ~ exp?  // -.0_0e5

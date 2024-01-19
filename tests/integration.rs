@@ -593,3 +593,99 @@ fn execute_repl_00041() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert().success().stdout(format!("{}\n", out));
     Ok(())
 }
+
+#[test]
+fn execute_repl_00042() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (inc 1)
+        (dec 1)
+        (+ 1 1)
+        (- 1 1)
+        (* 2 3)
+        (/ 1 2)
+        (// 5 2)
+        (% 3 2)
+        "##,
+    );
+    let out = "2\n0\n2\n0\n6\n0.5\n2\n1";
+
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00043() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (= 2 2 2)
+        (= 2 2 3)
+        (!= 2 3)
+        (< 2 3)
+        (<= 3 3)
+        (> 2 3)
+        (>= 2 3)
+        "##,
+    );
+    let out = "true\nfalse\ntrue\ntrue\ntrue\nfalse\nfalse";
+
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00044() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (= 2 2 2)
+        (= 2 2 3)
+        (!= 2 3)
+        (< 2 3)
+        (<= 3 3)
+        (> 2 3)
+        (>= 2 3)
+        "##,
+    );
+    let out = "true\nfalse\ntrue\ntrue\ntrue\nfalse\nfalse";
+
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00045() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (nil? nil)
+        (true? true)
+        (false? false)
+        (number? 1)
+        (i64? 1)
+        (f64? 1.0)
+        (zero? 0)
+        (even? 2)
+        (odd? 3)
+        (empty? [])
+        (string? "abc")
+        (keyword? :abc)
+        (symbol? 'abc)
+        (list? '(1, 2, 3))
+        (vector? [1, 2, 3])
+        (map? {:a 1, :b 2})
+        (set? #{1, 2, 3})
+        "##,
+    );
+    let out = "true\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue\ntrue";
+
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
+// str
+// type
+// print
+// doc

@@ -120,6 +120,8 @@ impl Environment {
 fn insert_builtin_functions(env: &mut Environment) {
     let _ = env.insert(&SYMBOL_TYPE, Value::Function(Rc::new(TypeFn)));
     let _ = env.insert(&SYMBOL_PRINT, Value::Function(Rc::new(PrintFn)));
+    let _ = env.insert(&SYMBOL_INC, Value::Function(Rc::new(IncFn)));
+    let _ = env.insert(&SYMBOL_DEC, Value::Function(Rc::new(DecFn)));
     let _ = env.insert(&SYMBOL_ADD, Value::Function(Rc::new(AddFn)));
     let _ = env.insert(&SYMBOL_SUB, Value::Function(Rc::new(SubFn)));
     let _ = env.insert(&SYMBOL_MUL, Value::Function(Rc::new(MulFn)));
@@ -133,6 +135,25 @@ fn insert_builtin_functions(env: &mut Environment) {
     let _ = env.insert(&SYMBOL_GT, Value::Function(Rc::new(GtFn)));
     let _ = env.insert(&SYMBOL_LE, Value::Function(Rc::new(LeFn)));
     let _ = env.insert(&SYMBOL_LT, Value::Function(Rc::new(LtFn)));
+    let _ = env.insert(&SYMBOL_XOR, Value::Function(Rc::new(XorFn)));
+    let _ = env.insert(&SYMBOL_NOT, Value::Function(Rc::new(NotFn)));
+    let _ = env.insert(&SYMBOL_ZEROQ, Value::Function(Rc::new(ZeroQFn)));
+    let _ = env.insert(&SYMBOL_NILQ, Value::Function(Rc::new(NilQFn)));
+    let _ = env.insert(&SYMBOL_TRUEQ, Value::Function(Rc::new(TrueQFn)));
+    let _ = env.insert(&SYMBOL_FALSEQ, Value::Function(Rc::new(FalseQFn)));
+    let _ = env.insert(&SYMBOL_NUMBERQ, Value::Function(Rc::new(NumberQFn)));
+    let _ = env.insert(&SYMBOL_I64Q, Value::Function(Rc::new(I64QFn)));
+    let _ = env.insert(&SYMBOL_F64Q, Value::Function(Rc::new(F64QFn)));
+    let _ = env.insert(&SYMBOL_EVENQ, Value::Function(Rc::new(EvenQFn)));
+    let _ = env.insert(&SYMBOL_ODDQ, Value::Function(Rc::new(OddQFn)));
+    let _ = env.insert(&SYMBOL_EMPTYQ, Value::Function(Rc::new(EmptyQFn)));
+    let _ = env.insert(&SYMBOL_STRINGQ, Value::Function(Rc::new(StringQFn)));
+    let _ = env.insert(&SYMBOL_KEYWORDQ, Value::Function(Rc::new(KeywordQFn)));
+    let _ = env.insert(&SYMBOL_SYMBOLQ, Value::Function(Rc::new(SymbolQFn)));
+    let _ = env.insert(&SYMBOL_LISTQ, Value::Function(Rc::new(ListQFn)));
+    let _ = env.insert(&SYMBOL_VECTORQ, Value::Function(Rc::new(VectorQFn)));
+    let _ = env.insert(&SYMBOL_MAPQ, Value::Function(Rc::new(MapQFn)));
+    let _ = env.insert(&SYMBOL_SETQ, Value::Function(Rc::new(SetQFn)));
     let _ = env.insert(&SYMBOL_STR, Value::Function(Rc::new(StrFn)));
     let _ = env.insert(&SYMBOL_I64, Value::Function(Rc::new(I64Fn)));
     let _ = env.insert(&SYMBOL_F64, Value::Function(Rc::new(F64Fn)));

@@ -257,8 +257,71 @@ impl Value {
         matches!(self, Value::Nil)
     }
 
+    pub fn is_true(&self) -> bool {
+        matches!(self, Value::Bool(true))
+    }
+
+    pub fn is_false(&self) -> bool {
+        matches!(self, Value::Bool(false))
+    }
+
+    pub fn is_number(&self) -> bool {
+        matches!(self, Value::I64(_) | Value::F64(_))
+    }
+
     pub fn is_i64(&self) -> bool {
         matches!(self, Value::I64(_))
+    }
+
+    pub fn is_f64(&self) -> bool {
+        matches!(self, Value::F64(_))
+    }
+
+    pub fn is_zero(&self) -> bool {
+        match self {
+            Value::I64(i) => *i == 0,
+            Value::F64(f) => *f == 0.0,
+            _ => false,
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        match self {
+            Value::List(l) => l.value.is_empty(),
+            Value::Vector(v) => v.value.is_empty(),
+            Value::Map(m) => m.value.is_empty(),
+            Value::Set(s) => s.value.is_empty(),
+            Value::String(s) => s.is_empty(),
+            _ => false,
+        }
+    }
+
+    pub fn is_string(&self) -> bool {
+        matches!(self, Value::String(_))
+    }
+
+    pub fn is_keyword(&self) -> bool {
+        matches!(self, Value::Keyword(_))
+    }
+
+    pub fn is_symbol(&self) -> bool {
+        matches!(self, Value::Symbol(_))
+    }
+
+    pub fn is_list(&self) -> bool {
+        matches!(self, Value::List(_))
+    }
+
+    pub fn is_vector(&self) -> bool {
+        matches!(self, Value::Vector(_))
+    }
+
+    pub fn is_map(&self) -> bool {
+        matches!(self, Value::Map(_))
+    }
+
+    pub fn is_set(&self) -> bool {
+        matches!(self, Value::Set(_))
     }
 }
 
