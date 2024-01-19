@@ -98,10 +98,7 @@ pub fn eval(value: Value, environment: Rc<RefCell<Environment>>) -> Result<Value
             let result: Vec<(Value, Value)> = map
                 .value
                 .into_iter()
-                .map(|(k, v)| {
-                    { eval(k, environment.clone()) }
-                        .and_then(|ek| eval(v, environment.clone()).map(|ev| (ek, ev)))
-                })
+                .map(|(k, v)| { eval(k, environment.clone()) }.and_then(|ek| eval(v, environment.clone()).map(|ev| (ek, ev))))
                 .collect::<Result<Vec<(Value, Value)>>>()?;
 
             Value::as_map(result)
@@ -115,8 +112,6 @@ pub fn eval(value: Value, environment: Rc<RefCell<Environment>>) -> Result<Value
 
             Value::as_set(result)
         }
-        Value::SplicingMacro(_) => Err(Error::Syntax(
-            "splicing macro cannot be evaluated".to_string(),
-        )),
+        Value::SplicingMacro(_) => Err(Error::Syntax("splicing macro cannot be evaluated".to_string())),
     }
 }

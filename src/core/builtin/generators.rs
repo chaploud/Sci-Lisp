@@ -74,11 +74,7 @@ impl Range {
 
 impl fmt::Display for Range {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "<generator: range ({} {} {}) >",
-            self.start, self.end, self.step
-        )
+        write!(f, "<generator: range ({} {} {}) >", self.start, self.end, self.step)
     }
 }
 
@@ -86,9 +82,7 @@ impl Iterator for Range {
     type Item = Value;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if (self.step > 0 && self.current >= self.end)
-            || (self.step < 0 && self.current <= self.end)
-        {
+        if (self.step > 0 && self.current >= self.end) || (self.step < 0 && self.current <= self.end) {
             self.current = 0; // HACK: other generator must iterate repeatedly?
             None
         } else {
@@ -102,9 +96,7 @@ impl Iterator for Range {
 // TODO: Maybe bug, repeatly call next_back()
 impl DoubleEndedIterator for Range {
     fn next_back(&mut self) -> Option<Self::Item> {
-        if (self.step > 0 && self.current >= self.end)
-            || (self.step < 0 && self.current <= self.end)
-        {
+        if (self.step > 0 && self.current >= self.end) || (self.step < 0 && self.current <= self.end) {
             None
         } else {
             self.current -= self.step;

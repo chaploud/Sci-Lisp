@@ -33,11 +33,7 @@ impl Function for Keyword {
                 None => return Err(key_not_found_error(Value::Keyword(self.clone()))),
             },
             _ => {
-                return Err(Error::Type(format!(
-                    "Cannot get {} with {}",
-                    args[0].type_name(),
-                    self
-                )));
+                return Err(Error::Type(format!("Cannot get {} with {}", args[0].type_name(), self)));
             }
         };
         Ok(result)

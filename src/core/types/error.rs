@@ -48,11 +48,7 @@ impl fmt::Display for Error {
                     write!(f, "Parse Error: at {}:{}", pos.0, pos.1)
                 }
                 pest::error::LineColLocation::Span(start, end) => {
-                    write!(
-                        f,
-                        "Parse Error: at {}:{} to {}:{}",
-                        start.0, start.1, end.0, end.1
-                    )
+                    write!(f, "Parse Error: at {}:{} to {}:{}", start.0, start.1, end.0, end.1)
                 }
             },
             Regex(err) => write!(f, "Regex Error: {}", err),
@@ -154,10 +150,7 @@ pub fn arity_error_range(expected_min: usize, expected_max: usize, actual: usize
 }
 
 pub fn arity_error_min(expected_min: usize, actual: usize) -> Error {
-    Error::Arity(format!(
-        "expected at least {} arguments, got {}",
-        expected_min, actual
-    ))
+    Error::Arity(format!("expected at least {} arguments, got {}", expected_min, actual))
 }
 
 pub fn type_error(expected: &str, actual: &str) -> Error {

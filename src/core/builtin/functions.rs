@@ -10,10 +10,13 @@ use rand::Rng;
 use unescape;
 
 use crate::core::builtin::generators::Range;
+use crate::core::types::error::Error;
 use crate::core::types::error::{arity_error, arity_error_min, type_error};
 use crate::core::types::error::{arity_error_range, Result};
 use crate::core::types::function::Function;
+use crate::core::types::list::List;
 use crate::core::types::meta::Meta;
+use crate::core::types::sliceable::Sliceable;
 use crate::core::types::symbol::Symbol;
 use crate::core::types::vector::Vector;
 use crate::core::value::Value;
@@ -191,9 +194,7 @@ impl fmt::Display for AddFn {
 pub static SYMBOL_SUB: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("-"),
     meta: Meta {
-        doc: Cow::Borrowed(
-            "Subtracts all remaining values from the first value. (- x) returns -x.",
-        ),
+        doc: Cow::Borrowed("Subtracts all remaining values from the first value. (- x) returns -x."),
         mutable: false,
     },
     hash: fxhash::hash("-"),
@@ -362,17 +363,13 @@ impl fmt::Display for RemFn {
 }
 
 // equal(=)
-pub static SYMBOL_EQUAL: Lazy<Symbol> = Lazy::new(|| {
-    Symbol {
-        name: Cow::Borrowed("="),
-        meta: Meta {
-            doc: Cow::Borrowed(
-                "Returns true if all values are equal to each other and false otherwise. (= x) returns true.",
-            ),
-            mutable: false,
-        },
-        hash: fxhash::hash("=")
-    }
+pub static SYMBOL_EQUAL: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("="),
+    meta: Meta {
+        doc: Cow::Borrowed("Returns true if all values are equal to each other and false otherwise. (= x) returns true."),
+        mutable: false,
+    },
+    hash: fxhash::hash("="),
 });
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -404,17 +401,13 @@ impl fmt::Display for EqualFn {
 }
 
 // notequal(!=)
-pub static SYMBOL_NOTEQUAL: Lazy<Symbol> = Lazy::new(|| {
-    Symbol {
+pub static SYMBOL_NOTEQUAL: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("!="),
     meta: Meta {
-        doc: Cow::Borrowed(
-            "Returns false if all values are equal to each other and true otherwise. (!= x) returns false.",
-        ),
+        doc: Cow::Borrowed("Returns false if all values are equal to each other and true otherwise. (!= x) returns false."),
         mutable: false,
     },
-    hash: fxhash::hash("!=")
-}
+    hash: fxhash::hash("!="),
 });
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -476,15 +469,13 @@ impl fmt::Display for IsFn {
 }
 
 // ge(>=)
-pub static SYMBOL_GE: Lazy<Symbol> = Lazy::new(|| {
-    Symbol {
+pub static SYMBOL_GE: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed(">="),
     meta: Meta {
         doc: Cow::Borrowed("Returns true if all left values are greater than or equal to the right value. (>= x) returns true."),
         mutable: false,
     },
-    hash: fxhash::hash(">=")
-    }
+    hash: fxhash::hash(">="),
 });
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -519,9 +510,7 @@ impl fmt::Display for GeFn {
 pub static SYMBOL_GT: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed(">"),
     meta: Meta {
-        doc: Cow::Borrowed(
-            "Returns true if all left values are greater than the right value. (> x) returns true.",
-        ),
+        doc: Cow::Borrowed("Returns true if all left values are greater than the right value. (> x) returns true."),
         mutable: false,
     },
     hash: fxhash::hash(">"),
@@ -555,15 +544,13 @@ impl fmt::Display for GtFn {
 }
 
 // le(<=)
-pub static SYMBOL_LE: Lazy<Symbol> = Lazy::new(|| {
-    Symbol {
+pub static SYMBOL_LE: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("<="),
     meta: Meta {
         doc: Cow::Borrowed("Returns true if all left values are less than or equal to the right value. (<= x) returns true."),
         mutable: false,
     },
-    hash: fxhash::hash("<=")
-}
+    hash: fxhash::hash("<="),
 });
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LeFn;
@@ -597,9 +584,7 @@ impl fmt::Display for LeFn {
 pub static SYMBOL_LT: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("<"),
     meta: Meta {
-        doc: Cow::Borrowed(
-            "Returns true if all left values are less than the right value. (< x) returns true.",
-        ),
+        doc: Cow::Borrowed("Returns true if all left values are less than the right value. (< x) returns true."),
         mutable: false,
     },
     hash: fxhash::hash("<"),
@@ -1262,6 +1247,244 @@ impl fmt::Display for F64Fn {
     }
 }
 
+// list
+pub static SYMBOL_LIST: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("list"),
+    meta: Meta {
+        doc: Cow::Borrowed("Cast to a list."),
+        mutable: false,
+    },
+    hash: fxhash::hash("list"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ListFn;
+
+impl Function for ListFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        match args.len() {
+            0 => Value::as_list(vec![]),
+            1 => match args[0].clone() {
+                Value::List(l) => Ok(Value::List(l)),
+                Value::Vector(v) => Value::as_list(v.value),
+                Value::Map(m) => {
+                    let mut list = vec![];
+                    for (k, v) in m.value {
+                        list.push(Value::Vector(Vector { value: vec![k, v] }));
+                    }
+                    Value::as_list(list)
+                }
+                Value::Set(s) => {
+                    let mut list = vec![];
+                    for v in s.value {
+                        list.push(v);
+                    }
+                    Value::as_list(list)
+                }
+                Value::String(s) => {
+                    let mut list = vec![];
+                    for c in s.chars() {
+                        list.push(Value::String(c.to_string()));
+                    }
+                    Value::as_list(list)
+                }
+                _ => Ok(Value::List(List {
+                    value: vec![args[0].clone()],
+                })),
+            },
+            _ => {
+                let mut list = vec![];
+                for arg in args {
+                    list.push(arg);
+                }
+                Value::as_list(list)
+            }
+        }
+    }
+}
+
+impl fmt::Display for ListFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: list>")
+    }
+}
+
+// vector
+pub static SYMBOL_VECTOR: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("vector"),
+    meta: Meta {
+        doc: Cow::Borrowed("Cast to a vector."),
+        mutable: false,
+    },
+    hash: fxhash::hash("vector"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct VectorFn;
+
+impl Function for VectorFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        match args.len() {
+            0 => Value::as_vector(vec![]),
+            1 => match args[0].clone() {
+                Value::List(l) => Value::as_vector(l.value),
+                Value::Vector(v) => Ok(Value::Vector(v)),
+                Value::Map(m) => {
+                    let mut vector = vec![];
+                    for (k, v) in m.value {
+                        vector.push(Value::Vector(Vector { value: vec![k, v] }));
+                    }
+                    Value::as_vector(vector)
+                }
+                Value::Set(s) => {
+                    let mut vector = vec![];
+                    for v in s.value {
+                        vector.push(v);
+                    }
+                    Value::as_vector(vector)
+                }
+                Value::String(s) => {
+                    let mut vector = vec![];
+                    for c in s.chars() {
+                        vector.push(Value::String(c.to_string()));
+                    }
+                    Value::as_vector(vector)
+                }
+                _ => Ok(Value::Vector(Vector {
+                    value: vec![args[0].clone()],
+                })),
+            },
+            _ => {
+                let mut vector = vec![];
+                for arg in args {
+                    vector.push(arg);
+                }
+                Value::as_vector(vector)
+            }
+        }
+    }
+}
+
+impl fmt::Display for VectorFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: vector>")
+    }
+}
+
+// hmap
+pub static SYMBOL_HMAP: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("hmap"),
+    meta: Meta {
+        doc: Cow::Borrowed("Cast to a map."),
+        mutable: false,
+    },
+    hash: fxhash::hash("hmap"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HmapFn;
+
+impl Function for HmapFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        match args.len() {
+            0 => Value::as_map(vec![]),
+            1 => match args[0].clone() {
+                Value::List(l) => {
+                    let mut map = vec![];
+                    if l.len() % 2 != 0 {
+                        return Err(Error::Value("hmap: list must have even number of elements".to_string()));
+                    }
+                    for chunk in l.value.chunks(2) {
+                        map.push((chunk[0].clone(), chunk[1].clone()));
+                    }
+                    Value::as_map(map)
+                }
+                Value::Vector(v) => {
+                    let mut map = vec![];
+                    if v.len() % 2 != 0 {
+                        return Err(Error::Value("hmap: vector must have even number of elements".to_string()));
+                    }
+                    for chunk in v.value.chunks(2) {
+                        map.push((chunk[0].clone(), chunk[1].clone()));
+                    }
+                    Value::as_map(map)
+                }
+                Value::Map(m) => Ok(Value::Map(m)),
+                _ => Err(Error::Value(
+                    "hmap: argument must be list, vector, map, or even number of arguments".to_string(),
+                )),
+            },
+            _ => {
+                let mut map = vec![];
+                if args.len() % 2 != 0 {
+                    return Err(Error::Value(
+                        "hmap: argument must be list, vector, map, set, or even number of arguments".to_string(),
+                    ));
+                }
+
+                for chunk in args.chunks(2) {
+                    map.push((chunk[0].clone(), chunk[1].clone()));
+                }
+
+                Value::as_map(map)
+            }
+        }
+    }
+}
+
+impl fmt::Display for HmapFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: hmap>")
+    }
+}
+
+// hset
+pub static SYMBOL_HSET: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("hset"),
+    meta: Meta {
+        doc: Cow::Borrowed("Cast to a set."),
+        mutable: false,
+    },
+    hash: fxhash::hash("hset"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HsetFn;
+
+impl Function for HsetFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        match args.len() {
+            0 => Value::as_set(vec![]),
+            1 => match args[0].clone() {
+                Value::List(l) => Value::as_set(l.value),
+                Value::Vector(v) => Value::as_set(v.value),
+                Value::Map(m) => {
+                    let mut set = vec![];
+                    for (k, _) in m.value {
+                        set.push(k);
+                    }
+                    Value::as_set(set)
+                }
+                Value::Set(s) => Ok(Value::Set(s)),
+                _ => Value::as_set(vec![args[0].clone()]),
+            },
+            _ => {
+                let mut set = vec![];
+                for arg in args {
+                    set.push(arg);
+                }
+                Value::as_set(set)
+            }
+        }
+    }
+}
+
+impl fmt::Display for HsetFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: hset>")
+    }
+}
+
 // first
 pub static SYMBOL_FIRST: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("first"),
@@ -1283,10 +1506,7 @@ impl Function for FirstFn {
 
         match args[0].clone() {
             Value::List(list) => list.value.first().map_or(Ok(Value::Nil), |v| Ok(v.clone())),
-            Value::Vector(vector) => vector
-                .value
-                .first()
-                .map_or(Ok(Value::Nil), |v| Ok(v.clone())),
+            Value::Vector(vector) => vector.value.first().map_or(Ok(Value::Nil), |v| Ok(v.clone())),
             Value::Map(map) => map.value.first().map_or(Ok(Value::Nil), |(k, v)| {
                 Ok(Value::Vector(Vector {
                     value: vec![k.clone(), v.clone()],
@@ -1436,9 +1656,7 @@ impl Function for RangeFn {
             };
         }
 
-        Ok(Value::Generator(Rc::new(RefCell::new(Range::new(
-            start, end, step,
-        )))))
+        Ok(Value::Generator(Rc::new(RefCell::new(Range::new(start, end, step)))))
     }
 }
 

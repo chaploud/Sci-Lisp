@@ -75,17 +75,11 @@ impl Environment {
                 if entry.key().meta.mutable {
                     if !key.meta.mutable {
                         // overwrite with const
-                        return Err(Error::Const(format!(
-                            "cannot overwrite '{}' with const",
-                            key
-                        )));
+                        return Err(Error::Const(format!("cannot overwrite '{}' with const", key)));
                     }
                     entry.insert(value);
                 } else {
-                    return Err(Error::Const(format!(
-                        "cannot overwrite immutable binding '{}'",
-                        key
-                    )));
+                    return Err(Error::Const(format!("cannot overwrite immutable binding '{}'", key)));
                 }
             }
             Entry::Vacant(entry) => {
@@ -101,10 +95,7 @@ impl Environment {
                 if entry.key().meta.mutable {
                     entry.insert(value);
                 } else {
-                    return Err(Error::Const(format!(
-                        "cannot overwrite immutable binding '{}'",
-                        key
-                    )));
+                    return Err(Error::Const(format!("cannot overwrite immutable binding '{}'", key)));
                 }
             }
             Entry::Vacant(_) => {
@@ -159,6 +150,10 @@ fn insert_builtin_functions(env: &mut Environment) {
     let _ = env.insert(&SYMBOL_STR, Value::Function(Rc::new(StrFn)));
     let _ = env.insert(&SYMBOL_I64, Value::Function(Rc::new(I64Fn)));
     let _ = env.insert(&SYMBOL_F64, Value::Function(Rc::new(F64Fn)));
+    let _ = env.insert(&SYMBOL_LIST, Value::Function(Rc::new(ListFn)));
+    let _ = env.insert(&SYMBOL_VECTOR, Value::Function(Rc::new(VectorFn)));
+    let _ = env.insert(&SYMBOL_HMAP, Value::Function(Rc::new(HmapFn)));
+    let _ = env.insert(&SYMBOL_HSET, Value::Function(Rc::new(HsetFn)));
     let _ = env.insert(&SYMBOL_FIRST, Value::Function(Rc::new(FirstFn)));
     let _ = env.insert(&SYMBOL_REST, Value::Function(Rc::new(RestFn)));
     let _ = env.insert(&SYMBOL_RANGE, Value::Function(Rc::new(RangeFn)));
@@ -183,10 +178,7 @@ fn insert_builtin_macros(env: &mut Environment) {
     let _ = env.insert(&SYMBOL_SET, Value::Macro(Rc::new(SetMacro)));
     let _ = env.insert(&SYMBOL_LET, Value::Macro(Rc::new(LetMacro)));
     let _ = env.insert(&SYMBOL_QUOTE, Value::Macro(Rc::new(QuoteMacro)));
-    let _ = env.insert(
-        &SYMBOL_SYNTAX_QUOTE,
-        Value::Macro(Rc::new(SyntaxQuoteMacro)),
-    );
+    let _ = env.insert(&SYMBOL_SYNTAX_QUOTE, Value::Macro(Rc::new(SyntaxQuoteMacro)));
     let _ = env.insert(&SYMBOL_DO, Value::Macro(Rc::new(DoMacro)));
     let _ = env.insert(&SYMBOL_IF, Value::Macro(Rc::new(IfMacro)));
     let _ = env.insert(&SYMBOL_WHEN, Value::Macro(Rc::new(WhenMacro)));
@@ -196,10 +188,7 @@ fn insert_builtin_macros(env: &mut Environment) {
     let _ = env.insert(&SYMBOL_DOC, Value::Macro(Rc::new(DocMacro)));
     let _ = env.insert(&SYMBOL_FN, Value::Macro(Rc::new(FnMacro)));
     let _ = env.insert(&SYMBOL_DEFN, Value::Macro(Rc::new(DefnMacro)));
-    let _ = env.insert(
-        &SYMBOL_THREAD_FIRST,
-        Value::Macro(Rc::new(ThreadFirstMacro)),
-    );
+    let _ = env.insert(&SYMBOL_THREAD_FIRST, Value::Macro(Rc::new(ThreadFirstMacro)));
     let _ = env.insert(&SYMBOL_THREAD_LAST, Value::Macro(Rc::new(ThreadLastMacro)));
     let _ = env.insert(&SYMBOL_COND, Value::Macro(Rc::new(CondMacro)));
     let _ = env.insert(&SYMBOL_AND, Value::Macro(Rc::new(AndMacro)));

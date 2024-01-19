@@ -200,8 +200,12 @@ inf                 ; positive infinity
 (str 3.14)           ; to string
 (str 'abc)
 (str :abc)
-(i64 "2")            ; to i64
-(f64 "2.0")          ; to f64
+(i64 "2")              ; to i64
+(f64 "2.0")            ; to f64
+(list #{1, 2, 3})      ; to list
+(vector '(1, 2, 3))    ; to vector
+(hmap [:a 1, :b 2])    ; to map
+(hset [1, 2, 2])       ; to set
 
 ;; Math
 (sqrt 2)

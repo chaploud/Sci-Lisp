@@ -231,6 +231,17 @@ impl Value {
     }
 
     pub fn as_map(values: Vec<(Value, Value)>) -> Result<Value> {
+        for (key, _) in values.iter() {
+            match key {
+                Value::Keyword(_) | Value::String(_) | Value::I64(_) => {}
+                _ => {
+                    return Err(Error::Type(format!(
+                        "Map keys must be keyword, string or i64 {}",
+                        key.type_name()
+                    )));
+                }
+            }
+        }
         let map = Map::from(values);
         Ok(Value::Map(map))
     }
@@ -337,10 +348,7 @@ impl Value {
                     Err(err) => Err(Error::ParseInt(err)),
                 }
             }
-            _ => Err(Error::Type(format!(
-                "Cannot convert {} to i64.",
-                self.type_name()
-            ))),
+            _ => Err(Error::Type(format!("Cannot convert {} to i64.", self.type_name()))),
         }
     }
 
@@ -355,10 +363,7 @@ impl Value {
                     Err(err) => Err(Error::ParseFloat(err)),
                 }
             }
-            _ => Err(Error::Type(format!(
-                "Cannot convert {} to f64.",
-                self.type_name()
-            ))),
+            _ => Err(Error::Type(format!("Cannot convert {} to f64.", self.type_name()))),
         }
     }
 
@@ -369,10 +374,7 @@ impl Value {
             Value::String(s) => Ok(Value::String(s.to_string())),
             Value::Symbol(s) => Ok(Value::String(s.name.to_string())),
             Value::Keyword(k) => Ok(Value::String(k.name.to_string())),
-            _ => Err(Error::Type(format!(
-                "Cannot convert {} to string.",
-                self.type_name()
-            ))),
+            _ => Err(Error::Type(format!("Cannot convert {} to string.", self.type_name()))),
         }
     }
 }
@@ -602,11 +604,7 @@ impl Function for i64 {
                 None => return Err(index_out_of_range_error(*self)),
             },
             _ => {
-                return Err(Error::Type(format!(
-                    "Cannot index {} with {}",
-                    args[0].type_name(),
-                    self
-                )));
+                return Err(Error::Type(format!("Cannot index {} with {}", args[0].type_name(), self)));
             }
         };
         Ok(result.clone()) // TODO: mutable reference
@@ -625,11 +623,7 @@ impl Function for std::string::String {
                 None => return Err(key_not_found_error(Value::String(self.clone()))),
             },
             _ => {
-                return Err(Error::Type(format!(
-                    "Cannot get {} with {}",
-                    args[0].type_name(),
-                    self
-                )));
+                return Err(Error::Type(format!("Cannot get {} with {}", args[0].type_name(), self)));
             }
         };
         Ok(result)
@@ -647,16 +641,12 @@ impl Sliceable for std::string::String {
             if index < 0 {
                 return None;
             }
-            return Some(Value::String(
-                self.chars().nth(index as usize).unwrap().to_string(),
-            ));
+            return Some(Value::String(self.chars().nth(index as usize).unwrap().to_string()));
         }
         if index as usize >= self.len() {
             return None;
         }
-        Some(Value::String(
-            self.chars().nth(index as usize).unwrap().to_string(),
-        ))
+        Some(Value::String(self.chars().nth(index as usize).unwrap().to_string()))
     }
     fn slice(&self, start: Option<i64>, end: Option<i64>, step: Option<i64>) -> Result<Value> {
         let mut new_slice = std::string::String::new();

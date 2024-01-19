@@ -7,9 +7,9 @@ use std::process::Command;
 fn show_help() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("scilisp")?;
     cmd.arg("--help");
-    cmd.assert().success().stdout(predicate::str::contains(
-        "A Lisp for Scientific Computation written in Rust",
-    ));
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("A Lisp for Scientific Computation written in Rust"));
     Ok(())
 }
 
@@ -17,9 +17,9 @@ fn show_help() -> Result<(), Box<dyn std::error::Error>> {
 fn execute_success() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("scilisp")?;
     cmd.arg("tests/execute.lisp");
-    cmd.assert().success().stdout(predicate::str::contains(
-        "Hello from Sci-Lisp! [2024, 2024]",
-    ));
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("Hello from Sci-Lisp! [2024, 2024]"));
     Ok(())
 }
 
@@ -27,9 +27,7 @@ fn execute_success() -> Result<(), Box<dyn std::error::Error>> {
 fn execute_fail() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("scilisp")?;
     cmd.arg("tests/notexist.rs");
-    cmd.assert()
-        .failure()
-        .stderr(predicate::str::contains("IO Error"));
+    cmd.assert().failure().stderr(predicate::str::contains("IO Error"));
     Ok(())
 }
 
@@ -405,9 +403,7 @@ fn execute_repl_00030() -> Result<(), Box<dyn std::error::Error>> {
         (def a "abcde")
         "##,
     );
-    cmd.assert()
-        .success()
-        .stderr(predicate::str::contains("Const Error"));
+    cmd.assert().success().stderr(predicate::str::contains("Const Error"));
     Ok(())
 }
 
@@ -695,9 +691,13 @@ fn execute_repl_00046() -> Result<(), Box<dyn std::error::Error>> {
         (str :abc)
         (i64 "2")
         (f64 "3.14")
+        (list #{1, 2, 3})
+        (vector '(1, 2, 3))
+        (hmap [:a 1, :b 2])
+        (hset [1, 2, 2])
         "##,
     );
-    let out = "\"3.14\"\n\"abc\"\n\":abc\"\n2\n3.14";
+    let out = "\"3.14\"\n\"abc\"\n\":abc\"\n2\n3.14\n(1 2 3)\n[1, 2, 3]\n{:a 1, :b 2}\n#{1, 2}";
 
     cmd.assert().success().stdout(format!("{}\n", out));
     Ok(())
@@ -711,9 +711,7 @@ fn execute_repl_00047() -> Result<(), Box<dyn std::error::Error>> {
         (sqrt 2)
         "##,
     );
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("1.41421356"));
+    cmd.assert().success().stdout(predicate::str::contains("1.41421356"));
     Ok(())
 }
 
@@ -761,9 +759,7 @@ fn execute_repl_00051() -> Result<(), Box<dyn std::error::Error>> {
         (tan 2.0)
         "##,
     );
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("-2.1850398"));
+    cmd.assert().success().stdout(predicate::str::contains("-2.1850398"));
     Ok(())
 }
 
@@ -775,9 +771,7 @@ fn execute_repl_00052() -> Result<(), Box<dyn std::error::Error>> {
         (acos 0.5)
         "##,
     );
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("1.04719"));
+    cmd.assert().success().stdout(predicate::str::contains("1.04719"));
     Ok(())
 }
 
@@ -789,9 +783,7 @@ fn execute_repl_00053() -> Result<(), Box<dyn std::error::Error>> {
         (asin 0.5)
         "##,
     );
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("0.523598"));
+    cmd.assert().success().stdout(predicate::str::contains("0.523598"));
     Ok(())
 }
 #[test]
@@ -802,9 +794,7 @@ fn execute_repl_00054() -> Result<(), Box<dyn std::error::Error>> {
         (atan 0.5)
         "##,
     );
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("0.463647"));
+    cmd.assert().success().stdout(predicate::str::contains("0.463647"));
     Ok(())
 }
 #[test]
@@ -815,9 +805,7 @@ fn execute_repl_00055() -> Result<(), Box<dyn std::error::Error>> {
         (log 2 10)
         "##,
     );
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("3.321928"));
+    cmd.assert().success().stdout(predicate::str::contains("3.321928"));
     Ok(())
 }
 #[test]
@@ -839,9 +827,7 @@ fn execute_repl_00058() -> Result<(), Box<dyn std::error::Error>> {
         (log10 2.0)
         "##,
     );
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("0.301029"));
+    cmd.assert().success().stdout(predicate::str::contains("0.301029"));
     Ok(())
 }
 #[test]
@@ -852,9 +838,7 @@ fn execute_repl_00059() -> Result<(), Box<dyn std::error::Error>> {
         (when (< 0 (rand) 1) "ok")
         "##,
     );
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("ok"));
+    cmd.assert().success().stdout(predicate::str::contains("ok"));
     Ok(())
 }
 
@@ -866,9 +850,7 @@ fn execute_repl_00060() -> Result<(), Box<dyn std::error::Error>> {
         (when (<= 5 (randint 5 30) 29) "ok")
         "##,
     );
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("ok"));
+    cmd.assert().success().stdout(predicate::str::contains("ok"));
     Ok(())
 }
 // type

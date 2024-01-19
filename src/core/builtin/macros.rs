@@ -45,11 +45,7 @@ impl Macro for DefMacro {
 
         let mut symbol = match args[0].clone() {
             Value::Symbol(sym) => sym,
-            _ => {
-                return Err(Error::Type(
-                    "def: first argument must be a symbol".to_string(),
-                ))
-            }
+            _ => return Err(Error::Type("def: first argument must be a symbol".to_string())),
         };
         let body: Value;
 
@@ -102,11 +98,7 @@ impl Macro for ConstMacro {
 
         let mut symbol = match args[0].clone() {
             Value::Symbol(sym) => sym,
-            _ => {
-                return Err(Error::Type(
-                    "const: first argument must be a symbol".to_string(),
-                ))
-            }
+            _ => return Err(Error::Type("const: first argument must be a symbol".to_string())),
         };
         let body: Value;
 
@@ -161,11 +153,7 @@ impl Macro for SetMacro {
 
         let symbol = match args[0].clone() {
             Value::Symbol(sym) => sym,
-            _ => {
-                return Err(Error::Type(
-                    "set: first argument must be a symbol".to_string(),
-                ))
-            }
+            _ => return Err(Error::Type("set: first argument must be a symbol".to_string())),
         };
 
         let value = eval(args[1].clone(), environment.clone())?;
@@ -204,11 +192,7 @@ impl Macro for LetMacro {
 
         let bind_form = match &args[0] {
             Value::Vector(v) => v,
-            _ => {
-                return Err(Error::Syntax(
-                    "let: first argument must be a vector".to_string(),
-                ))
-            }
+            _ => return Err(Error::Syntax("let: first argument must be a vector".to_string())),
         };
 
         if bind_form.value.len() % 2 != 0 {
@@ -220,9 +204,7 @@ impl Macro for LetMacro {
         for pair in bind_form.value.chunks(2) {
             let key = match &pair[0] {
                 Value::Symbol(sym) => Ok(sym),
-                _ => Err(Error::Type(
-                    "let: first element of each pair must be a symbol".to_string(),
-                )),
+                _ => Err(Error::Type("let: first element of each pair must be a symbol".to_string())),
             };
 
             let val = pair[1].clone();
@@ -297,10 +279,9 @@ impl Macro for SyntaxQuoteMacro {
         local_env
             .borrow_mut()
             .insert(&SYMBOL_UNQUOTE, Value::Macro(Rc::new(UnquoteMacro)))?;
-        local_env.borrow_mut().insert(
-            &SYMBOL_UNQUOTE_SPLICING,
-            Value::SplicingMacro(Rc::new(UnquoteSplicingMacro)),
-        )?;
+        local_env
+            .borrow_mut()
+            .insert(&SYMBOL_UNQUOTE_SPLICING, Value::SplicingMacro(Rc::new(UnquoteSplicingMacro)))?;
 
         eval(args[0].clone(), local_env)
     }
@@ -405,8 +386,7 @@ impl SplicingMacro for UnquoteSplicingMacro {
                 }
             },
             _ => Err(Error::Type(
-                "unquote-splicing: argument must be a list, vector, set, map, string, or generator"
-                    .to_string(),
+                "unquote-splicing: argument must be a list, vector, set, map, string, or generator".to_string(),
             ))?,
         }
 
@@ -453,15 +433,15 @@ impl fmt::Display for DoMacro {
 }
 
 // if
-pub static SYMBOL_IF: Lazy<Symbol> = Lazy::new(|| {
-    Symbol {
+pub static SYMBOL_IF: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("if"),
     meta: Meta {
-        doc: Cow::Borrowed("If the first argument is true, evaluate the second argument. Otherwise, evaluate the third argument."),
+        doc: Cow::Borrowed(
+            "If the first argument is true, evaluate the second argument. Otherwise, evaluate the third argument.",
+        ),
         mutable: false,
     },
-    hash: fxhash::hash("if")
-}
+    hash: fxhash::hash("if"),
 });
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -480,11 +460,7 @@ impl Macro for IfMacro {
             let true_branch = &args[1];
             eval(true_branch.clone(), environment.clone())?
         } else {
-            let false_branch = if args.len() == 3 {
-                &args[2]
-            } else {
-                &Value::Nil
-            };
+            let false_branch = if args.len() == 3 { &args[2] } else { &Value::Nil };
             eval(false_branch.clone(), environment.clone())?
         };
         Ok(result)
@@ -590,9 +566,7 @@ impl Macro for ContinueMacro {
             return Err(arity_error(0, args.len()));
         }
 
-        Ok(Value::ControlFlow(Rc::new(ControlFlow::Continue(
-            Value::Nil,
-        ))))
+        Ok(Value::ControlFlow(Rc::new(ControlFlow::Continue(Value::Nil))))
     }
 }
 
@@ -681,9 +655,7 @@ impl Macro for SwitchMacro {
         }
 
         if args[1..].len() % 2 != 0 {
-            return Err(Error::Syntax(
-                "switch: case and expression must be in pairs".to_string(),
-            ));
+            return Err(Error::Syntax("switch: case and expression must be in pairs".to_string()));
         }
 
         let val = eval(args[0].clone(), environment.clone())?;
@@ -705,16 +677,10 @@ impl Macro for SwitchMacro {
                         result = eval(expr.clone(), environment.clone())?;
                         break;
                     } else {
-                        return Err(Error::Syntax(
-                            "switch: case must be a vector or :default keyword".to_string(),
-                        ));
+                        return Err(Error::Syntax("switch: case must be a vector or :default keyword".to_string()));
                     }
                 }
-                _ => {
-                    return Err(Error::Syntax(
-                        "switch: case must be a vector or :default keyword".to_string(),
-                    ))
-                }
+                _ => return Err(Error::Syntax("switch: case must be a vector or :default keyword".to_string())),
             }
         }
         Ok(result)
@@ -782,11 +748,7 @@ impl Macro for DocMacro {
 
         let sym = match &args[0] {
             Value::Symbol(sym) => sym,
-            _ => {
-                return Err(Error::Type(
-                    "doc: first argument must be a symbol".to_string(),
-                ))
-            }
+            _ => return Err(Error::Type("doc: first argument must be a symbol".to_string())),
         };
 
         let (key, val) = environment.borrow().get_key_value(sym)?;
@@ -836,21 +798,13 @@ impl Macro for FnMacro {
             if i == 0 {
                 let params_vec = match arg {
                     Value::Vector(v) => v.value,
-                    _ => {
-                        return Err(Error::Type(
-                            "fn: first argument must be a vector".to_string(),
-                        ))
-                    }
+                    _ => return Err(Error::Type("fn: first argument must be a vector".to_string())),
                 };
 
                 for param in params_vec {
                     match param {
                         Value::Symbol(sym) => params.push(sym),
-                        _ => {
-                            return Err(Error::Type(
-                                "fn: first argument must be a vector of symbols".to_string(),
-                            ))
-                        }
+                        _ => return Err(Error::Type("fn: first argument must be a vector of symbols".to_string())),
                     }
                 }
             } else {
@@ -893,11 +847,7 @@ impl Macro for DefnMacro {
 
         let mut symbol = match args[0].clone() {
             Value::Symbol(sym) => sym,
-            _ => {
-                return Err(Error::Type(
-                    "defn: first argument must be a symbol".to_string(),
-                ))
-            }
+            _ => return Err(Error::Type("defn: first argument must be a symbol".to_string())),
         };
 
         let params;
@@ -933,11 +883,7 @@ impl Macro for DefnMacro {
         for p in params {
             match p {
                 Value::Symbol(sym) => symbols.push(sym),
-                _ => {
-                    return Err(Error::Syntax(
-                        "defn: parameters must be symbols".to_string(),
-                    ))
-                }
+                _ => return Err(Error::Syntax("defn: parameters must be symbols".to_string())),
             }
         }
 
@@ -949,9 +895,7 @@ impl Macro for DefnMacro {
             environment: environment.clone(),
         };
 
-        environment
-            .borrow_mut()
-            .insert(&symbol, Value::Function(Rc::new(lambda)))?;
+        environment.borrow_mut().insert(&symbol, Value::Function(Rc::new(lambda)))?;
 
         Ok(Value::Symbol(symbol.clone()))
     }
@@ -994,11 +938,7 @@ impl Macro for ThreadFirstMacro {
                     let new_list = Value::as_list(vec![Value::Symbol(sym), result.clone()])?;
                     result = eval(new_list, environment.clone())?;
                 }
-                _ => {
-                    return Err(Error::Type(
-                        "->: arguments must be lists, functions or macros".to_string(),
-                    ))
-                }
+                _ => return Err(Error::Type("->: arguments must be lists, functions or macros".to_string())),
             }
         }
 
@@ -1043,11 +983,7 @@ impl Macro for ThreadLastMacro {
                     let new_list = Value::as_list(vec![Value::Symbol(sym), result.clone()])?;
                     result = eval(new_list, environment.clone())?;
                 }
-                _ => {
-                    return Err(Error::Type(
-                        "->: arguments must be lists, functions or macros".to_string(),
-                    ))
-                }
+                _ => return Err(Error::Type("->: arguments must be lists, functions or macros".to_string())),
             }
         }
 
@@ -1077,9 +1013,7 @@ pub struct CondMacro;
 impl Macro for CondMacro {
     fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.len() % 2 != 0 {
-            return Err(Error::Syntax(
-                "cond: case and expression must be in pairs".to_string(),
-            ));
+            return Err(Error::Syntax("cond: case and expression must be in pairs".to_string()));
         }
 
         let mut result = Value::Nil;
@@ -1204,36 +1138,27 @@ impl Macro for ForMacro {
 
         let binding = match args[0].clone() {
             Value::Vector(v) => v,
-            _ => Err(Error::Type(
-                "for: first argument must be a vector".to_string(),
-            ))?,
+            _ => Err(Error::Type("for: first argument must be a vector".to_string()))?,
         };
 
         if binding.value.len() != 2 {
-            Err(Error::Type(
-                "for: first argument must be a vector of length 2".to_string(),
-            ))?
+            Err(Error::Type("for: first argument must be a vector of length 2".to_string()))?
         }
 
         let param_symbol = match binding.value[0].clone() {
             Value::Symbol(sym) => sym,
-            _ => Err(Error::Type(
-                "for: first element of binding must be a symbol".to_string(),
-            ))?,
+            _ => Err(Error::Type("for: first element of binding must be a symbol".to_string()))?,
         };
 
         let param_body = binding.value[1].clone();
 
         let mut iterator = match param_body {
-            Value::Symbol(_)
-            | Value::List(_)
-            | Value::Vector(_)
-            | Value::Set(_)
-            | Value::Map(_) => eval(param_body, local_env.clone())?,
+            Value::Symbol(_) | Value::List(_) | Value::Vector(_) | Value::Set(_) | Value::Map(_) => {
+                eval(param_body, local_env.clone())?
+            }
             Value::Generator(g) => Value::Generator(g),
             _ => Err(Error::Type(
-                "for: second element of binding must be a symbol, list, vector, set, or map"
-                    .to_string(),
+                "for: second element of binding must be a symbol, list, vector, set, or map".to_string(),
             ))?,
         }
         .into_iter();

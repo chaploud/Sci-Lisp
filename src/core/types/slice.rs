@@ -52,34 +52,19 @@ impl Function for Slice {
         let start = match self.start {
             Value::Nil => None,
             Value::I64(i) => Some(i),
-            _ => {
-                return Err(Error::Type(format!(
-                    "Cannot slice with {}",
-                    self.start.type_name(),
-                )))
-            }
+            _ => return Err(Error::Type(format!("Cannot slice with {}", self.start.type_name(),))),
         };
 
         let end = match self.end {
             Value::Nil => None,
             Value::I64(i) => Some(i),
-            _ => {
-                return Err(Error::Type(format!(
-                    "Cannot slice with {}",
-                    self.end.type_name(),
-                )))
-            }
+            _ => return Err(Error::Type(format!("Cannot slice with {}", self.end.type_name(),))),
         };
 
         let step = match self.step {
             Value::Nil => None,
             Value::I64(i) => Some(i),
-            _ => {
-                return Err(Error::Type(format!(
-                    "Cannot slice with {}",
-                    self.step.type_name(),
-                )))
-            }
+            _ => return Err(Error::Type(format!("Cannot slice with {}", self.step.type_name(),))),
         };
 
         let result = match &args[0] {
@@ -87,11 +72,7 @@ impl Function for Slice {
             Value::List(l) => l.slice(start, end, step),
             Value::Vector(v) => v.slice(start, end, step),
             Value::Generator(g) => g.borrow_mut().slice(start, end, step),
-            _ => {
-                return Err(Error::Type(
-                    format!("Cannot slice {}", args[0].type_name(),),
-                ))
-            }
+            _ => return Err(Error::Type(format!("Cannot slice {}", args[0].type_name(),))),
         };
 
         result

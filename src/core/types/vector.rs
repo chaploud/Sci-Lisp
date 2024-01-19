@@ -160,11 +160,7 @@ impl Vector {
         for member in self.value.clone() {
             match member {
                 Value::Slice(_) | Value::I64(_) => {}
-                _ => {
-                    return Err(Error::Type(
-                        "slicing vector can contain only slice or i64".to_string(),
-                    ))
-                }
+                _ => return Err(Error::Type("slicing vector can contain only slice or i64".to_string())),
             }
         }
 

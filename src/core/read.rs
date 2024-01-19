@@ -34,20 +34,13 @@ fn read_scilisp(pair: Pair<Rule>) -> Result<Value> {
                 .map(|p| {
                     {
                         if p.len() != 2 {
-                            return Err(Error::Syntax(
-                                "map must have even number of elements".to_string(),
-                            ));
+                            return Err(Error::Syntax("map must have even number of elements".to_string()));
                         }
                         let key = match p[0].as_rule() {
-                            Rule::symbol
-                            | Rule::keyword
-                            | Rule::string
-                            | Rule::i64
-                            | Rule::list => p[0].clone(),
+                            Rule::symbol | Rule::keyword | Rule::string | Rule::i64 | Rule::list => p[0].clone(),
                             _ => {
                                 return Err(Error::Syntax(
-                                    "map keys must be keyword, string or i64 after evaluated"
-                                        .to_string(),
+                                    "map keys must be keyword, string or i64 after evaluated".to_string(),
                                 ))
                             }
                         };
@@ -104,10 +97,7 @@ fn unquote_to_ast(pair: Pair<Rule>) -> Result<Value> {
 fn unquote_splicing_to_ast(pair: Pair<Rule>) -> Result<Value> {
     let pair = pair.into_inner().next().unwrap();
     let value = read_scilisp(pair)?;
-    Value::as_list(vec![
-        Value::Symbol((*SYMBOL_UNQUOTE_SPLICING).clone()),
-        value,
-    ])
+    Value::as_list(vec![Value::Symbol((*SYMBOL_UNQUOTE_SPLICING).clone()), value])
 }
 
 fn as_slice(pair: Pair<Rule>) -> Result<Value> {
@@ -124,9 +114,5 @@ fn as_slice(pair: Pair<Rule>) -> Result<Value> {
         }
     }
 
-    Ok(Value::Slice(Rc::new(Slice::new(
-        slice_start,
-        slice_end,
-        slice_step,
-    ))))
+    Ok(Value::Slice(Rc::new(Slice::new(slice_start, slice_end, slice_step))))
 }

@@ -12,11 +12,7 @@ mod core;
 use crate::core::cli::repl::{execute, repl};
 
 #[derive(Parser)]
-#[command(
-    version,
-    about,
-    after_help = "If no arguments are provided, it launches a REPL."
-)]
+#[command(version, about, after_help = "If no arguments are provided, it launches a REPL.")]
 struct Args {
     #[arg(help = "Execute <FILE>")]
     file: Option<PathBuf>,
