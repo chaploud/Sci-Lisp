@@ -2271,18 +2271,10 @@ impl Function for ReplaceFn {
                 let old = r;
                 match args[2].clone() {
                     Value::String(s) => {
-                        let new = s;
-                        Ok(Value::String(old.replace_all(&src, &new).to_string()))
+                        let new = old.replace_all(&src, s.as_str());
+                        Ok(Value::String(new.to_string()))
                     }
-                    Value::Regex(r) => {
-                        let new = r;
-                        let mut new = new.to_string();
-                        for (i, cap) in old.captures_iter(&src).enumerate() {
-                            new = new.replace(&format!("${}", i), &cap[0]);
-                        }
-                        Ok(Value::String(new))
-                    }
-                    _ => Err(type_error("string/regex", args[2].type_name().as_str())),
+                    _ => Err(type_error("string", args[2].type_name().as_str())),
                 }
             }
             _ => return Err(type_error("string/regex", args[0].type_name().as_str())),

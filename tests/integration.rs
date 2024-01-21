@@ -924,6 +924,22 @@ fn execute_repl_00062() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[test]
+fn execute_repl_00063() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (find #"[0-9]+" "aa123a")
+        (find-all #"No\.(\d+)" "No.1 No.2 No.3")
+        (replace "aa123a" #"([0-9]{2})" "x${1}y")
+        "##,
+    );
+    let out = "\"123\"\n[\"No.1\", \"No.2\", \"No.3\"]\n\"aax12y3a\"";
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
 // type
 // print
 // doc
+// REPLの補完機能ぜひつけたい

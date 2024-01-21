@@ -253,11 +253,12 @@ inf                 ; positive infinity
 
 ;; Regular Expression
 (find #"[0-9]+" "aa123a")                ; => "123"
-(find-all #"hello, (.*)" "hello, world") ; => ["hello, world", "world"]
-(replace "aa123a" #"[0-9]{2}" "x$1x")    ; => "aax12x3a"
+(find-all #"No\.(\d+)" "No.1 No.2 No.3") ; => ["hello, world", "world"]
+(replace "aa123a" #"[0-9]{2}" "x${1}y")  ; => "aax12y3a"
 
 ;; Vector
 (first [1, 2, 3])                     ; first
+(last [1, 2, 3])                      ; last
 (rest [1, 2, 3])                      ; rest
 (len [1, 2, 3])                       ; length of vector
 (sum [1, 2, 3])                       ; sum of vector
