@@ -91,6 +91,6 @@ impl Function for Lambda {
 
 impl fmt::Display for Lambda {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "<lambda>")
+        write!(f, "<function>")
     }
 }

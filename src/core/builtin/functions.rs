@@ -2093,13 +2093,309 @@ impl Function for RandIntFn {
             _ => return Err(type_error("i64", args[1].type_name().as_str())),
         };
 
-        Ok(Value::I64(rand::thread_rng().gen_range(start..end)))
+        Ok(Value::I64(rand::thread_rng().gen_range(start..=end)))
     }
 }
 
 impl fmt::Display for RandIntFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "<builtin function: randint>")
+    }
+}
+
+// len
+pub static SYMBOL_LEN: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("len"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the length of a sequence."),
+        mutable: false,
+    },
+    hash: fxhash::hash("len"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LenFn;
+
+impl Function for LenFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::List(l) => Ok(Value::I64(l.value.len() as i64)),
+            Value::Vector(v) => Ok(Value::I64(v.value.len() as i64)),
+            Value::Map(m) => Ok(Value::I64(m.value.len() as i64)),
+            Value::Set(s) => Ok(Value::I64(s.value.len() as i64)),
+            Value::String(s) => Ok(Value::I64(s.len() as i64)),
+            _ => Err(type_error("list, vector, map, set, or string", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for LenFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: len>")
+    }
+}
+
+// join
+pub static SYMBOL_JOIN: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("join"),
+    meta: Meta {
+        doc: Cow::Borrowed("Join a sequence of values with a separator."),
+        mutable: false,
+    },
+    hash: fxhash::hash("join"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct JoinFn;
+
+impl Function for JoinFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        let sep = match args[1].clone() {
+            Value::String(s) => s,
+            _ => return Err(type_error("string", args[0].type_name().as_str())),
+        };
+
+        match args[0].clone() {
+            Value::List(l) => Ok(Value::String(
+                l.value.iter().map(|v| v.to_string()).collect::<Vec<String>>().join(&sep),
+            )),
+            Value::Vector(v) => Ok(Value::String(
+                v.value.iter().map(|v| v.to_string()).collect::<Vec<String>>().join(&sep),
+            )),
+            _ => Err(type_error("list, vector", args[1].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for JoinFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: join>")
+    }
+}
+
+// split
+pub static SYMBOL_SPLIT: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("split"),
+    meta: Meta {
+        doc: Cow::Borrowed("Split a string into a list of strings."),
+        mutable: false,
+    },
+    hash: fxhash::hash("split"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SplitFn;
+
+impl Function for SplitFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        let sep = match args[1].clone() {
+            Value::String(s) => s,
+            _ => return Err(type_error("string", args[0].type_name().as_str())),
+        };
+
+        match args[0].clone() {
+            Value::String(s) => Value::as_vector(s.split(&sep).map(|s| Value::String(s.to_string())).collect::<Vec<Value>>()),
+            _ => Err(type_error("string", args[1].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for SplitFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: split>")
+    }
+}
+
+// replace
+pub static SYMBOL_REPLACE: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("replace"),
+    meta: Meta {
+        doc: Cow::Borrowed("Replace all instances of a substring with another substring."),
+        mutable: false,
+    },
+    hash: fxhash::hash("replace"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReplaceFn;
+
+impl Function for ReplaceFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 3 {
+            return Err(arity_error(3, args.len()));
+        }
+
+        let src = match args[0].clone() {
+            Value::String(s) => s,
+            _ => return Err(type_error("string", args[0].type_name().as_str())),
+        };
+
+        match args[1].clone() {
+            Value::String(s) => {
+                let old = s;
+                if let Value::String(new) = args[2].clone() {
+                    Ok(Value::String(src.replace(&old, &new)))
+                } else {
+                    Err(type_error("string", args[2].type_name().as_str()))
+                }
+            }
+            Value::Regex(r) => {
+                let old = r;
+                match args[2].clone() {
+                    Value::String(s) => {
+                        let new = s;
+                        Ok(Value::String(old.replace_all(&src, &new).to_string()))
+                    }
+                    Value::Regex(r) => {
+                        let new = r;
+                        let mut new = new.to_string();
+                        for (i, cap) in old.captures_iter(&src).enumerate() {
+                            new = new.replace(&format!("${}", i), &cap[0]);
+                        }
+                        Ok(Value::String(new))
+                    }
+                    _ => Err(type_error("string/regex", args[2].type_name().as_str())),
+                }
+            }
+            _ => return Err(type_error("string/regex", args[0].type_name().as_str())),
+        }
+    }
+}
+
+// trim
+pub static SYMBOL_TRIM: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("trim"),
+    meta: Meta {
+        doc: Cow::Borrowed("Trim whitespace from the beginning and end of a string."),
+        mutable: false,
+    },
+    hash: fxhash::hash("trim"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TrimFn;
+
+impl Function for TrimFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::String(s) => Ok(Value::String(s.trim().to_string())),
+            _ => Err(type_error("string", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for TrimFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: trim>")
+    }
+}
+
+// in?
+pub static SYMBOL_INQ: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("in?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Check if a value is in a collection."),
+        mutable: false,
+    },
+    hash: fxhash::hash("in?"),
+});
+
+impl fmt::Display for ReplaceFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: replace>")
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InQFn;
+
+impl Function for InQFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        match args[1].clone() {
+            Value::List(l) => Ok(Value::Bool(l.value.contains(&args[0]))),
+            Value::Vector(v) => Ok(Value::Bool(v.value.contains(&args[0]))),
+            Value::Map(m) => Ok(Value::Bool(m.value.contains_key(&args[0]))),
+            Value::Set(s) => Ok(Value::Bool(s.value.contains(&args[0]))),
+            Value::String(s) => Ok(Value::Bool(s.contains(&args[0].to_string()))),
+            _ => Err(type_error("list, vector, map, set, or string", args[1].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for InQFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: in?>")
+    }
+}
+
+// find
+pub static SYMBOL_FIND: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("find"),
+    meta: Meta {
+        doc: Cow::Borrowed("Find the first occurrence of a string/regex in a string."),
+        mutable: false,
+    },
+    hash: fxhash::hash("find"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FindFn;
+
+impl Function for FindFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        let target = match args[1].clone() {
+            Value::String(s) => s,
+            _ => return Err(type_error("string", args[1].type_name().as_str())),
+        };
+
+        match args[0].clone() {
+            Value::String(s) => {
+                let re = regex::Regex::new(&s).unwrap();
+                if let Some(result) = re.find(&target) {
+                    Ok(Value::String(result.as_str().to_string()))
+                } else {
+                    Ok(Value::Nil)
+                }
+            }
+            Value::Regex(re) => {
+                if let Some(result) = re.find(&target) {
+                    Ok(Value::String(result.as_str().to_string()))
+                } else {
+                    Ok(Value::Nil)
+                }
+            }
+            _ => Err(type_error("list, vector, or string", args[1].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for FindFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: find>")
     }
 }
 

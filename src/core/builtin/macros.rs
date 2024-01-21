@@ -133,7 +133,7 @@ impl fmt::Display for ConstMacro {
 }
 
 // set!
-pub static SYMBOL_SET: Lazy<Symbol> = Lazy::new(|| Symbol {
+pub static SYMBOL_SETE: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("set!"),
     meta: Meta {
         doc: Cow::Borrowed("Bind a value to a symbol."),
@@ -143,9 +143,9 @@ pub static SYMBOL_SET: Lazy<Symbol> = Lazy::new(|| Symbol {
 });
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct SetMacro;
+pub struct SetEMacro;
 
-impl Macro for SetMacro {
+impl Macro for SetEMacro {
     fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.len() != 2 {
             return Err(arity_error(2, args.len()));
@@ -163,7 +163,7 @@ impl Macro for SetMacro {
     }
 }
 
-impl fmt::Display for SetMacro {
+impl fmt::Display for SetEMacro {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "<builtin macro: set!>")
     }

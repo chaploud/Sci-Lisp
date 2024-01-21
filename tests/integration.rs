@@ -693,11 +693,12 @@ fn execute_repl_00046() -> Result<(), Box<dyn std::error::Error>> {
         (f64 "3.14")
         (list #{1, 2, 3})
         (vector '(1, 2, 3))
+        (vector "abc")
         (hmap [:a 1, :b 2])
         (hset [1, 2, 2])
         "##,
     );
-    let out = "\"3.14\"\n\"abc\"\n\":abc\"\n2\n3.14\n(1 2 3)\n[1, 2, 3]\n{:a 1, :b 2}\n#{1, 2}";
+    let out = "\"3.14\"\n\"abc\"\n\":abc\"\n2\n3.14\n(1 2 3)\n[1, 2, 3]\n[\"a\", \"b\", \"c\"]\n{:a 1, :b 2}\n#{1, 2}";
 
     cmd.assert().success().stdout(format!("{}\n", out));
     Ok(())
@@ -853,6 +854,37 @@ fn execute_repl_00060() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert().success().stdout(predicate::str::contains("ok"));
     Ok(())
 }
+
+#[test]
+fn execute_repl_00061() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (len "abcde")
+        (len '(1, 2, 3))
+        (len [1, 2, 3])
+        (len #{1, 2, 3})
+        (len {:a 1, :b 2, :c 3})
+        "##,
+    );
+    let out = "5\n3\n3\n3\n3";
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00062() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (join [1, 2, 3] ",")
+        "##,
+    );
+    let out = "\"1,2,3\"";
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
 // type
 // print
 // doc

@@ -226,40 +226,62 @@ inf                 ; positive infinity
 (type [1, 2, 3])              ; show type
 (time (+ 1 2))                ; measure processing time
 (print {:a 2, :b 3})          ; print any
-(printf "{0:03}kg" 56)        ; print format
+(printf "{0:03}kg" 56)        ; print format (WIP)
 
 ;; String
-(format "π: {:.2}" 3.1415)    ; format string
 (len "abcde")                 ; length of string
 (join [1, 2, 3] ",")          ; join (=> "1,2,3")
+(split "abc,def,ghi" ",")     ; split (=> ["abc", "def", "ghi"])
+(replace "abc" "a" "x")       ; replace (=> "xbc")
+(trim " abc ")                ; trim (=> "abc")
 (in? "a" "12aabc32")          ; is string in string?
+(find "abc" "12aabc32")       ; find string in string (=> "abc")
+(count "abc" "12aabc32")      ; count string in string (=> 1)
 (upper "abc")                 ; upper-case
 (lower "DEF")                 ; lower-case
+(camel "abc_def")             ; camel-case (=> "abcDef")
+(snake "abcDef")              ; snake-case (=> "abc_def")
+(cebab "abcDef")              ; cebab-case (=> "abc-def")
+(format "π: {:.2}" 3.1415)    ; format string (WIP)
 
 ;; Regular Expression
-(find #"[0-9]+" "aa123a")             ; => "123"
-(match #"hello, (.*)" "hello, world") ; => ["hello, world", "world"]
+(find #"[0-9]+" "aa123a")               ; => "123"
+(match #"hello, (.*)" "hello, world")   ; => ["hello, world", "world"]
+(replace "aa123a" #"[0-9]{2}" "x$1x")   ; => "aax12x3a"
 
 ;; Vector
-(shape [[1, 2], [3, 4], [5, 6]])      ; shape of vector (=> [3, 2])
+(first [1, 2, 3])                     ; first
+(rest [1, 2, 3])                      ; rest
 (len [1, 2, 3])                       ; length of vector
 (sum [1, 2, 3])                       ; sum of vector
 (mean [1, 2, 3])                      ; mean of vector
 (max [1, 2, 3])                       ; max of vector
 (min [1, 2, 3])                       ; min of vector
 (in? 2 [1, 2, 3])                     ; is element in vector?
+(index 2 [1, 2, 3])                   ; index of element
+(index-all 2 [1, 2, 3, 2])            ; all index of element
 (some? [false, true, false])          ; return true if some true
 (every? [false, true, false])         ; return true if all true
 (sort [3, 1, 2])                      ; sort (non-destructive)
+(reverse [3, 1, 2])                   ; reverse (non-destructive
 (shuffle [3, 1, 2])                   ; shuffle (non-destructive)
 (push [3, 1, 2] 4)                    ; push_back (non-destructive)
 (cons [3, 1, 2] 4)                    ; push_front (non-destructive)
 
 (def v [3, 1, 2])
 (sort! v)                             ; sort (destructive)
+(reverse! v)                          ; reverse (destructive)
 (shuffle! v)                          ; shuffle (destructive)
 (push! v 4)                           ; push_back (destructive)
 (cons! v 4)                           ; push_front (destructive)
 
-; first
-; rest
+;; Slicing/At
+(-1 [1, 2, 3])                        ; back => 3
+([0|2] [1, 2, 3])                     ; slicing => [1, 2]
+([0|2|2] "abcdefg")                   ; slicing with step => "ace"
+
+;; Functional Programming
+
+; repeat
+; chunk
+; shape

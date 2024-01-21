@@ -170,12 +170,19 @@ fn insert_builtin_functions(env: &mut Environment) {
     let _ = env.insert(&SYMBOL_LOG10, Value::Function(Rc::new(Log10Fn)));
     let _ = env.insert(&SYMBOL_RAND, Value::Function(Rc::new(RandFn)));
     let _ = env.insert(&SYMBOL_RANDINT, Value::Function(Rc::new(RandIntFn)));
+    let _ = env.insert(&SYMBOL_LEN, Value::Function(Rc::new(LenFn)));
+    let _ = env.insert(&SYMBOL_JOIN, Value::Function(Rc::new(JoinFn)));
+    let _ = env.insert(&SYMBOL_SPLIT, Value::Function(Rc::new(SplitFn)));
+    let _ = env.insert(&SYMBOL_REPLACE, Value::Function(Rc::new(ReplaceFn)));
+    let _ = env.insert(&SYMBOL_TRIM, Value::Function(Rc::new(TrimFn)));
+    let _ = env.insert(&SYMBOL_INQ, Value::Function(Rc::new(InQFn)));
+    let _ = env.insert(&SYMBOL_FIND, Value::Function(Rc::new(FindFn)));
 }
 
 fn insert_builtin_macros(env: &mut Environment) {
     let _ = env.insert(&SYMBOL_DEF, Value::Macro(Rc::new(DefMacro)));
     let _ = env.insert(&SYMBOL_CONST, Value::Macro(Rc::new(ConstMacro)));
-    let _ = env.insert(&SYMBOL_SET, Value::Macro(Rc::new(SetMacro)));
+    let _ = env.insert(&SYMBOL_SETE, Value::Macro(Rc::new(SetEMacro)));
     let _ = env.insert(&SYMBOL_LET, Value::Macro(Rc::new(LetMacro)));
     let _ = env.insert(&SYMBOL_QUOTE, Value::Macro(Rc::new(QuoteMacro)));
     let _ = env.insert(&SYMBOL_SYNTAX_QUOTE, Value::Macro(Rc::new(SyntaxQuoteMacro)));
