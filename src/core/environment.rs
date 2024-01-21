@@ -177,6 +177,21 @@ fn insert_builtin_functions(env: &mut Environment) {
     let _ = env.insert(&SYMBOL_TRIM, Value::Function(Rc::new(TrimFn)));
     let _ = env.insert(&SYMBOL_INQ, Value::Function(Rc::new(InQFn)));
     let _ = env.insert(&SYMBOL_FIND, Value::Function(Rc::new(FindFn)));
+    let _ = env.insert(&SYMBOL_COUNT, Value::Function(Rc::new(CountFn)));
+    let _ = env.insert(&SYMBOL_UPPER_CASE, Value::Function(Rc::new(UpperCaseFn)));
+    let _ = env.insert(&SYMBOL_LOWER_CASE, Value::Function(Rc::new(LowerCaseFn)));
+    let _ = env.insert(&SYMBOL_INDEX, Value::Function(Rc::new(IndexFn)));
+    let _ = env.insert(&SYMBOL_LOWER_CAMEL, Value::Function(Rc::new(LowerCamelFn)));
+    let _ = env.insert(&SYMBOL_UPPER_CAMEL, Value::Function(Rc::new(UpperCamelFn)));
+    let _ = env.insert(&SYMBOL_SNAKE_CASE, Value::Function(Rc::new(SnakeCaseFn)));
+    let _ = env.insert(&SYMBOL_KEBAB_CASE, Value::Function(Rc::new(KebabCaseFn)));
+    let _ = env.insert(&SYMBOL_TITLE_CASE, Value::Function(Rc::new(TitleCaseFn)));
+    let _ = env.insert(&SYMBOL_TRAIN_CASE, Value::Function(Rc::new(TrainCaseFn)));
+    let _ = env.insert(&SYMBOL_SHOUTY_SNAKE, Value::Function(Rc::new(ShoutySnakeFn)));
+    let _ = env.insert(&SYMBOL_SHOUTY_KEBAB, Value::Function(Rc::new(ShoutyKebabFn)));
+    let _ = env.insert(&SYMBOL_REPEAT, Value::Function(Rc::new(RepeatFn)));
+    let _ = env.insert(&SYMBOL_FIND_ALL, Value::Function(Rc::new(FindAllFn)));
+    let _ = env.insert(&SYMBOL_REVERSE, Value::Function(Rc::new(ReverseFn)));
 }
 
 fn insert_builtin_macros(env: &mut Environment) {

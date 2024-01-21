@@ -875,6 +875,7 @@ dependencies = [
  "criterion",
  "dyn-clone",
  "fxhash",
+ "heck",
  "indexmap",
  "nohash",
  "once_cell",

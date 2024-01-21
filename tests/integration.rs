@@ -878,9 +878,48 @@ fn execute_repl_00062() -> Result<(), Box<dyn std::error::Error>> {
     cmd.write_stdin(
         r##"
         (join [1, 2, 3] ",")
+        (split "1,2,3" "," i64)
+        (replace "abc" "a" "x")
+        (trim " abc ")
+        (in? "a" "12aabc32")
+        (index "abc" "12aabc32")
+        (count "ab" "abaabaab")
+        (upper-case "abc")
+        (lower-case "ABC")
+        (lower-camel "abc_def")
+        (upper-camel "abc_def")
+        (snake-case "abcDef")
+        (kebab-case "abcDef")
+        (title-case "abcDef")
+        (train-case "abcDef")
+        (shouty-snake "abcDef")
+        (shouty-kebab "abcDef")
+        (repeat "abc" 2)
+        (reverse "abc")
         "##,
     );
-    let out = "\"1,2,3\"";
+    let outs = [
+        "\"1,2,3\"",
+        "[1, 2, 3]",
+        "\"xbc\"",
+        "\"abc\"",
+        "true",
+        "3",
+        "3",
+        "\"ABC\"",
+        "\"abc\"",
+        "\"abcDef\"",
+        "\"AbcDef\"",
+        "\"abc_def\"",
+        "\"abc-def\"",
+        "\"Abc Def\"",
+        "\"Abc-Def\"",
+        "\"ABC_DEF\"",
+        "\"ABC-DEF\"",
+        "\"abcabc\"",
+        "\"cba\"",
+    ];
+    let out = outs.join("\n");
     cmd.assert().success().stdout(format!("{}\n", out));
     Ok(())
 }

@@ -2196,8 +2196,8 @@ pub struct SplitFn;
 
 impl Function for SplitFn {
     fn call(&self, args: Vec<Value>) -> Result<Value> {
-        if args.len() != 2 {
-            return Err(arity_error(2, args.len()));
+        if args.len() < 2 || args.len() > 3 {
+            return Err(arity_error_range(2, 3, args.len()));
         }
 
         let sep = match args[1].clone() {
@@ -2205,8 +2205,24 @@ impl Function for SplitFn {
             _ => return Err(type_error("string", args[0].type_name().as_str())),
         };
 
+        let convert_fn: Option<Rc<dyn Function>> = match args.get(2) {
+            Some(Value::Function(f)) => Some(Rc::clone(f)),
+            Some(_) => Err(type_error("function", args[2].type_name().as_str()))?,
+            None => None,
+        };
+
         match args[0].clone() {
-            Value::String(s) => Value::as_vector(s.split(&sep).map(|s| Value::String(s.to_string())).collect::<Vec<Value>>()),
+            Value::String(s) => {
+                if let Some(f) = convert_fn {
+                    Value::as_vector(
+                        s.split(&sep)
+                            .map(|s| f.call(vec![Value::String(s.to_string())]).unwrap())
+                            .collect(),
+                    )
+                } else {
+                    Value::as_vector(s.split(&sep).map(|s| Value::String(s.to_string())).collect())
+                }
+            }
             _ => Err(type_error("string", args[1].type_name().as_str())),
         }
     }
@@ -2374,9 +2390,8 @@ impl Function for FindFn {
 
         match args[0].clone() {
             Value::String(s) => {
-                let re = regex::Regex::new(&s).unwrap();
-                if let Some(result) = re.find(&target) {
-                    Ok(Value::String(result.as_str().to_string()))
+                if let Some(start) = target.find(&s) {
+                    Ok(Value::String(target[start..start + s.len()].to_string()))
                 } else {
                     Ok(Value::Nil)
                 }
@@ -2399,11 +2414,561 @@ impl fmt::Display for FindFn {
     }
 }
 
-// take
-// collect
-// map
-// filter
-// reduce
-// zip
-// apply
-// partial
+// count
+pub static SYMBOL_COUNT: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("count"),
+    meta: Meta {
+        doc: Cow::Borrowed("Count the number of occurrences of a string/regex in a string."),
+        mutable: false,
+    },
+    hash: fxhash::hash("count"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CountFn;
+
+impl Function for CountFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        match args[1].clone() {
+            Value::String(target) => match args[0].clone() {
+                Value::String(s) => Ok(Value::I64(target.matches(&s).count() as i64)),
+                Value::Regex(re) => Ok(Value::I64(re.find_iter(&target).count() as i64)),
+                _ => Err(type_error("string/regex", args[1].type_name().as_str())),
+            },
+            Value::List(l) => {
+                let mut count = 0;
+                for v in l.value {
+                    if v == args[0] {
+                        count += 1;
+                    }
+                }
+                Ok(Value::I64(count))
+            }
+            Value::Vector(v) => {
+                let mut count = 0;
+                for v in v.value {
+                    if v == args[0] {
+                        count += 1;
+                    }
+                }
+                Ok(Value::I64(count))
+            }
+            _ => Err(type_error("list, vector, or string", args[1].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for CountFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: count>")
+    }
+}
+
+// upper-case
+pub static SYMBOL_UPPER_CASE: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("upper-case"),
+    meta: Meta {
+        doc: Cow::Borrowed("Convert a string to uppercase."),
+        mutable: false,
+    },
+    hash: fxhash::hash("upper-case"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UpperCaseFn;
+
+impl Function for UpperCaseFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::String(s) => Ok(Value::String(s.to_uppercase())),
+            _ => Err(type_error("string", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for UpperCaseFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function upper-case>")
+    }
+}
+
+// lower-case
+pub static SYMBOL_LOWER_CASE: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("lower-case"),
+    meta: Meta {
+        doc: Cow::Borrowed("Convert a string to lowercase."),
+        mutable: false,
+    },
+    hash: fxhash::hash("lower-case"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LowerCaseFn;
+
+impl Function for LowerCaseFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::String(s) => Ok(Value::String(s.to_lowercase())),
+            _ => Err(type_error("string", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for LowerCaseFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function lower-case>")
+    }
+}
+
+// index
+pub static SYMBOL_INDEX: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("index"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the index of given value in a list or vector or string."),
+        mutable: false,
+    },
+    hash: fxhash::hash("index"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct IndexFn;
+
+impl Function for IndexFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error_range(2, 2, args.len()));
+        }
+
+        match args[1].clone() {
+            Value::List(l) => {
+                for (i, v) in l.value.iter().enumerate() {
+                    if v == &args[0] {
+                        return Ok(Value::I64(i as i64));
+                    }
+                }
+                Ok(Value::Nil)
+            }
+            Value::Vector(v) => {
+                for (i, v) in v.value.iter().enumerate() {
+                    if v == &args[0] {
+                        return Ok(Value::I64(i as i64));
+                    }
+                }
+                Ok(Value::Nil)
+            }
+            Value::String(s) => {
+                if let Value::String(v) = args[0].clone() {
+                    if let Some(i) = s.find(&v) {
+                        return Ok(Value::I64(i as i64));
+                    }
+                }
+                Ok(Value::Nil)
+            }
+            _ => Err(type_error("list, vector, or string", args[1].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for IndexFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function index>")
+    }
+}
+
+// lower-camel
+pub static SYMBOL_LOWER_CAMEL: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("lower-camel"),
+    meta: Meta {
+        doc: Cow::Borrowed("Convert a string to lower camel case."),
+        mutable: false,
+    },
+    hash: fxhash::hash("lower-camel"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LowerCamelFn;
+
+impl Function for LowerCamelFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::String(s) => Ok(Value::String(heck::AsLowerCamelCase(s).to_string())),
+            _ => Err(type_error("string", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for LowerCamelFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function lower-camel>")
+    }
+}
+
+// upper-camel
+pub static SYMBOL_UPPER_CAMEL: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("upper-camel"),
+    meta: Meta {
+        doc: Cow::Borrowed("Convert a string to upper camel case."),
+        mutable: false,
+    },
+    hash: fxhash::hash("upper-camel"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UpperCamelFn;
+
+impl Function for UpperCamelFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::String(s) => Ok(Value::String(heck::AsUpperCamelCase(s).to_string())),
+            _ => Err(type_error("string", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for UpperCamelFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function upper-camel>")
+    }
+}
+
+// snake-case
+pub static SYMBOL_SNAKE_CASE: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("snake-case"),
+    meta: Meta {
+        doc: Cow::Borrowed("Convert a string to snake case."),
+        mutable: false,
+    },
+    hash: fxhash::hash("snake-case"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SnakeCaseFn;
+
+impl Function for SnakeCaseFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::String(s) => Ok(Value::String(heck::AsSnakeCase(s).to_string())),
+            _ => Err(type_error("string", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for SnakeCaseFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function snake-case>")
+    }
+}
+
+// kebab-case
+pub static SYMBOL_KEBAB_CASE: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("kebab-case"),
+    meta: Meta {
+        doc: Cow::Borrowed("Convert a string to kebab case."),
+        mutable: false,
+    },
+    hash: fxhash::hash("kebab-case"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct KebabCaseFn;
+
+impl Function for KebabCaseFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::String(s) => Ok(Value::String(heck::AsKebabCase(&s).to_string())),
+            _ => Err(type_error("string", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for KebabCaseFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function kebab-case>")
+    }
+}
+
+// title-case
+pub static SYMBOL_TITLE_CASE: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("title-case"),
+    meta: Meta {
+        doc: Cow::Borrowed("Convert a string to title case."),
+        mutable: false,
+    },
+    hash: fxhash::hash("title-case"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TitleCaseFn;
+
+impl Function for TitleCaseFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::String(s) => Ok(Value::String(heck::AsTitleCase(&s).to_string())),
+            _ => Err(type_error("string", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for TitleCaseFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function title-case>")
+    }
+}
+
+// train-case
+pub static SYMBOL_TRAIN_CASE: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("train-case"),
+    meta: Meta {
+        doc: Cow::Borrowed("Convert a string to train case."),
+        mutable: false,
+    },
+    hash: fxhash::hash("train-case"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TrainCaseFn;
+
+impl Function for TrainCaseFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::String(s) => Ok(Value::String(heck::AsTrainCase(&s).to_string())),
+            _ => Err(type_error("string", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for TrainCaseFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function train-case>")
+    }
+}
+
+// shouty-snake
+pub static SYMBOL_SHOUTY_SNAKE: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("shouty-snake"),
+    meta: Meta {
+        doc: Cow::Borrowed("Convert a string to shouty snake case."),
+        mutable: false,
+    },
+    hash: fxhash::hash("shouty-snake"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ShoutySnakeFn;
+
+impl Function for ShoutySnakeFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::String(s) => Ok(Value::String(heck::AsShoutySnakeCase(&s).to_string())),
+            _ => Err(type_error("string", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for ShoutySnakeFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function shouty-snake>")
+    }
+}
+
+// shouty-kebab
+pub static SYMBOL_SHOUTY_KEBAB: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("shouty-kebab"),
+    meta: Meta {
+        doc: Cow::Borrowed("Convert a string to shouty kebab case."),
+        mutable: false,
+    },
+    hash: fxhash::hash("shouty-kebab"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ShoutyKebabFn;
+
+impl Function for ShoutyKebabFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::String(s) => Ok(Value::String(heck::AsShoutyKebabCase(&s).to_string())),
+            _ => Err(type_error("string", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for ShoutyKebabFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function shouty-kebab>")
+    }
+}
+
+// repeat
+pub static SYMBOL_REPEAT: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("repeat"),
+    meta: Meta {
+        doc: Cow::Borrowed("Repeat a string a given number of times."),
+        mutable: false,
+    },
+    hash: fxhash::hash("repeat"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RepeatFn;
+
+impl Function for RepeatFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error_range(2, 2, args.len()));
+        }
+
+        let n = match args[1].clone() {
+            Value::I64(i) => i,
+            _ => return Err(type_error("i64", args[1].type_name().as_str())),
+        };
+
+        match args[0].clone() {
+            Value::String(s) => Ok(Value::String(s.repeat(n as usize))),
+            Value::Vector(_) => Value::as_vector(vec![args[0].clone(); n as usize]),
+            _ => Err(type_error("string", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for RepeatFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin repeat>")
+    }
+}
+
+// find-all
+pub static SYMBOL_FIND_ALL: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("find-all"),
+    meta: Meta {
+        doc: Cow::Borrowed("Find all occurrences of a string/regex in a string."),
+        mutable: false,
+    },
+    hash: fxhash::hash("find-all"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FindAllFn;
+
+impl Function for FindAllFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error_range(2, 2, args.len()));
+        }
+
+        let target = match args[1].clone() {
+            Value::String(s) => s,
+            _ => return Err(type_error("string", args[1].type_name().as_str())),
+        };
+
+        match args[0].clone() {
+            Value::String(s) => {
+                let result = target
+                    .matches(&s)
+                    .map(|s| Value::String(s.to_string()))
+                    .collect::<Vec<Value>>();
+                Value::as_vector(result)
+            }
+            Value::Regex(re) => {
+                let result = re
+                    .find_iter(&target)
+                    .map(|s| Value::String(s.as_str().to_string()))
+                    .collect::<Vec<Value>>();
+                Value::as_vector(result)
+            }
+            _ => Err(type_error("string/regex", args[1].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for FindAllFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin find-all>")
+    }
+}
+
+// reverse
+pub static SYMBOL_REVERSE: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("reverse"),
+    meta: Meta {
+        doc: Cow::Borrowed("Reverse a list or vector."),
+        mutable: false,
+    },
+    hash: fxhash::hash("reverse"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReverseFn;
+
+impl Function for ReverseFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::List(l) => {
+                let mut result = l.value.clone();
+                result.reverse();
+                Value::as_list(result)
+            }
+            Value::Vector(v) => {
+                let mut result = v.value.clone();
+                result.reverse();
+                Value::as_vector(result)
+            }
+            Value::String(s) => Ok(Value::String(s.chars().rev().collect::<String>())),
+            _ => Err(type_error("list or vector", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for ReverseFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin reverse>")
+    }
+}

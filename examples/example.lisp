@@ -231,23 +231,30 @@ inf                 ; positive infinity
 ;; String
 (len "abcde")                 ; length of string
 (join [1, 2, 3] ",")          ; join (=> "1,2,3")
-(split "abc,def,ghi" ",")     ; split (=> ["abc", "def", "ghi"])
+(split "1,2,3" "," i64)       ; split (=> [1, 2, 3])
 (replace "abc" "a" "x")       ; replace (=> "xbc")
 (trim " abc ")                ; trim (=> "abc")
 (in? "a" "12aabc32")          ; is string in string?
-(find "abc" "12aabc32")       ; find string in string (=> "abc")
+(index "abc" "12aabc32")      ; string index in string (=> 3)
 (count "abc" "12aabc32")      ; count string in string (=> 1)
-(upper "abc")                 ; upper-case
-(lower "DEF")                 ; lower-case
-(camel "abc_def")             ; camel-case (=> "abcDef")
-(snake "abcDef")              ; snake-case (=> "abc_def")
-(cebab "abcDef")              ; cebab-case (=> "abc-def")
+(upper-case "abc")            ; upper-case
+(lower-case "DEF")            ; lower-case
+(lower-camel "abc_def")       ; lowerCamelCase (=> "abcDef")
+(upper-camel "abc_def")       ; UpperCamelCase (=> "AbcDef")
+(snake-case "abcDef")         ; snake-case (=> "abc_def")
+(kebab-case "abcDef")         ; cebab-case (=> "abc-def")
+(title-case "abcDef")         ; Title Case (=> "Abc Def")
+(train-case "abcDef")         ; Train-Case (=> "Abc-Def")
+(shouty-snake "abcDef")       ; SHOUTY_SNAKE_CASE (=> "ABC_DEF")
+(shouty-kebab "abcDef")       ; SHOUTY-KEBAB-CASE (=> "ABC-DEF")
+(repeat "abc" 2)              ; repeat string (=> "abcabcabc")
+(reverse "abc")               ; reverse (=> "cba")
 (format "π: {:.2}" 3.1415)    ; format string (WIP)
 
 ;; Regular Expression
-(find #"[0-9]+" "aa123a")               ; => "123"
-(match #"hello, (.*)" "hello, world")   ; => ["hello, world", "world"]
-(replace "aa123a" #"[0-9]{2}" "x$1x")   ; => "aax12x3a"
+(find #"[0-9]+" "aa123a")                ; => "123"
+(find-all #"hello, (.*)" "hello, world") ; => ["hello, world", "world"]
+(replace "aa123a" #"[0-9]{2}" "x$1x")    ; => "aax12x3a"
 
 ;; Vector
 (first [1, 2, 3])                     ; first
@@ -267,6 +274,7 @@ inf                 ; positive infinity
 (shuffle [3, 1, 2])                   ; shuffle (non-destructive)
 (push [3, 1, 2] 4)                    ; push_back (non-destructive)
 (cons [3, 1, 2] 4)                    ; push_front (non-destructive)
+(repeat [1, 2, 3], 2)                 ; repeat vector (=> [1, 2, 3, 1, 2, 3])
 
 (def v [3, 1, 2])
 (sort! v)                             ; sort (destructive)
