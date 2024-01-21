@@ -174,6 +174,7 @@ fn insert_builtin_functions(env: &mut Environment) {
     let _ = env.insert(&SYMBOL_JOIN, Value::Function(Rc::new(JoinFn)));
     let _ = env.insert(&SYMBOL_SPLIT, Value::Function(Rc::new(SplitFn)));
     let _ = env.insert(&SYMBOL_REPLACE, Value::Function(Rc::new(ReplaceFn)));
+    let _ = env.insert(&SYMBOL_CONCAT, Value::Function(Rc::new(ConcatFn)));
     let _ = env.insert(&SYMBOL_TRIM, Value::Function(Rc::new(TrimFn)));
     let _ = env.insert(&SYMBOL_INQ, Value::Function(Rc::new(InQFn)));
     let _ = env.insert(&SYMBOL_FIND, Value::Function(Rc::new(FindFn)));
@@ -192,6 +193,21 @@ fn insert_builtin_functions(env: &mut Environment) {
     let _ = env.insert(&SYMBOL_REPEAT, Value::Function(Rc::new(RepeatFn)));
     let _ = env.insert(&SYMBOL_FIND_ALL, Value::Function(Rc::new(FindAllFn)));
     let _ = env.insert(&SYMBOL_REVERSE, Value::Function(Rc::new(ReverseFn)));
+    let _ = env.insert(&SYMBOL_LAST, Value::Function(Rc::new(LastFn)));
+    let _ = env.insert(&SYMBOL_SUM, Value::Function(Rc::new(SumFn)));
+    let _ = env.insert(&SYMBOL_MEAN, Value::Function(Rc::new(MeanFn)));
+    let _ = env.insert(&SYMBOL_MAX, Value::Function(Rc::new(MaxFn)));
+    let _ = env.insert(&SYMBOL_MIN, Value::Function(Rc::new(MinFn)));
+    let _ = env.insert(&SYMBOL_INDEX_ALL, Value::Function(Rc::new(IndexAllFn)));
+    let _ = env.insert(&SYMBOL_SOMEQ, Value::Function(Rc::new(SomeQFn)));
+    let _ = env.insert(&SYMBOL_EVERYQ, Value::Function(Rc::new(EveryQFn)));
+    let _ = env.insert(&SYMBOL_SORT, Value::Function(Rc::new(SortFn)));
+    let _ = env.insert(&SYMBOL_SHUFFLE, Value::Function(Rc::new(ShuffleFn)));
+    let _ = env.insert(&SYMBOL_PUSH, Value::Function(Rc::new(PushFn)));
+    let _ = env.insert(&SYMBOL_CONS, Value::Function(Rc::new(ConsFn)));
+    let _ = env.insert(&SYMBOL_KEYS, Value::Function(Rc::new(KeysFn)));
+    let _ = env.insert(&SYMBOL_VALS, Value::Function(Rc::new(ValsFn)));
+    let _ = env.insert(&SYMBOL_ITEMS, Value::Function(Rc::new(ItemsFn)));
 }
 
 fn insert_builtin_macros(env: &mut Environment) {

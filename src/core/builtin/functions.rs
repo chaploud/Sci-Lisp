@@ -1,17 +1,19 @@
 /* core/builtin/functions.rs */
 
+use std::any::Any;
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::{fmt, ptr};
 
 use once_cell::sync::Lazy;
+use rand::seq::SliceRandom;
 use rand::Rng;
 use unescape;
 
 use crate::core::builtin::generators::Range;
 use crate::core::types::error::Error;
-use crate::core::types::error::{arity_error, arity_error_min, type_error};
+use crate::core::types::error::{arity_error, arity_error_min, cannot_compare_error, type_error};
 use crate::core::types::error::{arity_error_range, Result};
 use crate::core::types::function::Function;
 use crate::core::types::list::List;
@@ -491,6 +493,9 @@ impl Function for GeFn {
         }
         let mut prev = args[0].clone();
         for arg in args.into_iter().skip(1) {
+            if (prev.type_id() != arg.type_id()) && !(prev.is_number() && arg.is_number()) {
+                return Err(cannot_compare_error(&prev, &arg));
+            }
             if prev < arg {
                 return Ok(Value::Bool(false));
             }
@@ -528,6 +533,9 @@ impl Function for GtFn {
         }
         let mut prev = args[0].clone();
         for arg in args.into_iter().skip(1) {
+            if (prev.type_id() != arg.type_id()) && !(prev.is_number() && arg.is_number()) {
+                return Err(cannot_compare_error(&prev, &arg));
+            }
             if prev <= arg {
                 return Ok(Value::Bool(false));
             }
@@ -565,6 +573,9 @@ impl Function for LeFn {
         }
         let mut prev = args[0].clone();
         for arg in args.into_iter().skip(1) {
+            if (prev.type_id() != arg.type_id()) && !(prev.is_number() && arg.is_number()) {
+                return Err(cannot_compare_error(&prev, &arg));
+            }
             if prev > arg {
                 return Ok(Value::Bool(false));
             }
@@ -603,6 +614,9 @@ impl Function for LtFn {
         }
         let mut prev = args[0].clone();
         for arg in args.into_iter().skip(1) {
+            if (prev.type_id() != arg.type_id()) && !(prev.is_number() && arg.is_number()) {
+                return Err(cannot_compare_error(&prev, &arg));
+            }
             if prev >= arg {
                 return Ok(Value::Bool(false));
             }
@@ -1507,12 +1521,6 @@ impl Function for FirstFn {
         match args[0].clone() {
             Value::List(list) => list.value.first().map_or(Ok(Value::Nil), |v| Ok(v.clone())),
             Value::Vector(vector) => vector.value.first().map_or(Ok(Value::Nil), |v| Ok(v.clone())),
-            Value::Map(map) => map.value.first().map_or(Ok(Value::Nil), |(k, v)| {
-                Ok(Value::Vector(Vector {
-                    value: vec![k.clone(), v.clone()],
-                }))
-            }),
-            Value::Set(set) => set.value.first().map_or(Ok(Value::Nil), |v| Ok(v.clone())),
             Value::String(s) => {
                 if s.is_empty() {
                     Ok(Value::Nil)
@@ -1520,8 +1528,15 @@ impl Function for FirstFn {
                     Ok(Value::String(s[0..1].to_string()))
                 }
             }
+            Value::Generator(gen) => {
+                if let Some(value) = gen.borrow().at(0) {
+                    Ok(value)
+                } else {
+                    Ok(Value::Nil)
+                }
+            }
             _ => Err(type_error(
-                "first: argument must be list, vector, map, set or string",
+                "first: argument must be list, vector, string or generator",
                 args[0].type_name().as_str(),
             )),
         }
@@ -1566,23 +1581,6 @@ impl Function for RestFn {
                 }
                 Value::as_vector(vector.value[1..].to_vec())
             }
-            Value::Map(map) => {
-                if map.value.is_empty() {
-                    return Value::as_map(vec![]);
-                }
-                Value::as_map(
-                    map.value[1..]
-                        .into_iter()
-                        .map(|(k, v)| (k.clone(), v.clone()))
-                        .collect::<Vec<(Value, Value)>>(),
-                )
-            }
-            Value::Set(set) => {
-                if set.value.is_empty() {
-                    return Value::as_set(vec![]);
-                }
-                Value::as_set(set.value[1..].into_iter().cloned().collect::<Vec<Value>>())
-            }
             Value::String(s) => {
                 if s.is_empty() {
                     Ok(Value::String("".to_string()))
@@ -1590,8 +1588,17 @@ impl Function for RestFn {
                     Ok(Value::String(s[1..].to_string()))
                 }
             }
+            Value::Generator(gen) => {
+                let mut result = vec![];
+                for i in 1..gen.borrow().len() {
+                    if let Some(value) = gen.borrow().at(i as i64) {
+                        result.push(value);
+                    }
+                }
+                Value::as_vector(result)
+            }
             _ => Err(type_error(
-                "rest: argument must be list, vector, map, set or string",
+                "rest: argument must be list, vector, string, or generator",
                 args[0].type_name().as_str(),
             )),
         }
@@ -2128,6 +2135,7 @@ impl Function for LenFn {
             Value::Map(m) => Ok(Value::I64(m.value.len() as i64)),
             Value::Set(s) => Ok(Value::I64(s.value.len() as i64)),
             Value::String(s) => Ok(Value::I64(s.len() as i64)),
+            Value::Generator(gen) => Ok(Value::I64(gen.borrow().len() as i64)),
             _ => Err(type_error("list, vector, map, set, or string", args[0].type_name().as_str())),
         }
     }
@@ -2279,6 +2287,62 @@ impl Function for ReplaceFn {
             }
             _ => return Err(type_error("string/regex", args[0].type_name().as_str())),
         }
+    }
+}
+
+// concat
+pub static SYMBOL_CONCAT: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("concat"),
+    meta: Meta {
+        doc: Cow::Borrowed("Concatenate two strings, vector, or list"),
+        mutable: false,
+    },
+    hash: fxhash::hash("concat"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ConcatFn;
+
+impl Function for ConcatFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::String(s1) => {
+                if let Value::String(s2) = args[1].clone() {
+                    Ok(Value::String(s1 + &s2))
+                } else {
+                    Err(type_error("string", args[1].type_name().as_str()))
+                }
+            }
+            Value::List(l1) => {
+                if let Value::List(l2) = args[1].clone() {
+                    Ok(Value::List(List {
+                        value: [&l1.value[..], &l2.value[..]].concat(),
+                    }))
+                } else {
+                    Err(type_error("list", args[1].type_name().as_str()))
+                }
+            }
+            Value::Vector(v1) => {
+                if let Value::Vector(v2) = args[1].clone() {
+                    Ok(Value::Vector(Vector {
+                        value: [&v1.value[..], &v2.value[..]].concat(),
+                    }))
+                } else {
+                    Err(type_error("vector", args[1].type_name().as_str()))
+                }
+            }
+            _ => Err(type_error("string", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for ConcatFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<built-in function: concat>")
     }
 }
 
@@ -2861,7 +2925,6 @@ impl Function for RepeatFn {
 
         match args[0].clone() {
             Value::String(s) => Ok(Value::String(s.repeat(n as usize))),
-            Value::Vector(_) => Value::as_vector(vec![args[0].clone(); n as usize]),
             _ => Err(type_error("string", args[0].type_name().as_str())),
         }
     }
@@ -2962,5 +3025,840 @@ impl Function for ReverseFn {
 impl fmt::Display for ReverseFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "<builtin reverse>")
+    }
+}
+
+// last
+pub static SYMBOL_LAST: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("last"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the last element of a list or vector."),
+        mutable: false,
+    },
+    hash: fxhash::hash("last"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LastFn;
+
+impl Function for LastFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::List(l) => {
+                if let Some(v) = l.value.last() {
+                    Ok(v.clone())
+                } else {
+                    Ok(Value::Nil)
+                }
+            }
+            Value::Vector(v) => {
+                if let Some(v) = v.value.last() {
+                    Ok(v.clone())
+                } else {
+                    Ok(Value::Nil)
+                }
+            }
+            Value::String(s) => {
+                if let Some(c) = s.chars().last() {
+                    Ok(Value::String(c.to_string()))
+                } else {
+                    Ok(Value::Nil)
+                }
+            }
+            Value::Generator(gen) => {
+                if let Some(v) = gen.borrow().at((gen.borrow().len() - 1) as i64) {
+                    Ok(v.clone())
+                } else {
+                    Ok(Value::Nil)
+                }
+            }
+            _ => Err(type_error("list, vector, string or generator", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for LastFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin last>")
+    }
+}
+
+// sum
+pub static SYMBOL_SUM: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("sum"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the sum"),
+        mutable: false,
+    },
+    hash: fxhash::hash("sum"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SumFn;
+
+impl Function for SumFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+        match args[0].clone() {
+            Value::List(l) => {
+                let mut sum = 0.0;
+                for v in l.value {
+                    match v {
+                        Value::I64(i) => sum += i as f64,
+                        Value::F64(f) => sum += f,
+                        _ => return Err(type_error("i64 or f64", v.type_name().as_str())),
+                    }
+                }
+                Ok(Value::F64(sum))
+            }
+            Value::Vector(v) => {
+                let mut sum = 0.0;
+                for v in v.value {
+                    match v {
+                        Value::I64(i) => sum += i as f64,
+                        Value::F64(f) => sum += f,
+                        _ => return Err(type_error("i64 or f64", v.type_name().as_str())),
+                    }
+                }
+                Ok(Value::F64(sum))
+            }
+            Value::Map(m) => {
+                let mut sum = 0.0;
+                for (k, _) in m.value {
+                    match k {
+                        Value::I64(i) => sum += i as f64,
+                        Value::F64(f) => sum += f,
+                        _ => return Err(type_error("i64 or f64", k.type_name().as_str())),
+                    }
+                }
+                Ok(Value::F64(sum))
+            }
+            Value::Set(s) => {
+                let mut sum = 0.0;
+                for v in s.value {
+                    match v {
+                        Value::I64(i) => sum += i as f64,
+                        Value::F64(f) => sum += f,
+                        _ => return Err(type_error("i64 or f64", v.type_name().as_str())),
+                    }
+                }
+                Ok(Value::F64(sum))
+            }
+            Value::Generator(gen) => {
+                let mut sum = 0.0;
+                let length = gen.borrow().len();
+                for i in 0..length {
+                    match gen.borrow().at(i as i64) {
+                        Some(Value::I64(i)) => sum += i as f64,
+                        Some(Value::F64(f)) => sum += f,
+                        None => break,
+                        v => return Err(type_error("i64 or f64", v.unwrap().type_name().as_str())),
+                    }
+                }
+                Ok(Value::F64(sum))
+            }
+            _ => Err(type_error(
+                "list, vector, map, set or generator",
+                args[0].type_name().as_str(),
+            )),
+        }
+    }
+}
+
+impl fmt::Display for SumFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin sum>")
+    }
+}
+
+// mean
+pub static SYMBOL_MEAN: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("mean"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the mean"),
+        mutable: false,
+    },
+    hash: fxhash::hash("mean"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MeanFn;
+
+impl Function for MeanFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+        match args[0].clone() {
+            Value::List(l) => {
+                let mut sum = 0.0;
+                let length = l.value.len();
+                for v in l.value {
+                    match v {
+                        Value::I64(i) => sum += i as f64,
+                        Value::F64(f) => sum += f,
+                        _ => return Err(type_error("i64 or f64", v.type_name().as_str())),
+                    }
+                }
+                Ok(Value::F64(sum / length as f64))
+            }
+            Value::Vector(v) => {
+                let mut sum = 0.0;
+                let length = v.value.len();
+                for v in v.value {
+                    match v {
+                        Value::I64(i) => sum += i as f64,
+                        Value::F64(f) => sum += f,
+                        _ => return Err(type_error("i64 or f64", v.type_name().as_str())),
+                    }
+                }
+                Ok(Value::F64(sum / length as f64))
+            }
+            Value::Map(m) => {
+                let mut sum = 0.0;
+                let length = m.value.len();
+                for (k, _) in m.value {
+                    match k {
+                        Value::I64(i) => sum += i as f64,
+                        Value::F64(f) => sum += f,
+                        _ => return Err(type_error("i64 or f64", k.type_name().as_str())),
+                    }
+                }
+                Ok(Value::F64(sum / length as f64))
+            }
+            Value::Set(s) => {
+                let mut sum = 0.0;
+                let length = s.value.len();
+                for v in s.value {
+                    match v {
+                        Value::I64(i) => sum += i as f64,
+                        Value::F64(f) => sum += f,
+                        _ => return Err(type_error("i64 or f64", v.type_name().as_str())),
+                    }
+                }
+                Ok(Value::F64(sum / length as f64))
+            }
+            Value::Generator(gen) => {
+                let mut sum = 0.0;
+                let length = gen.borrow().len();
+                for i in 0..length {
+                    match gen.borrow().at(i as i64) {
+                        Some(Value::I64(i)) => sum += i as f64,
+                        Some(Value::F64(f)) => sum += f,
+                        None => break,
+                        v => return Err(type_error("i64 or f64", v.unwrap().type_name().as_str())),
+                    }
+                }
+                Ok(Value::F64(sum / length as f64))
+            }
+            _ => Err(type_error(
+                "list, vector, map, set or generator",
+                args[0].type_name().as_str(),
+            )),
+        }
+    }
+}
+
+impl fmt::Display for MeanFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin mean>")
+    }
+}
+
+fn helper_max(c: Vec<Value>) -> Result<Value> {
+    if c.is_empty() {
+        return Ok(Value::Nil);
+    }
+    let mut max = c[0].clone();
+    for v in c {
+        if max.type_id() != v.type_id() && !(max.is_number() && v.is_number()) {
+            return Err(cannot_compare_error(&max, &v));
+        }
+        if v > max {
+            max = v;
+        }
+    }
+    Ok(max)
+}
+
+fn helper_min(c: Vec<Value>) -> Result<Value> {
+    if c.is_empty() {
+        return Ok(Value::Nil);
+    }
+    let mut min = c[0].clone();
+    for v in c {
+        if min.type_id() != v.type_id() && !(min.is_number() && v.is_number()) {
+            return Err(cannot_compare_error(&min, &v));
+        }
+        if v < min {
+            min = v;
+        }
+    }
+    Ok(min)
+}
+
+// max
+pub static SYMBOL_MAX: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("max"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the maximum value in a list or vector of numbers."),
+        mutable: false,
+    },
+    hash: fxhash::hash("max"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MaxFn;
+
+impl Function for MaxFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+        match args[0].clone() {
+            Value::List(l) => helper_max(l.value),
+            Value::Vector(v) => helper_max(v.value),
+            Value::Map(m) => {
+                let keys = m.value.keys().cloned().collect::<Vec<Value>>();
+                helper_max(keys)
+            }
+            Value::Set(s) => {
+                let keys = s.value.iter().cloned().collect::<Vec<Value>>();
+                helper_max(keys)
+            }
+            Value::Generator(gen) => {
+                let vals = (0..gen.borrow().len())
+                    .map(|i| gen.borrow().at(i as i64).unwrap())
+                    .collect::<Vec<Value>>();
+                helper_max(vals)
+            }
+            _ => Err(type_error("list or vector", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for MaxFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin max>")
+    }
+}
+
+// min
+pub static SYMBOL_MIN: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("min"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the minimum value in a list or vector of numbers."),
+        mutable: false,
+    },
+    hash: fxhash::hash("min"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MinFn;
+
+impl Function for MinFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+        match args[0].clone() {
+            Value::List(l) => helper_min(l.value),
+            Value::Vector(v) => helper_min(v.value),
+            Value::Map(m) => {
+                let keys = m.value.keys().cloned().collect::<Vec<Value>>();
+                helper_min(keys)
+            }
+            Value::Set(s) => {
+                let keys = s.value.iter().cloned().collect::<Vec<Value>>();
+                helper_min(keys)
+            }
+            Value::Generator(gen) => {
+                let vals = (0..gen.borrow().len())
+                    .map(|i| gen.borrow().at(i as i64).unwrap())
+                    .collect::<Vec<Value>>();
+                helper_min(vals)
+            }
+            _ => Err(type_error("list or vector", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for MinFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin min>")
+    }
+}
+
+// index-all
+pub static SYMBOL_INDEX_ALL: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("index-all"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the indices of all occurrences of a value in a list or vector."),
+        mutable: false,
+    },
+    hash: fxhash::hash("index-all"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct IndexAllFn;
+
+impl Function for IndexAllFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        match args[1].clone() {
+            Value::List(l) => {
+                let mut result = vec![];
+                for (i, v) in l.value.iter().enumerate() {
+                    if v == &args[0] {
+                        result.push(Value::I64(i as i64));
+                    }
+                }
+                Value::as_vector(result)
+            }
+            Value::Vector(v) => {
+                let mut result = vec![];
+                for (i, v) in v.value.iter().enumerate() {
+                    if v == &args[0] {
+                        result.push(Value::I64(i as i64));
+                    }
+                }
+                Value::as_vector(result)
+            }
+            _ => Err(type_error("list or vector", args[1].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for IndexAllFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin index-all>")
+    }
+}
+
+// some?
+pub static SYMBOL_SOMEQ: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("some?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Check if a predicate is true for some value in a list or vector."),
+        mutable: false,
+    },
+    hash: fxhash::hash("some?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SomeQFn;
+
+impl Function for SomeQFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::List(l) => {
+                for v in l.value {
+                    if v.is_truthy() {
+                        return Ok(Value::Bool(true));
+                    }
+                }
+                Ok(Value::Bool(false))
+            }
+            Value::Vector(v) => {
+                for v in v.value {
+                    if v.is_truthy() {
+                        return Ok(Value::Bool(true));
+                    }
+                }
+                Ok(Value::Bool(false))
+            }
+            _ => Err(type_error("list or vector", args[1].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for SomeQFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin some?>")
+    }
+}
+
+// every?
+pub static SYMBOL_EVERYQ: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("every?"),
+    meta: Meta {
+        doc: Cow::Borrowed("Check if a predicate is true for every value in a list or vector."),
+        mutable: false,
+    },
+    hash: fxhash::hash("every?"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EveryQFn;
+
+impl Function for EveryQFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::List(l) => {
+                for v in l.value {
+                    if !v.is_truthy() {
+                        return Ok(Value::Bool(false));
+                    }
+                }
+                Ok(Value::Bool(true))
+            }
+            Value::Vector(v) => {
+                for v in v.value {
+                    if !v.is_truthy() {
+                        return Ok(Value::Bool(false));
+                    }
+                }
+                Ok(Value::Bool(true))
+            }
+            _ => Err(type_error("list or vector", args[1].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for EveryQFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin every?>")
+    }
+}
+
+fn check_all_same_type(values: &Vec<Value>) -> Result<()> {
+    if values.is_empty() {
+        return Ok(());
+    }
+    let mut prev = &values[0];
+    for arg in values {
+        if prev.type_id() != arg.type_id() && !(prev.is_number() && arg.is_number()) {
+            return Err(cannot_compare_error(prev, arg));
+        }
+        prev = arg;
+    }
+    Ok(())
+}
+
+fn sort_helper(values: Vec<Value>, asc: bool) -> Result<Vec<Value>> {
+    check_all_same_type(&values)?;
+
+    let mut result = values;
+    if asc {
+        result.sort();
+    } else {
+        result.sort_by(|a, b| b.cmp(a));
+    }
+    Ok(result)
+}
+
+// sort
+pub static SYMBOL_SORT: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("sort"),
+    meta: Meta {
+        doc: Cow::Borrowed("Sort a list or vector or string."),
+        mutable: false,
+    },
+    hash: fxhash::hash("sort"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SortFn;
+
+impl Function for SortFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 && args.len() != 2 {
+            return Err(arity_error_range(1, 2, args.len()));
+        }
+
+        let mut asc = true;
+        if args.len() == 2 {
+            match args[1].clone() {
+                Value::Keyword(k) => {
+                    if k.name == ":asc" {
+                        asc = true;
+                    } else if k.name == ":desc" {
+                        asc = false;
+                    } else {
+                        return Err(Error::Value("second argument must be :asc or :desc".to_string()));
+                    }
+                }
+                _ => return Err(Error::Value("second argument must be :asc or :desc".to_string())),
+            }
+        }
+
+        match args[0].clone() {
+            Value::List(l) => Value::as_list(sort_helper(l.value, asc)?),
+            Value::Vector(v) => Value::as_vector(sort_helper(v.value, asc)?),
+            Value::String(s) => {
+                let mut result = s.chars().collect::<Vec<char>>();
+                if asc {
+                    result.sort();
+                } else {
+                    result.sort_by(|a, b| b.cmp(a));
+                }
+                Ok(Value::String(result.into_iter().collect::<String>()))
+            }
+            _ => Err(type_error("list, vector or string", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for SortFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin sort>")
+    }
+}
+
+// shuffle
+pub static SYMBOL_SHUFFLE: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("shuffle"),
+    meta: Meta {
+        doc: Cow::Borrowed("Shuffle a list or vector or string."),
+        mutable: false,
+    },
+    hash: fxhash::hash("shuffle"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ShuffleFn;
+
+impl Function for ShuffleFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error(1, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::List(l) => {
+                let mut result = l.value.clone();
+                result.shuffle(&mut rand::thread_rng());
+                Value::as_list(result)
+            }
+            Value::Vector(v) => {
+                let mut result = v.value.clone();
+                result.shuffle(&mut rand::thread_rng());
+                Value::as_vector(result)
+            }
+            Value::String(s) => {
+                let mut result = s.chars().collect::<Vec<char>>();
+                result.shuffle(&mut rand::thread_rng());
+                Ok(Value::String(result.into_iter().collect::<String>()))
+            }
+            _ => Err(type_error("list, vector or string", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for ShuffleFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin shuffle>")
+    }
+}
+
+// push
+pub static SYMBOL_PUSH: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("push"),
+    meta: Meta {
+        doc: Cow::Borrowed("Push a value to the end of a list or vector."),
+        mutable: false,
+    },
+    hash: fxhash::hash("push"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PushFn;
+
+impl Function for PushFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::List(l) => {
+                let mut result = l.value.clone();
+                result.push(args[1].clone());
+                Value::as_list(result)
+            }
+            Value::Vector(v) => {
+                let mut result = v.value.clone();
+                result.push(args[1].clone());
+                Value::as_vector(result)
+            }
+            Value::String(s) => Ok(Value::String(format!("{}{}", s, args[1]))),
+            _ => Err(type_error("list or vector", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for PushFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin push>")
+    }
+}
+
+// cons
+pub static SYMBOL_CONS: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("cons"),
+    meta: Meta {
+        doc: Cow::Borrowed("Prepend a value to the beginning of a list or vector."),
+        mutable: false,
+    },
+    hash: fxhash::hash("cons"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ConsFn;
+
+impl Function for ConsFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::List(l) => {
+                let mut result = vec![args[1].clone()];
+                result.append(&mut l.value.clone());
+                Value::as_list(result)
+            }
+            Value::Vector(v) => {
+                let mut result = vec![args[1].clone()];
+                result.append(&mut v.value.clone());
+                Value::as_vector(result)
+            }
+            Value::String(s) => Ok(Value::String(format!("{}{}", args[1], s))),
+            _ => Err(type_error("list or vector", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for ConsFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin cons>")
+    }
+}
+
+// keys
+pub static SYMBOL_KEYS: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("keys"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the keys of a map."),
+        mutable: false,
+    },
+    hash: fxhash::hash("keys"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct KeysFn;
+
+impl Function for KeysFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+        match args[0].clone() {
+            Value::Map(m) => {
+                let mut result = vec![];
+                for (k, _) in m.value {
+                    result.push(k);
+                }
+                Value::as_vector(result)
+            }
+            _ => Err(type_error("map", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for KeysFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin keys>")
+    }
+}
+
+// vals
+pub static SYMBOL_VALS: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("vals"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the values of a map."),
+        mutable: false,
+    },
+    hash: fxhash::hash("vals"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ValsFn;
+
+impl Function for ValsFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+        match args[0].clone() {
+            Value::Map(m) => {
+                let mut result = vec![];
+                for (_, v) in m.value {
+                    result.push(v);
+                }
+                Value::as_vector(result)
+            }
+            _ => Err(type_error("map", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for ValsFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin vals>")
+    }
+}
+
+// items
+pub static SYMBOL_ITEMS: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("items"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the items of a map."),
+        mutable: false,
+    },
+    hash: fxhash::hash("items"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ItemsFn;
+
+impl Function for ItemsFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 1 {
+            return Err(arity_error_range(1, 1, args.len()));
+        }
+        match args[0].clone() {
+            Value::Map(m) => {
+                let mut result = vec![];
+                for (k, v) in m.value {
+                    result.push(Value::Vector(Vector::from(vec![k, v])));
+                }
+                Value::as_vector(result)
+            }
+            _ => Err(type_error("map", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for ItemsFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin items>")
     }
 }

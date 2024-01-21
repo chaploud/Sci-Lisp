@@ -43,12 +43,12 @@ inf                 ; positive infinity
   a)                         ; => 3
 
 ;; ===== Function
-(defn sum [a b]              ; define function
+(defn my-sum [a b]           ; define function
  "sum two value"             ; docstring
   (print a b)
   (+ a b))
 
-(def sum                     ; bind function using def
+(def my-sum                  ; bind function using def
   (fn [a b]                  ; anonymous/lambda function
     (return (+ a b))         ; can use early return
     (- a b)))
@@ -233,6 +233,7 @@ inf                 ; positive infinity
 (join [1, 2, 3] ",")          ; join (=> "1,2,3")
 (split "1,2,3" "," i64)       ; split (=> [1, 2, 3])
 (replace "abc" "a" "x")       ; replace (=> "xbc")
+(concat "abc" "def")          ; concat (=> "abcdef")
 (trim " abc ")                ; trim (=> "abc")
 (in? "a" "12aabc32")          ; is string in string?
 (index "abc" "12aabc32")      ; string index in string (=> 3)
@@ -268,17 +269,18 @@ inf                 ; positive infinity
 (in? 2 [1, 2, 3])                     ; is element in vector?
 (index 2 [1, 2, 3])                   ; index of element
 (index-all 2 [1, 2, 3, 2])            ; all index of element
-(some? [false, true, false])          ; return true if some true
-(every? [false, true, false])         ; return true if all true
-(sort [3, 1, 2])                      ; sort (non-destructive)
+(some? [false, true, false])          ; return true if some truthy
+(every? [false, true, false])         ; return true if all truthy
+(sort [3, 1, 2] :asc)                 ; sort (non-destructive)
 (reverse [3, 1, 2])                   ; reverse (non-destructive
-(shuffle [3, 1, 2])                   ; shuffle (non-destructive)
 (push [3, 1, 2] 4)                    ; push_back (non-destructive)
 (cons [3, 1, 2] 4)                    ; push_front (non-destructive)
-(repeat [1, 2, 3], 2)                 ; repeat vector (=> [1, 2, 3, 1, 2, 3])
+(concat [1, 2, 3] [4, 5, 6])          ; concat (non-destructive)
+(shuffle [3, 1, 2])                   ; shuffle (non-destructive)
 
+;; in-place (WIP)
 (def v [3, 1, 2])
-(sort! v)                             ; sort (destructive)
+(sort! v :desc)                       ; sort (destructive)
 (reverse! v)                          ; reverse (destructive)
 (shuffle! v)                          ; shuffle (destructive)
 (push! v 4)                           ; push_back (destructive)
@@ -289,8 +291,21 @@ inf                 ; positive infinity
 ([0|2] [1, 2, 3])                     ; slicing => [1, 2]
 ([0|2|2] "abcdefg")                   ; slicing with step => "ace"
 
-;; Functional Programming
+;; Map
+(keys {:a 1, :b 2, :c 3})             ; keys
+(vals {:a 1, :b 2, :c 3})             ; values
+(items {:a 1, :b 2, :c 3})            ; key-value pairs
+(:a {:a 1, :b 2, :c 3})               ; get value by key (keyword)
+(0 {0 "a", 1 "b", 2 "c"})             ; get value by key (i64)
+("a" {0 "a", 1 "b", 2 "c"})           ; get value by key (string)
 
+;; Functional Programming
+; partial
+; map
+; filter
+; reduce
 ; repeat
 ; chunk
+
+;; Polars binding (WIP)
 ; shape

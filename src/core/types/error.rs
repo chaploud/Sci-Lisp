@@ -157,6 +157,10 @@ pub fn type_error(expected: &str, actual: &str) -> Error {
     Error::Type(format!("expected type: '{}', got: '{}'", expected, actual))
 }
 
+pub fn cannot_compare_error(left: &Value, right: &Value) -> Error {
+    Error::Type(format!("cannot compare '{}' and '{}'", left.type_name(), right.type_name(),))
+}
+
 pub fn index_out_of_range_error(index: i64) -> Error {
     Error::Index(format!("index '{}' out of range", index))
 }

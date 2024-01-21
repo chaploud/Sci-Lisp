@@ -455,15 +455,15 @@ fn execute_repl_00034() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = AssertCmd::cargo_bin("scilisp")?;
     cmd.write_stdin(
         r##"
-        (defn sum [a b]
+        (defn my-sum [a b]
          "sum two value"
           (print a b)
           (+ a b))
 
-        (sum 1 2)
+        (my-sum 1 2)
         "##,
     );
-    let out = "sum\n1 2\n3";
+    let out = "my-sum\n1 2\n3";
     cmd.assert().success().stdout(format!("{}\n", out));
     Ok(())
 }
@@ -473,15 +473,15 @@ fn execute_repl_00035() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = AssertCmd::cargo_bin("scilisp")?;
     cmd.write_stdin(
         r##"
-        (def sum
+        (def my-sum
           (fn [a b]
             (return (+ a b))
             (+ a b)))
 
-        (sum 1 2)
+        (my-sum 1 2)
         "##,
     );
-    let out = "sum\n3";
+    let out = "my-sum\n3";
     cmd.assert().success().stdout(format!("{}\n", out));
     Ok(())
 }
@@ -880,6 +880,7 @@ fn execute_repl_00062() -> Result<(), Box<dyn std::error::Error>> {
         (join [1, 2, 3] ",")
         (split "1,2,3" "," i64)
         (replace "abc" "a" "x")
+        (concat "abc" "def")
         (trim " abc ")
         (in? "a" "12aabc32")
         (index "abc" "12aabc32")
@@ -902,6 +903,7 @@ fn execute_repl_00062() -> Result<(), Box<dyn std::error::Error>> {
         "\"1,2,3\"",
         "[1, 2, 3]",
         "\"xbc\"",
+        "\"abcdef\"",
         "\"abc\"",
         "true",
         "3",
@@ -939,7 +941,52 @@ fn execute_repl_00063() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-// type
-// print
-// doc
-// REPLの補完機能ぜひつけたい
+#[test]
+fn execute_repl_00064() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (first [1, 2, 3])
+        (last [1, 2, 3])
+        (rest [1, 2, 3])
+        (len [1, 2, 3])
+        (sum [1, 2, 3])
+        (mean [1, 2, 3])
+        (max [1, 2, 3])
+        (min [1, 2, 3])
+        (in? 2 [1, 2, 3])
+        (index 2 [1, 2, 3])
+        (index-all 2 [1, 2, 3, 2])
+        (some? [false, true, false])
+        (every? [false, true, false])
+        (sort [3, 1, 2] :asc)
+        (reverse [3, 1, 2])
+        (push [3, 1, 2] 4)
+        (cons [3, 1, 2] 4)
+        (concat [1, 2, 3] [4, 5, 6])
+        "##,
+    );
+    let outs = [
+        "1",
+        "3",
+        "[2, 3]",
+        "3",
+        "6",
+        "2",
+        "3",
+        "1",
+        "true",
+        "1",
+        "[1, 3]",
+        "true",
+        "false",
+        "[1, 2, 3]",
+        "[2, 1, 3]",
+        "[3, 1, 2, 4]",
+        "[4, 3, 1, 2]",
+        "[1, 2, 3, 4, 5, 6]",
+    ];
+    let out = outs.join("\n");
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
