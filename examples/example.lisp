@@ -289,7 +289,7 @@ inf                 ; positive infinity
 ;; Slicing/At
 (-1 [1, 2, 3])                        ; back => 3
 ([0|2] [1, 2, 3])                     ; slicing => [1, 2]
-([0|2|2] "abcdefg")                   ; slicing with step => "ace"
+([0|-1|2] "abcdefg")                  ; slicing with step => "ace"
 
 ;; Map
 (keys {:a 1, :b 2, :c 3})             ; keys
@@ -297,7 +297,7 @@ inf                 ; positive infinity
 (items {:a 1, :b 2, :c 3})            ; key-value pairs
 (:a {:a 1, :b 2, :c 3})               ; get value by key (keyword)
 (0 {0 "a", 1 "b", 2 "c"})             ; get value by key (i64)
-("a" {0 "a", 1 "b", 2 "c"})           ; get value by key (string)
+("a" {"a" 1, "b" 2, "c" 3})           ; get value by key (string)
 
 ;; Functional Programming
 ; partial

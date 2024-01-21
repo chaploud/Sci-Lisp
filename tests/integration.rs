@@ -990,3 +990,38 @@ fn execute_repl_00064() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert().success().stdout(format!("{}\n", out));
     Ok(())
 }
+
+#[test]
+fn execute_repl_00065() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (-1 [1, 2, 3])
+        ([0|2] [1, 2, 3])
+        ([0|-1|2] "abcdefg")
+        "##,
+    );
+    let outs = ["3", "[1, 2]", "\"ace\""];
+    let out = outs.join("\n");
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00066() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (keys {:a 1, :b 2, :c 3})
+        (vals {:a 1, :b 2, :c 3})
+        (items {:a 1, :b 2, :c 3})
+        (:a {:a 1, :b 2, :c 3})
+        (0 {0 "a", 1 "b", 2 "c"})
+        ("a" {"a" 1, "b" 2, "c" 3})
+        "##,
+    );
+    let outs = ["[:a, :b, :c]", "[1, 2, 3]", "[[:a, 1], [:b, 2], [:c, 3]]", "1", "\"a\"", "1"];
+    let out = outs.join("\n");
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
