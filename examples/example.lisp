@@ -261,8 +261,8 @@ inf                 ; positive infinity
 (map (fn [x] (* x x)) [1, 2, 3])      ; map => [1, 4, 9]
 (filter (fn [x] (even? x)) [1, 2, 3]) ; filter => [2]
 (reduce + 4 [1, 2, 4])                ; reduce => 11
-(-> 1 (+ 2) (- 3))                    ; thread first => 0
-(->> 1 (+ 2) (- 3))                   ; thread last => 4
+(-> 1 (+ 2) (/ 6))                    ; thread first => 0.5
+(->> 1 (+ 2) (/ 6))                   ; thread last => 2
 ; ((partial * 10) 1)                  ; partial(WIP) => 10
 ; ((comp str +) 7 8 9)                ; comp(WIP) => "24"
 
