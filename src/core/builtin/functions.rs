@@ -3862,3 +3862,96 @@ impl fmt::Display for ItemsFn {
         write!(f, "<builtin items>")
     }
 }
+
+// get
+pub static SYMBOL_GET: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("get"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get a value from a map."),
+        mutable: false,
+    },
+    hash: fxhash::hash("get"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GetFn;
+
+impl Function for GetFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 && args.len() != 3 {
+            return Err(arity_error_range(2, 3, args.len()));
+        }
+        match args[0].clone() {
+            Value::Map(m) => {
+                let key = args[1].clone();
+                if let Some(v) = m.value.get(&key) {
+                    Ok(v.clone())
+                } else {
+                    Ok(Value::Nil)
+                }
+            }
+            Value::Set(s) => {
+                let key = args[1].clone();
+                if let Some(k) = s.value.get(&key) {
+                    Ok(k.clone())
+                } else {
+                    Ok(Value::Nil)
+                }
+            }
+            Value::String(s) => {
+                let index = match args[1].clone() {
+                    Value::I64(i) => i,
+                    _ => return Err(type_error("i64", args[1].type_name().as_str())),
+                };
+                if let Some(result) = s.at(index) {
+                    Ok(Value::String(result.to_string()))
+                } else {
+                    Ok(Value::Nil)
+                }
+            }
+            Value::List(l) => {
+                let index = match args[1].clone() {
+                    Value::I64(i) => i,
+                    _ => return Err(type_error("i64", args[1].type_name().as_str())),
+                };
+                if let Some(result) = l.at(index) {
+                    Ok(result.clone())
+                } else {
+                    Ok(Value::Nil)
+                }
+            }
+            Value::Vector(v) => {
+                let index = match args[1].clone() {
+                    Value::I64(i) => i,
+                    _ => return Err(type_error("i64", args[1].type_name().as_str())),
+                };
+                if let Some(result) = v.at(index) {
+                    Ok(result.clone())
+                } else {
+                    Ok(Value::Nil)
+                }
+            }
+            Value::Generator(gen) => {
+                let index = match args[1].clone() {
+                    Value::I64(i) => i,
+                    _ => return Err(type_error("i64", args[1].type_name().as_str())),
+                };
+                if let Some(result) = gen.borrow().at(index) {
+                    Ok(result.clone())
+                } else {
+                    Ok(Value::Nil)
+                }
+            }
+            _ => Err(type_error(
+                "map, set, string, list, vector or generator",
+                args[0].type_name().as_str(),
+            )),
+        }
+    }
+}
+
+impl fmt::Display for GetFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin get>")
+    }
+}

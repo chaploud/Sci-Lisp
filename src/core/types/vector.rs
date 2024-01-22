@@ -16,6 +16,7 @@ use crate::core::value::Value;
 use crate::core::value::ValueIter;
 
 use super::function::Function;
+use super::sliceable::SliceableMut;
 
 #[derive(Debug, Clone, PartialEq, Hash, Eq, PartialOrd, Ord)]
 pub struct Vector {
@@ -146,6 +147,22 @@ impl Sliceable for Vector {
         }
 
         Ok(Value::Vector(Vector::from(new_slice)))
+    }
+}
+
+impl SliceableMut for Vector {
+    fn at_mut(&mut self, index: i64) -> Option<&mut Value> {
+        if index < 0 {
+            let index = self.len() as i64 + index;
+            if index < 0 {
+                return None;
+            }
+            return Some(&mut self.value[index as usize]);
+        }
+        if index as usize >= self.len() {
+            return None;
+        }
+        Some(&mut self.value[index as usize])
     }
 }
 

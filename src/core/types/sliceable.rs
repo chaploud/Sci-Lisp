@@ -9,3 +9,8 @@ pub trait Sliceable: DynClone {
     fn slice(&self, start: Option<i64>, end: Option<i64>, step: Option<i64>) -> Result<Value>;
 }
 dyn_clone::clone_trait_object!(Sliceable);
+
+pub trait SliceableMut: DynClone {
+    fn at_mut(&mut self, index: i64) -> Option<&mut Value>;
+}
+dyn_clone::clone_trait_object!(SliceableMut);

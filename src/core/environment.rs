@@ -208,6 +208,7 @@ fn insert_builtin_functions(env: &mut Environment) {
     let _ = env.insert(&SYMBOL_KEYS, Value::Function(Rc::new(KeysFn)));
     let _ = env.insert(&SYMBOL_VALS, Value::Function(Rc::new(ValsFn)));
     let _ = env.insert(&SYMBOL_ITEMS, Value::Function(Rc::new(ItemsFn)));
+    let _ = env.insert(&SYMBOL_GET, Value::Function(Rc::new(GetFn)));
 }
 
 fn insert_builtin_macros(env: &mut Environment) {
@@ -234,6 +235,7 @@ fn insert_builtin_macros(env: &mut Environment) {
     let _ = env.insert(&SYMBOL_FOR, Value::Macro(Rc::new(ForMacro)));
     let _ = env.insert(&SYMBOL_GENSYM, Value::Macro(Rc::new(GensymMacro)));
     let _ = env.insert(&SYMBOL_MACRO, Value::Macro(Rc::new(MacroMacro)));
+    let _ = env.insert(&SYMBOL_INSERTE, Value::Macro(Rc::new(InsertEMacro)));
 }
 
 fn insert_builtin_constants(env: &mut Environment) {

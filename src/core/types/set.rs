@@ -115,4 +115,22 @@ impl Set {
     pub fn len(&self) -> usize {
         self.value.len()
     }
+
+    pub fn union(&self, other: &Self) -> Self {
+        Self {
+            value: self.value.union(&other.value).cloned().collect::<IndexSet<Value>>(),
+        }
+    }
+
+    pub fn intersect(&self, other: &Self) -> Self {
+        Self {
+            value: self.value.intersection(&other.value).cloned().collect::<IndexSet<Value>>(),
+        }
+    }
+
+    pub fn difference(&self, other: &Self) -> Self {
+        Self {
+            value: self.value.difference(&other.value).cloned().collect::<IndexSet<Value>>(),
+        }
+    }
 }

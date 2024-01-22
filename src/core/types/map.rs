@@ -108,6 +108,10 @@ impl Map {
         self.value.insert(key, value);
     }
 
+    pub fn remove(&mut self, key: &Value) -> Option<Value> {
+        self.value.remove(key)
+    }
+
     pub fn get(&self, key: &Value) -> Option<&Value> {
         self.value.get(key)
     }

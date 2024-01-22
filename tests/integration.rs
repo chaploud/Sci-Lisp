@@ -1028,3 +1028,20 @@ fn execute_repl_00066() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert().success().stdout(format!("{}\n", out));
     Ok(())
 }
+
+#[test]
+fn execute_repl_00067() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (def v [1, 2, 3])
+        (insert! v 1 999)
+        v
+        (get v -1)
+        "##,
+    );
+    let outs = ["v", "nil", "[1, 999, 2, 3]", "3"];
+    let out = outs.join("\n");
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}

@@ -279,7 +279,8 @@ inf                 ; positive infinity
 (shuffle [3, 1, 2])                   ; shuffle (non-destructive)
 
 ;; in-place (WIP)
-(def v [3, 1, 2])
+(def v [1, 2, 3])
+(insert! v 1 999)                     ; insert (destructive)
 (sort! v :desc)                       ; sort (destructive)
 (reverse! v)                          ; reverse (destructive)
 (shuffle! v)                          ; shuffle (destructive)
@@ -298,21 +299,29 @@ inf                 ; positive infinity
 (keys {:a 1, :b 2, :c 3})             ; keys
 (vals {:a 1, :b 2, :c 3})             ; values
 (items {:a 1, :b 2, :c 3})            ; key-value pairs
+(def m {})
+(insert! m :a 1)                      ; insert(destructive)
+(get m :a)                            ; get
+(remove! m :a)                        ; remove(desctructive)
 (:a {:a 1, :b 2, :c 3})               ; get value by key (keyword)
 (0 {0 "a", 1 "b", 2 "c"})             ; get value by key (i64)
 ("a" {"a" 1, "b" 2, "c" 3})           ; get value by key (string)
 
-;; Assign (Slice/At/Map)
+;; Set
+(def s1 #{2 3})
+(insert! s 1)                         ; insert
+(remove! s 1)                         ; remove
+(def s2 #{1 2})
+(union s1 s2)                         ; union
+(intersect s1 s2)                     ; intersect
+(difference s1 s2)                    ; difference
+
+;; Assign (At/Map)
 (def v [1, 2, 3])
 (set! (1 v) 4)                        ; assign => v: [1, 4, 3]
-(def x [[1, 2], [3, 4], [5, 6]])
-(set! ([|, 1] x) 9)                   ; assign => x: [[1, 9], [3, 9], [5, 9]]
 (def m {:a 1, :b 2, :c 3})
 (set! (:a m) 9)                       ; assign => m: {:a 9, :b 2, :c 3}
 
-[[[1, 2], [3, 4], [5, 6]],
- [[7, 8], [9, 10], [11, 12]],
- [[13, 14], [15, 16], [17, 18]]]
 ;; Functional Programming
 ; partial
 ; map
@@ -323,6 +332,8 @@ inf                 ; positive infinity
 ; ->
 ; ->>
 
+;; MultiArity(Autodoc)
+
 ;; Polars binding (WIP)
 ; shape
 
@@ -331,24 +342,4 @@ inf                 ; positive infinity
 ;; Parallel (WIP)
 ;; SIMD
 
-;; 繰り返し作用させてるのと違うわ
-; In [4]: a[0:2,0:1,0:1]
-; Out[4]:
-; array([[[1]],
-
-;        [[7]]])
-[[[1, 2], [3, 4], [5, 6]],
- [[7, 8], [9, 10], [11, 12]],
- [[13, 14], [15, 16], [17, 18]]]
-->
-[[[1, 2], [3, 4], [5, 6]],
- [[7, 8], [9, 10], [11, 12]]]
-->
-[[[1, 2], [3, 4]], [[7, 8], [9, 10]]]
--> [[[1]], [[7]]]
-
-; In [5]: a[0:2][0:1][0:1]
-; Out[5]:
-; array([[[1, 2],
-;         [3, 4],
-;         [5, 6]]])
+;; JIT
