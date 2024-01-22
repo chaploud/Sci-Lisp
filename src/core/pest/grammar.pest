@@ -49,7 +49,7 @@ unquote = { "~" ~ expr }
 unquote_splicing = { "~@" ~ expr }
 
 // slice
-slice = { slice_start? ~ ws* ~ "|" ~ ws* ~ slice_end? ~ ws* ~ ("|" ~ ws* ~ slice_step?)? }
+slice = { slice_start? ~ "|" ~ slice_end? ~ ("|" ~ slice_step?)? }
 slice_start = { slice_member }
 slice_end = { slice_member }
 slice_step = { slice_member }

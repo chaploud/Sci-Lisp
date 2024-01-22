@@ -848,7 +848,7 @@ fn execute_repl_00060() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = AssertCmd::cargo_bin("scilisp")?;
     cmd.write_stdin(
         r##"
-        (when (<= 5 (randint 5 30) 29) "ok")
+        (when (<= 5 (randint 5 30) 30) "ok")
         "##,
     );
     cmd.assert().success().stdout(predicate::str::contains("ok"));
@@ -999,9 +999,12 @@ fn execute_repl_00065() -> Result<(), Box<dyn std::error::Error>> {
         (-1 [1, 2, 3])
         ([0|2] [1, 2, 3])
         ([0|-1|2] "abcdefg")
+        (def v [[1, 2], [3, 4], [5, 6]])
+        ([|, 1] v)
+        ([|, 1|2] v)
         "##,
     );
-    let outs = ["3", "[1, 2]", "\"ace\""];
+    let outs = ["3", "[1, 2]", "\"ace\"", "v", "[3, 4]", "[[2], [4], [6]]"];
     let out = outs.join("\n");
     cmd.assert().success().stdout(format!("{}\n", out));
     Ok(())

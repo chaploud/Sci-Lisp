@@ -35,7 +35,7 @@ inf                 ; positive infinity
 (def a "abcde")              ; variable (mutable, 'local' scope)
 (const C [1, 2, 3])          ; constant value (immutable)
 
-([0|2] a)                    ; slicing => "ab"
+([0|2] a)                    ; slice => "ab"
 (-1 C)                       ; back => 3
 
 (let [a 2]                   ; bind variable (local scope)
@@ -286,10 +286,13 @@ inf                 ; positive infinity
 (push! v 4)                           ; push_back (destructive)
 (cons! v 4)                           ; push_front (destructive)
 
-;; Slicing/At
+;; Slice/At
 (-1 [1, 2, 3])                        ; back => 3
-([0|2] [1, 2, 3])                     ; slicing => [1, 2]
-([0|-1|2] "abcdefg")                  ; slicing with step => "ace"
+([0|2] [1, 2, 3])                     ; slice => [1, 2]
+([0|-1|2] "abcdefg")                  ; slice with step => "ace"
+(def v [[1, 2], [3, 4], [5, 6]])
+([|, 1] v)                            ; slice => [2, 4, 6]
+([|, 1|2] v)                          ; slice => [[2], [4], [6]]
 
 ;; Map
 (keys {:a 1, :b 2, :c 3})             ; keys
@@ -299,6 +302,17 @@ inf                 ; positive infinity
 (0 {0 "a", 1 "b", 2 "c"})             ; get value by key (i64)
 ("a" {"a" 1, "b" 2, "c" 3})           ; get value by key (string)
 
+;; Assign (Slice/At/Map)
+(def v [1, 2, 3])
+(set! (1 v) 4)                        ; assign => v: [1, 4, 3]
+(def x [[1, 2], [3, 4], [5, 6]])
+(set! ([|, 1] x) 9)                   ; assign => x: [[1, 9], [3, 9], [5, 9]]
+(def m {:a 1, :b 2, :c 3})
+(set! (:a m) 9)                       ; assign => m: {:a 9, :b 2, :c 3}
+
+[[[1, 2], [3, 4], [5, 6]],
+ [[7, 8], [9, 10], [11, 12]],
+ [[13, 14], [15, 16], [17, 18]]]
 ;; Functional Programming
 ; partial
 ; map
@@ -306,6 +320,35 @@ inf                 ; positive infinity
 ; reduce
 ; repeat
 ; chunk
+; ->
+; ->>
 
 ;; Polars binding (WIP)
 ; shape
+
+;; Destructuring (WIP)
+
+;; Parallel (WIP)
+;; SIMD
+
+;; 繰り返し作用させてるのと違うわ
+; In [4]: a[0:2,0:1,0:1]
+; Out[4]:
+; array([[[1]],
+
+;        [[7]]])
+[[[1, 2], [3, 4], [5, 6]],
+ [[7, 8], [9, 10], [11, 12]],
+ [[13, 14], [15, 16], [17, 18]]]
+->
+[[[1, 2], [3, 4], [5, 6]],
+ [[7, 8], [9, 10], [11, 12]]]
+->
+[[[1, 2], [3, 4]], [[7, 8], [9, 10]]]
+-> [[[1]], [[7]]]
+
+; In [5]: a[0:2][0:1][0:1]
+; Out[5]:
+; array([[[1, 2],
+;         [3, 4],
+;         [5, 6]]])

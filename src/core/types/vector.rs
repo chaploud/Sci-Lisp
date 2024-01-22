@@ -4,11 +4,13 @@ use core::fmt;
 use std::cell::RefCell;
 use std::ops::{Index, IndexMut};
 use std::rc::Rc;
+use std::vec;
 
 use crate::core::builtin::generators::EmptyGenerator;
 use crate::core::types::error::arity_error;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
+use crate::core::types::slice::Slice;
 use crate::core::types::sliceable::Sliceable;
 use crate::core::value::Value;
 use crate::core::value::ValueIter;
@@ -156,19 +158,44 @@ impl Vector {
         if self.value.is_empty() {
             return Err(Error::Syntax("cannot call empty vector".to_string()));
         }
-
         for member in self.value.clone() {
             match member {
                 Value::Slice(_) | Value::I64(_) => {}
-                _ => return Err(Error::Type("slicing vector can contain only slice or i64".to_string())),
+                _ => return Err(Error::Type("slice vector can contain only slice or i64".to_string())),
+            }
+        }
+
+        fn recursive_slice(slice: Rc<Slice>, value: Value, n: usize) -> Result<Value> {
+            if n == 0 {
+                return slice.call(vec![value]);
+            }
+
+            match value {
+                Value::Vector(vec) => {
+                    let mut new_vec = Vec::<Value>::new();
+                    for v in vec.into_iter() {
+                        let tmp = recursive_slice(slice.clone(), v, n - 1)?;
+                        new_vec.push(tmp);
+                    }
+                    Value::as_vector(new_vec)
+                }
+                Value::List(list) => {
+                    let mut new_vec = Vec::<Value>::new();
+                    for v in list.into_iter() {
+                        let tmp = recursive_slice(slice.clone(), v, n - 1)?;
+                        new_vec.push(tmp);
+                    }
+                    Value::as_list(new_vec)
+                }
+                _ => Err(Error::Type(format!("cannot recursive slice with {}", value.type_name()))),
             }
         }
 
         let mut result = args[0].clone();
-        for member in self.value.clone() {
+        for (n, member) in self.value.clone().into_iter().enumerate() {
             match member {
                 Value::Slice(slice) => {
-                    result = slice.call(vec![result])?;
+                    result = recursive_slice(slice, result, n)?;
                 }
                 Value::I64(i) => {
                     result = i.call(vec![result])?;
