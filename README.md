@@ -347,6 +347,16 @@ inf                 ; positive infinity
 (intersect s1 s2)                     ; intersect
 (difference s1 s2)                    ; difference
 
+;; Functional Programming
+(apply + [1, 2, 3])                   ; apply => 6
+(map (fn [x] (* x x)) [1, 2, 3])      ; map => [1, 4, 9]
+(filter (fn [x] (even? x)) [1, 2, 3]) ; filter => [2]
+(reduce + 4 [1, 2, 4])                ; reduce => 11
+(-> 1 (+ 2) (- 3))                    ; thread first => 0
+(->> 1 (+ 2) (- 3))                   ; thread last => 4
+; ((partial * 10) 1)                  ; partial(WIP) => 10
+; ((comp str +) 7 8 9)                ; comp(WIP) => "24"
+
 ;; ******************* WIP **********************
 ;; ===== enum
 (enum Grade                       ; define enum
@@ -407,6 +417,15 @@ inf                 ; positive infinity
          and#))))
 
 (my-and "a" "b" "c")              ; => "c"
+
+;; try-catch-finally
+;; MultiArity(Autodoc)
+;; Polars binding
+;; shape
+;; Destructuring
+;; Parallel
+;; SIMD
+;; JIT
 ;; ******************************************
 ```
 

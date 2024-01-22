@@ -1072,3 +1072,22 @@ fn execute_repl_00067() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert().success().stdout(format!("{}\n", out));
     Ok(())
 }
+
+#[test]
+fn execute_repl_00068() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (apply + [1, 2, 3])
+        (map (fn [x] (* x x)) [1, 2, 3])
+        (filter (fn [x] (even? x)) [1, 2, 3])
+        (reduce + 4 [1, 2, 4])
+        (-> 1 (+ 2) (/ 6))
+        (->> 1 (+ 2) (/ 6))
+        "##,
+    );
+    let outs = ["6", "[1, 4, 9]", "[2]", "11", "0.5", "2"];
+    let out = outs.join("\n");
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}

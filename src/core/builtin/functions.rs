@@ -4057,3 +4057,291 @@ impl fmt::Display for DifferenceFn {
         write!(f, "<builtin function difference>")
     }
 }
+
+// apply
+pub static SYMBOL_APPLY: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("apply"),
+    meta: Meta {
+        doc: Cow::Borrowed("Apply a function to a sequence"),
+        mutable: false,
+    },
+    hash: fxhash::hash("apply"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ApplyFn;
+
+impl Function for ApplyFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::Function(f) => match args[1].clone() {
+                Value::List(l) => f.call(l.value),
+                Value::Vector(v) => f.call(v.value),
+                Value::Map(m) => {
+                    let mut result = vec![];
+                    for (k, v) in m.value {
+                        result.push(Value::Vector(Vector::from(vec![k, v])));
+                    }
+                    f.call(result)
+                }
+                Value::Set(s) => {
+                    let mut result = vec![];
+                    for v in s.value {
+                        result.push(v);
+                    }
+                    f.call(result)
+                }
+                Value::Generator(gen) => {
+                    let mut result = vec![];
+                    for i in 0..gen.borrow().len() {
+                        result.push(gen.borrow().at(i as i64).unwrap());
+                    }
+                    f.call(result)
+                }
+                _ => Err(type_error(
+                    "list, vector, map, set or generator",
+                    args[1].type_name().as_str(),
+                )),
+            },
+            _ => Err(type_error("function", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for ApplyFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function apply>")
+    }
+}
+
+// map
+pub static SYMBOL_MAP: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("map"),
+    meta: Meta {
+        doc: Cow::Borrowed("Map a function over a sequence"),
+        mutable: false,
+    },
+    hash: fxhash::hash("map"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MapFn;
+
+impl Function for MapFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::Function(f) => match args[1].clone() {
+                Value::List(l) => {
+                    let mut result = vec![];
+                    for v in l.value {
+                        result.push(f.call(vec![v])?);
+                    }
+                    Value::as_list(result)
+                }
+                Value::Vector(v) => {
+                    let mut result = vec![];
+                    for v in v.value {
+                        result.push(f.call(vec![v])?);
+                    }
+                    Value::as_vector(result)
+                }
+                Value::Map(m) => {
+                    let mut result = vec![];
+                    for (k, v) in m.value {
+                        result.push(f.call(vec![k, v])?);
+                    }
+                    Value::as_vector(result)
+                }
+                Value::Set(s) => {
+                    let mut result = vec![];
+                    for v in s.value {
+                        result.push(f.call(vec![v])?);
+                    }
+                    Value::as_vector(result)
+                }
+                Value::Generator(gen) => {
+                    let mut result = vec![];
+                    for i in 0..gen.borrow().len() {
+                        result.push(f.call(vec![gen.borrow().at(i as i64).unwrap()])?);
+                    }
+                    Value::as_vector(result)
+                }
+                _ => Err(type_error(
+                    "list, vector, map, set or generator",
+                    args[1].type_name().as_str(),
+                )),
+            },
+            _ => Err(type_error("function", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for MapFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function map>")
+    }
+}
+
+// filter
+pub static SYMBOL_FILTER: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("filter"),
+    meta: Meta {
+        doc: Cow::Borrowed("Filter a sequence by a predicate"),
+        mutable: false,
+    },
+    hash: fxhash::hash("filter"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FilterFn;
+
+impl Function for FilterFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error(2, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::Function(f) => match args[1].clone() {
+                Value::List(l) => {
+                    let mut result = vec![];
+                    for v in l.value {
+                        if f.call(vec![v.clone()])?.is_truthy() {
+                            result.push(v);
+                        }
+                    }
+                    Value::as_list(result)
+                }
+                Value::Vector(v) => {
+                    let mut result = vec![];
+                    for v in v.value {
+                        if f.call(vec![v.clone()])?.is_truthy() {
+                            result.push(v);
+                        }
+                    }
+                    Value::as_vector(result)
+                }
+                Value::Map(m) => {
+                    let mut result = vec![];
+                    for (k, v) in m.value {
+                        if f.call(vec![k.clone(), v.clone()])?.is_truthy() {
+                            result.push((k, v));
+                        }
+                    }
+                    Value::as_map(result)
+                }
+                Value::Set(s) => {
+                    let mut result = vec![];
+                    for v in s.value {
+                        if f.call(vec![v.clone()])?.is_truthy() {
+                            result.push(v);
+                        }
+                    }
+                    Value::as_set(result)
+                }
+                Value::Generator(gen) => {
+                    let mut result = vec![];
+                    for i in 0..gen.borrow().len() {
+                        let v = gen.borrow().at(i as i64).unwrap();
+                        if f.call(vec![v.clone()])?.is_truthy() {
+                            result.push(v);
+                        }
+                    }
+                    Value::as_vector(result)
+                }
+                _ => Err(type_error(
+                    "list, vector, map, set or generator",
+                    args[1].type_name().as_str(),
+                )),
+            },
+            _ => Err(type_error("function", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for FilterFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function filter>")
+    }
+}
+
+// reduce
+pub static SYMBOL_REDUCE: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("reduce"),
+    meta: Meta {
+        doc: Cow::Borrowed("Reduce a sequence to a single value"),
+        mutable: false,
+    },
+    hash: fxhash::hash("reduce"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReduceFn;
+
+impl Function for ReduceFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() < 2 || args.len() > 3 {
+            return Err(arity_error_range(2, 3, args.len()));
+        }
+
+        match args[0].clone() {
+            Value::Function(f) => match args[2].clone() {
+                Value::List(l) => {
+                    let mut result = args[1].clone();
+                    for v in l.value {
+                        result = f.call(vec![result, v])?;
+                    }
+                    Ok(result)
+                }
+                Value::Vector(v) => {
+                    let mut result = args[1].clone();
+                    for v in v.value {
+                        result = f.call(vec![result, v])?;
+                    }
+                    Ok(result)
+                }
+                Value::Map(m) => {
+                    let mut result = args[1].clone();
+                    for (k, v) in m.value {
+                        result = f.call(vec![result, Value::Vector(Vector::from(vec![k, v]))])?;
+                    }
+                    Ok(result)
+                }
+                Value::Set(s) => {
+                    let mut result = args[1].clone();
+                    for v in s.value {
+                        result = f.call(vec![result, v])?;
+                    }
+                    Ok(result)
+                }
+                Value::Generator(gen) => {
+                    let mut result = args[1].clone();
+                    for i in 0..gen.borrow().len() {
+                        let v = gen.borrow().at(i as i64).unwrap();
+                        result = f.call(vec![result, v])?;
+                    }
+                    Ok(result)
+                }
+                _ => Err(type_error(
+                    "list, vector, map, set or generator",
+                    args[1].type_name().as_str(),
+                )),
+            },
+            _ => Err(type_error("function", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for ReduceFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function reduce>")
+    }
+}
