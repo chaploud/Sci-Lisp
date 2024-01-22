@@ -89,67 +89,6 @@ inf                 ; positive infinity
     (continue))              ; continue
   (print "never print"))
 
-;; ******************* WIP **********************
-;; ===== enum
-(enum Grade                       ; define enum
-  "Grade Enum"                    ; docstring
-  [ECONOMY,
-   BUSINESS,
-   FIRST])
-
-(def your-grade Grade.FIRST)      ; allow this style
-
-;; ===== struct
-(struct Enemy                     ; define struct
-  "Enemy Struct"                  ; docstring
-  [hp,
-   attack])
-
-(def slime
-  (Enemy {:attack 2, :hp 20}))    ; using struct
-([:attack] slime)                 ; access member => 2
-(print slime.attack)              ; allow this style
-
-;; ===== class
-(class Animal                     ; define class
-  "Animal Class"                  ; docstring
-
-  ;; constructor
-  (defn Animal [hp, weight]
-    "constructor of Animal"
-    (set! self.hp hp)
-    (set! self.weight weight))
-
-  ;; member
-  (def hp)
-  (def weight)
-  (defn walk [dist]
-    (set! self.hp (- self.hp dist)))
-    (format "walk {0}km, HP: {1}",
-      dist, self.hp))
-
-(class Dog [Animal]               ; inherit from Animal class
-  (defn bow []
-    (print "bow!")))
-
-(def dog1 (Dog [100, 200]))       ; instanciate class
-(dog1.walk 2)                     ; => "walk 2km, HP: 98"
-(dog1.bow)                        ; => nil
-
-;; ===== macro
-(macro my-and                     ; define macro
-  "Evaluates exprs one at time,
-   from left to right."           ; docstring
-  ([] true)                       ; multi arity
-  ([x] x)
-  ([x & next]                ; variable length argument (& rest)
-    `(let [and# ~x]          ; quote(`) and unquote(~)
-       (if and#                   ; auto-gensym(xxx#)
-         (my-and ~@next)          ; unquote splicing(~@)
-         and#))))
-
-(my-and "a" "b" "c")              ; => "c"
-;; ******************************************
 
 ;; ===== Built-in Functions/Macros
 
@@ -317,6 +256,67 @@ inf                 ; positive infinity
 (intersect s1 s2)                     ; intersect
 (difference s1 s2)                    ; difference
 
+;; ******************* WIP **********************
+;; ===== enum
+(enum Grade                       ; define enum
+  "Grade Enum"                    ; docstring
+  [ECONOMY,
+   BUSINESS,
+   FIRST])
+
+(def your-grade Grade.FIRST)      ; allow this style
+
+;; ===== struct
+(struct Enemy                     ; define struct
+  "Enemy Struct"                  ; docstring
+  [hp,
+   attack])
+
+(def slime
+  (Enemy {:attack 2, :hp 20}))    ; using struct
+([:attack] slime)                 ; access member => 2
+(print slime.attack)              ; allow this style
+
+;; ===== class
+(class Animal                     ; define class
+  "Animal Class"                  ; docstring
+
+  ;; constructor
+  (defn Animal [hp, weight]
+    "constructor of Animal"
+    (set! self.hp hp)
+    (set! self.weight weight))
+
+  ;; member
+  (def hp)
+  (def weight)
+  (defn walk [dist]
+    (set! self.hp (- self.hp dist)))
+    (format "walk {0}km, HP: {1}",
+      dist, self.hp))
+
+(class Dog [Animal]               ; inherit from Animal class
+  (defn bow []
+    (print "bow!")))
+
+(def dog1 (Dog [100, 200]))       ; instanciate class
+(dog1.walk 2)                     ; => "walk 2km, HP: 98"
+(dog1.bow)                        ; => nil
+
+;; ===== macro
+(macro my-and                     ; define macro
+  "Evaluates exprs one at time,
+   from left to right."           ; docstring
+  ([] true)                       ; multi arity
+  ([x] x)
+  ([x & next]                ; variable length argument (& rest)
+    `(let [and# ~x]          ; quote(`) and unquote(~)
+       (if and#                   ; auto-gensym(xxx#)
+         (my-and ~@next)          ; unquote splicing(~@)
+         and#))))
+
+(my-and "a" "b" "c")              ; => "c"
+
 ;; Functional Programming
 ; partial
 ; map
@@ -326,8 +326,6 @@ inf                 ; positive infinity
 ; chunk
 ; ->
 ; ->>
-
-;; === WIP
 ;; try-catch-finally
 ;; MultiArity(Autodoc)
 ;; Polars binding
@@ -336,3 +334,5 @@ inf                 ; positive infinity
 ;; Parallel
 ;; SIMD
 ;; JIT
+
+;; ******************************************
