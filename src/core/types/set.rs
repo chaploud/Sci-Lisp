@@ -100,8 +100,8 @@ impl Set {
         self.value.insert(value);
     }
 
-    pub fn remove(&mut self, value: &Value) {
-        self.value.remove(value);
+    pub fn remove(&mut self, value: &Value) -> bool {
+        self.value.remove(value)
     }
 
     pub fn contains(&self, value: &Value) -> bool {

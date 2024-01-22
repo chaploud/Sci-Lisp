@@ -257,6 +257,20 @@ inf                 ; positive infinity
 (find-all #"No\.(\d+)" "No.1 No.2 No.3") ; => ["hello, world", "world"]
 (replace "aa123a" #"[0-9]{2}" "x${1}y")  ; => "aax12y3a"
 
+;; At
+(-1 [1, 2, 3])                        ; back => 3
+
+;; Key Access
+(:a {:a 1, :b 2, :c 3})               ; get value by key (keyword)
+(0 {0 "a", 1 "b", 2 "c"})             ; get value by key (i64)
+("a" {"a" 1, "b" 2, "c" 3})           ; get value by key (string)
+
+;; Slice
+([0|2] [1, 2, 3])                     ; slice => [1, 2]
+([0|-1|2] "abcdefg")                  ; slice with step => "ace"
+([|, 1] [[1, 2], [3, 4], [5, 6]])     ; slice => [2, 4, 6]
+([|, 1|2] [[1, 2], [3, 4], [5, 6]])   ; slice (like numpy) => [[2], [4], [6]]
+
 ;; Vector
 (first [1, 2, 3])                     ; first
 (last [1, 2, 3])                      ; last
@@ -271,56 +285,37 @@ inf                 ; positive infinity
 (index-all 2 [1, 2, 3, 2])            ; all index of element
 (some? [false, true, false])          ; return true if some truthy
 (every? [false, true, false])         ; return true if all truthy
-(sort [3, 1, 2] :asc)                 ; sort (non-destructive)
-(reverse [3, 1, 2])                   ; reverse (non-destructive
-(push [3, 1, 2] 4)                    ; push_back (non-destructive)
-(cons [3, 1, 2] 4)                    ; push_front (non-destructive)
-(concat [1, 2, 3] [4, 5, 6])          ; concat (non-destructive)
-(shuffle [3, 1, 2])                   ; shuffle (non-destructive)
+(sort [3, 1, 2] :asc)                 ; sort
+(reverse [3, 1, 2])                   ; reverse
+(push [3, 1, 2] 4)                    ; push_back
+(cons [3, 1, 2] 4)                    ; push_front
+(concat [1, 2, 3] [4, 5, 6])          ; concat
+(shuffle [3, 1, 2])                   ; shuffle
 
-;; in-place (WIP)
 (def v [1, 2, 3])
-(insert! v 1 999)                     ; insert (destructive)
-(sort! v :desc)                       ; sort (destructive)
-(reverse! v)                          ; reverse (destructive)
-(shuffle! v)                          ; shuffle (destructive)
-(push! v 4)                           ; push_back (destructive)
-(cons! v 4)                           ; push_front (destructive)
-
-;; Slice/At
-(-1 [1, 2, 3])                        ; back => 3
-([0|2] [1, 2, 3])                     ; slice => [1, 2]
-([0|-1|2] "abcdefg")                  ; slice with step => "ace"
-(def v [[1, 2], [3, 4], [5, 6]])
-([|, 1] v)                            ; slice => [2, 4, 6]
-([|, 1|2] v)                          ; slice => [[2], [4], [6]]
+(get v 1)                             ; get value by index
+(insert! v 1 999)                     ; insert
+(remove! v 0)                         ; remove
 
 ;; Map
 (keys {:a 1, :b 2, :c 3})             ; keys
 (vals {:a 1, :b 2, :c 3})             ; values
 (items {:a 1, :b 2, :c 3})            ; key-value pairs
-(def m {})
-(insert! m :a 1)                      ; insert(destructive)
-(get m :a)                            ; get
-(remove! m :a)                        ; remove(desctructive)
-(:a {:a 1, :b 2, :c 3})               ; get value by key (keyword)
-(0 {0 "a", 1 "b", 2 "c"})             ; get value by key (i64)
-("a" {"a" 1, "b" 2, "c" 3})           ; get value by key (string)
+
+(def m {:b 2, :c 3})
+(get m :b)                            ; get value by key
+(insert! m :a 1)                      ; insert/replace
+(remove! m :a)                        ; remove
 
 ;; Set
 (def s1 #{2 3})
-(insert! s 1)                         ; insert
+(get s1 2)                            ; get key
+(insert! s 1)                         ; insert/replace
 (remove! s 1)                         ; remove
 (def s2 #{1 2})
 (union s1 s2)                         ; union
 (intersect s1 s2)                     ; intersect
 (difference s1 s2)                    ; difference
-
-;; Assign (At/Map)
-(def v [1, 2, 3])
-(set! (1 v) 4)                        ; assign => v: [1, 4, 3]
-(def m {:a 1, :b 2, :c 3})
-(set! (:a m) 9)                       ; assign => m: {:a 9, :b 2, :c 3}
 
 ;; Functional Programming
 ; partial
@@ -332,14 +327,12 @@ inf                 ; positive infinity
 ; ->
 ; ->>
 
+;; === WIP
+;; try-catch-finally
 ;; MultiArity(Autodoc)
-
-;; Polars binding (WIP)
-; shape
-
-;; Destructuring (WIP)
-
-;; Parallel (WIP)
+;; Polars binding
+;; shape
+;; Destructuring
+;; Parallel
 ;; SIMD
-
 ;; JIT

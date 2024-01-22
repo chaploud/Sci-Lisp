@@ -12,6 +12,7 @@ use once_cell::sync::Lazy;
 use crate::core::environment::Environment;
 use crate::core::eval::eval;
 use crate::core::types::error::index_out_of_range_error;
+use crate::core::types::error::key_not_found_error;
 use crate::core::types::error::type_error;
 use crate::core::types::error::Error;
 use crate::core::types::error::Result;
@@ -1325,8 +1326,143 @@ pub struct InsertEMacro;
 
 impl Macro for InsertEMacro {
     fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
-        if args.len() < 3 || args.len() > 4 {
-            return Err(arity_error_range(3, 4, args.len()));
+        let sym = match args[0].clone() {
+            Value::Symbol(sym) => sym,
+            _ => return Err(type_error("symbol", args[0].type_name().as_str())),
+        };
+
+        let value = match args[0].clone() {
+            Value::Symbol(sym) => environment.borrow().get(&sym)?,
+            _ => args[2].clone(),
+        };
+
+        match value {
+            Value::List(mut l) => {
+                if args.len() != 3 {
+                    return Err(arity_error(3, args.len()));
+                }
+
+                let mut index = match args[1].clone() {
+                    Value::I64(i) => i,
+                    _ => return Err(type_error("i64", args[1].type_name().as_str())),
+                };
+
+                if index < 0 {
+                    if l.value.len() as i64 + index < 0 {
+                        return Err(index_out_of_range_error(index));
+                    }
+                    index += l.value.len() as i64;
+                }
+                if index as usize >= l.value.len() {
+                    return Err(index_out_of_range_error(index));
+                }
+
+                l.value.insert(index as usize, args[2].clone());
+                environment.borrow_mut().set(&sym, Value::List(l))?; // TODO: slow down
+                Ok(Value::Nil)
+            }
+            Value::Vector(mut v) => {
+                if args.len() != 3 {
+                    return Err(arity_error(3, args.len()));
+                }
+
+                let mut index = match args[1].clone() {
+                    Value::I64(i) => i,
+                    _ => return Err(type_error("i64", args[1].type_name().as_str())),
+                };
+
+                if index < 0 {
+                    if v.value.len() as i64 + index < 0 {
+                        return Err(index_out_of_range_error(index));
+                    }
+                    index += v.value.len() as i64;
+                }
+                if index as usize >= v.value.len() {
+                    return Err(index_out_of_range_error(index));
+                }
+
+                v.value.insert(index as usize, args[2].clone());
+                environment.borrow_mut().set(&sym, Value::Vector(v))?; // TODO: slow down
+                Ok(Value::Nil)
+            }
+            Value::String(mut s) => {
+                if args.len() != 3 {
+                    return Err(arity_error(3, args.len()));
+                }
+
+                let mut index = match args[1].clone() {
+                    Value::I64(i) => i,
+                    _ => return Err(type_error("i64", args[1].type_name().as_str())),
+                };
+                if index < 0 {
+                    if s.len() as i64 + index < 0 {
+                        return Err(index_out_of_range_error(index));
+                    }
+                    index += s.len() as i64;
+                }
+                if index as usize >= s.len() {
+                    return Err(index_out_of_range_error(index));
+                }
+                let rep_str = match args[2].clone() {
+                    Value::String(s) => s,
+                    _ => return Err(type_error("string", args[2].type_name().as_str())),
+                };
+                s.insert_str(index as usize, rep_str.as_str());
+                environment.borrow_mut().set(&sym, Value::String(s))?; // TODO: slow down
+
+                Ok(Value::Nil)
+            }
+            Value::Map(mut m) => {
+                if args.len() != 3 {
+                    return Err(arity_error(3, args.len()));
+                }
+
+                let key = match args[1].clone() {
+                    Value::String(_) | Value::Keyword(_) | Value::I64(_) => args[1].clone(),
+                    _ => return Err(type_error("string, keyword or i64", args[1].type_name().as_str())),
+                };
+                let value = args[2].clone();
+                m.insert(key, value);
+                environment.borrow_mut().set(&sym, Value::Map(m))?; // TODO: slow down
+                Ok(Value::Nil)
+            }
+            Value::Set(mut s) => {
+                if args.len() != 2 {
+                    return Err(arity_error(2, args.len()));
+                }
+                let value = args[1].clone();
+                s.insert(value);
+                environment.borrow_mut().set(&sym, Value::Set(s))?; // TODO: slow down
+                Ok(Value::Nil)
+            }
+            _ => Err(type_error("list, vector, map, set, or string", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for InsertEMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro insert>")
+    }
+}
+
+// remove!
+pub static SYMBOL_REMOVEE: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("remove!"),
+    meta: Meta {
+        doc: Cow::Borrowed("Remove a value from a collection"),
+        mutable: false,
+    },
+    hash: fxhash::hash("remove!"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RemoveEMacro;
+
+impl Macro for RemoveEMacro {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
+        if args.len() < 2 || args.len() > 3 {
+            return Err(arity_error_range(2, 3, args.len()));
         }
 
         let sym = match args[0].clone() {
@@ -1356,9 +1492,9 @@ impl Macro for InsertEMacro {
                     return Err(index_out_of_range_error(index));
                 }
 
-                l.value.insert(index as usize, args[2].clone());
+                let ret = l.value.remove(index as usize);
                 environment.borrow_mut().set(&sym, Value::List(l))?; // TODO: slow down
-                Ok(Value::Nil)
+                Ok(ret)
             }
             Value::Vector(mut v) => {
                 let mut index = match args[1].clone() {
@@ -1376,51 +1512,58 @@ impl Macro for InsertEMacro {
                     return Err(index_out_of_range_error(index));
                 }
 
-                v.value.insert(index as usize, args[2].clone());
+                let ret = v.value.remove(index as usize);
                 environment.borrow_mut().set(&sym, Value::Vector(v))?; // TODO: slow down
-                Ok(Value::Nil)
+                Ok(ret)
             }
             Value::String(mut s) => {
-                let index = match args[1].clone() {
+                let mut index = match args[1].clone() {
                     Value::I64(i) => i,
                     _ => return Err(type_error("i64", args[1].type_name().as_str())),
                 };
-                let rep_str = match args[2].clone() {
-                    Value::String(s) => s,
-                    _ => return Err(type_error("string", args[2].type_name().as_str())),
-                };
-                if index < 0 || index > s.len() as i64 {
+                if index < 0 {
+                    if s.len() as i64 + index < 0 {
+                        return Err(index_out_of_range_error(index));
+                    }
+                    index += s.len() as i64;
+                }
+                if index as usize >= s.len() {
                     return Err(index_out_of_range_error(index));
                 }
-                s.insert_str(index as usize, rep_str.as_str());
+                let ret = s.remove(index as usize);
                 environment.borrow_mut().set(&sym, Value::String(s))?; // TODO: slow down
 
-                Ok(Value::Nil)
+                Ok(Value::String(ret.to_string()))
             }
             Value::Map(mut m) => {
                 let key = match args[1].clone() {
                     Value::String(_) | Value::Keyword(_) | Value::I64(_) => args[1].clone(),
                     _ => return Err(type_error("string, keyword or i64", args[1].type_name().as_str())),
                 };
-                let value = args[2].clone();
-                m.insert(key, value);
+                let ret = match m.remove(&key) {
+                    Some(_) => key,
+                    None => return Err(key_not_found_error(key)),
+                };
                 environment.borrow_mut().set(&sym, Value::Map(m))?; // TODO: slow down
-                Ok(Value::Nil)
+                Ok(ret)
             }
             Value::Set(mut s) => {
                 let value = args[1].clone();
-                s.insert(value);
+                let ret = match s.remove(&value) {
+                    true => value,
+                    false => return Err(key_not_found_error(value)),
+                };
                 environment.borrow_mut().set(&sym, Value::Set(s))?; // TODO: slow down
-                Ok(Value::Nil)
+                Ok(ret)
             }
-            _ => Err(type_error("list, vector or string", args[0].type_name().as_str())),
+            _ => Err(type_error("list, vector, map, set or string", args[0].type_name().as_str())),
         }
     }
 }
 
-impl fmt::Display for InsertEMacro {
+impl fmt::Display for RemoveEMacro {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin macro insert>")
+        write!(f, "<builtin macro remove>")
     }
 }
 

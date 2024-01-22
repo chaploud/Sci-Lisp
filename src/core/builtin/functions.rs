@@ -2932,7 +2932,7 @@ impl Function for RepeatFn {
 
 impl fmt::Display for RepeatFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin repeat>")
+        write!(f, "<builtin function repeat>")
     }
 }
 
@@ -2982,7 +2982,7 @@ impl Function for FindAllFn {
 
 impl fmt::Display for FindAllFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin find-all>")
+        write!(f, "<builtin function find-all>")
     }
 }
 
@@ -3024,7 +3024,7 @@ impl Function for ReverseFn {
 
 impl fmt::Display for ReverseFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin reverse>")
+        write!(f, "<builtin function reverse>")
     }
 }
 
@@ -3083,7 +3083,7 @@ impl Function for LastFn {
 
 impl fmt::Display for LastFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin last>")
+        write!(f, "<builtin function last>")
     }
 }
 
@@ -3173,7 +3173,7 @@ impl Function for SumFn {
 
 impl fmt::Display for SumFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin sum>")
+        write!(f, "<builtin function sum>")
     }
 }
 
@@ -3267,7 +3267,7 @@ impl Function for MeanFn {
 
 impl fmt::Display for MeanFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin mean>")
+        write!(f, "<builtin function mean>")
     }
 }
 
@@ -3345,7 +3345,7 @@ impl Function for MaxFn {
 
 impl fmt::Display for MaxFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin max>")
+        write!(f, "<builtin function max>")
     }
 }
 
@@ -3391,7 +3391,7 @@ impl Function for MinFn {
 
 impl fmt::Display for MinFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin min>")
+        write!(f, "<builtin function min>")
     }
 }
 
@@ -3440,7 +3440,7 @@ impl Function for IndexAllFn {
 
 impl fmt::Display for IndexAllFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin index-all>")
+        write!(f, "<builtin function index-all>")
     }
 }
 
@@ -3487,7 +3487,7 @@ impl Function for SomeQFn {
 
 impl fmt::Display for SomeQFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin some?>")
+        write!(f, "<builtin function some?>")
     }
 }
 
@@ -3534,7 +3534,7 @@ impl Function for EveryQFn {
 
 impl fmt::Display for EveryQFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin every?>")
+        write!(f, "<builtin function every?>")
     }
 }
 
@@ -3618,7 +3618,7 @@ impl Function for SortFn {
 
 impl fmt::Display for SortFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin sort>")
+        write!(f, "<builtin function sort>")
     }
 }
 
@@ -3664,7 +3664,7 @@ impl Function for ShuffleFn {
 
 impl fmt::Display for ShuffleFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin shuffle>")
+        write!(f, "<builtin function shuffle>")
     }
 }
 
@@ -3706,7 +3706,7 @@ impl Function for PushFn {
 
 impl fmt::Display for PushFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin push>")
+        write!(f, "<builtin function push>")
     }
 }
 
@@ -3748,7 +3748,7 @@ impl Function for ConsFn {
 
 impl fmt::Display for ConsFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin cons>")
+        write!(f, "<builtin function cons>")
     }
 }
 
@@ -3785,7 +3785,7 @@ impl Function for KeysFn {
 
 impl fmt::Display for KeysFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin keys>")
+        write!(f, "<builtin function keys>")
     }
 }
 
@@ -3822,7 +3822,7 @@ impl Function for ValsFn {
 
 impl fmt::Display for ValsFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin vals>")
+        write!(f, "<builtin function vals>")
     }
 }
 
@@ -3859,7 +3859,7 @@ impl Function for ItemsFn {
 
 impl fmt::Display for ItemsFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin items>")
+        write!(f, "<builtin function items>")
     }
 }
 
@@ -3952,6 +3952,108 @@ impl Function for GetFn {
 
 impl fmt::Display for GetFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin get>")
+        write!(f, "<builtin function get>")
+    }
+}
+
+// union
+pub static SYMBOL_UNION: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("union"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the union of two sets."),
+        mutable: false,
+    },
+    hash: fxhash::hash("union"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UnionFn;
+
+impl Function for UnionFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error_range(2, 2, args.len()));
+        }
+        match args[0].clone() {
+            Value::Set(s1) => match args[1].clone() {
+                Value::Set(s2) => Ok(Value::Set(s1.union(&s2))),
+                _ => Err(type_error("set", args[1].type_name().as_str())),
+            },
+            _ => Err(type_error("set", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for UnionFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function union>")
+    }
+}
+
+// intersect
+pub static SYMBOL_INTERSECT: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("intersect"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the intersection of two sets."),
+        mutable: false,
+    },
+    hash: fxhash::hash("intersect"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct IntersectFn;
+
+impl Function for IntersectFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error_range(2, 2, args.len()));
+        }
+        match args[0].clone() {
+            Value::Set(s1) => match args[1].clone() {
+                Value::Set(s2) => Ok(Value::Set(s1.intersect(&s2))),
+                _ => Err(type_error("set", args[1].type_name().as_str())),
+            },
+            _ => Err(type_error("set", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for IntersectFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function intersect>")
+    }
+}
+
+// difference
+pub static SYMBOL_DIFFERENCE: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("difference"),
+    meta: Meta {
+        doc: Cow::Borrowed("Get the difference of two sets."),
+        mutable: false,
+    },
+    hash: fxhash::hash("difference"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DifferenceFn;
+
+impl Function for DifferenceFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if args.len() != 2 {
+            return Err(arity_error_range(2, 2, args.len()));
+        }
+        match args[0].clone() {
+            Value::Set(s1) => match args[1].clone() {
+                Value::Set(s2) => Ok(Value::Set(s1.difference(&s2))),
+                _ => Err(type_error("set", args[1].type_name().as_str())),
+            },
+            _ => Err(type_error("set", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for DifferenceFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function difference>")
     }
 }

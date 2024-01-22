@@ -946,6 +946,27 @@ fn execute_repl_00064() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = AssertCmd::cargo_bin("scilisp")?;
     cmd.write_stdin(
         r##"
+        (-1 [1, 2, 3])
+        (:a {:a 1, :b 2, :c 3})
+        (0 {0 "a", 1 "b", 2 "c"})
+        ("a" {"a" 1, "b" 2, "c" 3})
+        ([0|2] [1, 2, 3])
+        ([0|-1|2] "abcdefg")
+        ([|, 1] [[1, 2], [3, 4], [5, 6]])
+        ([|, 1|2] [[1, 2], [3, 4], [5, 6]])
+        "##,
+    );
+    let outs = ["3", "1", "\"a\"", "1", "[1, 2]", "\"ace\"", "[3, 4]", "[[2], [4], [6]]"];
+    let out = outs.join("\n");
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}
+
+#[test]
+fn execute_repl_00065() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
         (first [1, 2, 3])
         (last [1, 2, 3])
         (rest [1, 2, 3])
@@ -964,6 +985,11 @@ fn execute_repl_00064() -> Result<(), Box<dyn std::error::Error>> {
         (push [3, 1, 2] 4)
         (cons [3, 1, 2] 4)
         (concat [1, 2, 3] [4, 5, 6])
+        (def v [1, 2, 3])
+        (get v 1)
+        (insert! v 1 999)
+        (remove! v 0)
+        v
         "##,
     );
     let outs = [
@@ -985,26 +1011,12 @@ fn execute_repl_00064() -> Result<(), Box<dyn std::error::Error>> {
         "[3, 1, 2, 4]",
         "[4, 3, 1, 2]",
         "[1, 2, 3, 4, 5, 6]",
+        "v",
+        "2",
+        "nil",
+        "1",
+        "[999, 2, 3]",
     ];
-    let out = outs.join("\n");
-    cmd.assert().success().stdout(format!("{}\n", out));
-    Ok(())
-}
-
-#[test]
-fn execute_repl_00065() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
-    cmd.write_stdin(
-        r##"
-        (-1 [1, 2, 3])
-        ([0|2] [1, 2, 3])
-        ([0|-1|2] "abcdefg")
-        (def v [[1, 2], [3, 4], [5, 6]])
-        ([|, 1] v)
-        ([|, 1|2] v)
-        "##,
-    );
-    let outs = ["3", "[1, 2]", "\"ace\"", "v", "[3, 4]", "[[2], [4], [6]]"];
     let out = outs.join("\n");
     cmd.assert().success().stdout(format!("{}\n", out));
     Ok(())
@@ -1018,12 +1030,23 @@ fn execute_repl_00066() -> Result<(), Box<dyn std::error::Error>> {
         (keys {:a 1, :b 2, :c 3})
         (vals {:a 1, :b 2, :c 3})
         (items {:a 1, :b 2, :c 3})
-        (:a {:a 1, :b 2, :c 3})
-        (0 {0 "a", 1 "b", 2 "c"})
-        ("a" {"a" 1, "b" 2, "c" 3})
+        (def m {:b 2, :c 3})
+        (get m :b)
+        (insert! m :a 1)
+        (remove! m :a)
+        m
         "##,
     );
-    let outs = ["[:a, :b, :c]", "[1, 2, 3]", "[[:a, 1], [:b, 2], [:c, 3]]", "1", "\"a\"", "1"];
+    let outs = [
+        "[:a, :b, :c]",
+        "[1, 2, 3]",
+        "[[:a, 1], [:b, 2], [:c, 3]]",
+        "m",
+        "2",
+        "nil",
+        ":a",
+        "{:b 2, :c 3}",
+    ];
     let out = outs.join("\n");
     cmd.assert().success().stdout(format!("{}\n", out));
     Ok(())
@@ -1034,13 +1057,17 @@ fn execute_repl_00067() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = AssertCmd::cargo_bin("scilisp")?;
     cmd.write_stdin(
         r##"
-        (def v [1, 2, 3])
-        (insert! v 1 999)
-        v
-        (get v -1)
+        (def s1 #{2 3})
+        (get s1 2)
+        (insert! s1 1)
+        (remove! s1 1)
+        (def s2 #{1 2})
+        (union s1 s2)
+        (intersect s1 s2)
+        (difference s1 s2)
         "##,
     );
-    let outs = ["v", "nil", "[1, 999, 2, 3]", "3"];
+    let outs = ["s1", "2", "nil", "1", "s2", "#{2, 3, 1}", "#{2}", "#{3}"];
     let out = outs.join("\n");
     cmd.assert().success().stdout(format!("{}\n", out));
     Ok(())
