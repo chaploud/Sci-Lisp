@@ -65,7 +65,7 @@ impl Macro for DefMacro {
             body = args[2].clone();
         }
 
-        let value = eval(body, environment.clone())?;
+        let value = eval(body, environment.clone(), false)?;
 
         environment.borrow_mut().insert(&symbol, value)?;
 
@@ -118,7 +118,7 @@ impl Macro for ConstMacro {
             body = args[2].clone();
         }
 
-        let value = eval(body, environment.clone())?;
+        let value = eval(body, environment.clone(), false)?;
 
         symbol.meta.mutable = false;
 
@@ -158,7 +158,7 @@ impl Macro for SetEMacro {
             _ => return Err(Error::Type("set: first argument must be a symbol".to_string())),
         };
 
-        let value = eval(args[1].clone(), environment.clone())?;
+        let value = eval(args[1].clone(), environment.clone(), false)?;
 
         environment.borrow_mut().set(&symbol, value)?;
         Ok(Value::Symbol(symbol))
@@ -216,7 +216,7 @@ impl Macro for LetMacro {
 
         let mut result = Value::Nil;
         for arg in args.into_iter().skip(1) {
-            result = eval(arg, local_env.clone())?
+            result = eval(arg, local_env.clone(), false)?
         }
 
         Ok(result)
@@ -285,7 +285,7 @@ impl Macro for SyntaxQuoteMacro {
             .borrow_mut()
             .insert(&SYMBOL_UNQUOTE_SPLICING, Value::SplicingMacro(Rc::new(UnquoteSplicingMacro)))?;
 
-        eval(args[0].clone(), local_env)
+        eval(args[0].clone(), local_env, true)
     }
 }
 
@@ -314,7 +314,7 @@ impl Macro for UnquoteMacro {
             return Err(arity_error(1, args.len()));
         }
 
-        eval(args[0].clone(), environment)
+        eval(args[0].clone(), environment, false)
     }
 }
 
@@ -354,23 +354,23 @@ impl SplicingMacro for UnquoteSplicingMacro {
         match arg {
             Value::List(x) => {
                 for x in x.value.iter() {
-                    result.push(eval(x.clone(), environment.clone())?);
+                    result.push(eval(x.clone(), environment.clone(), false)?);
                 }
             }
             Value::Vector(x) => {
                 for x in x.value.iter() {
-                    result.push(eval(x.clone(), environment.clone())?);
+                    result.push(eval(x.clone(), environment.clone(), false)?);
                 }
             }
             Value::Set(x) => {
                 for x in x.value.iter() {
-                    result.push(eval(x.clone(), environment.clone())?);
+                    result.push(eval(x.clone(), environment.clone(), false)?);
                 }
             }
             Value::Map(m) => {
                 for (k, v) in m.value.iter() {
                     let x = Value::Vector(Vector::from([k.clone(), v.clone()].to_vec()));
-                    result.push(eval(x.clone(), environment.clone())?);
+                    result.push(eval(x.clone(), environment.clone(), false)?);
                 }
             }
             Value::String(s) => {
@@ -421,7 +421,7 @@ impl Macro for DoMacro {
     fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         let mut result = Value::Nil;
         for arg in args {
-            result = eval(arg, environment.clone())?;
+            result = eval(arg, environment.clone(), false)?;
         }
 
         Ok(result)
@@ -456,14 +456,14 @@ impl Macro for IfMacro {
         }
 
         let condition = &args[0];
-        let truthy = eval(condition.clone(), environment.clone())?;
+        let truthy = eval(condition.clone(), environment.clone(), false)?;
 
         let result = if truthy.is_truthy() {
             let true_branch = &args[1];
-            eval(true_branch.clone(), environment.clone())?
+            eval(true_branch.clone(), environment.clone(), false)?
         } else {
             let false_branch = if args.len() == 3 { &args[2] } else { &Value::Nil };
-            eval(false_branch.clone(), environment.clone())?
+            eval(false_branch.clone(), environment.clone(), false)?
         };
         Ok(result)
     }
@@ -495,13 +495,13 @@ impl Macro for WhenMacro {
         }
 
         let condition = &args[0];
-        let truthy = eval(condition.clone(), environment.clone())?;
+        let truthy = eval(condition.clone(), environment.clone(), false)?;
 
         if truthy.is_truthy() {
             let bodies = &args[1..];
             let mut result = Value::Nil;
             for body in bodies {
-                result = eval(body.clone(), environment.clone())?;
+                result = eval(body.clone(), environment.clone(), false)?;
             }
             Ok(result)
         } else {
@@ -537,7 +537,7 @@ impl Macro for BreakMacro {
 
         let mut result = Value::Nil;
         if args.len() == 1 {
-            result = eval(args[0].clone(), environment.clone())?;
+            result = eval(args[0].clone(), environment.clone(), false)?;
         }
         Ok(Value::ControlFlow(Rc::new(ControlFlow::Break(result))))
     }
@@ -610,14 +610,14 @@ impl Macro for WhileMacro {
 
         let mut ret = Value::Nil;
         let result = 'looptop: loop {
-            let truthy = eval(condition.clone(), local_env.clone())?;
+            let truthy = eval(condition.clone(), local_env.clone(), false)?;
 
             if !truthy.is_truthy() {
                 break ret;
             }
 
             for body in bodies {
-                ret = eval(body.clone(), local_env.clone())?;
+                ret = eval(body.clone(), local_env.clone(), false)?;
                 if let Value::ControlFlow(c) = ret.clone() {
                     match c.as_ref() {
                         ControlFlow::Break(v) => break 'looptop v.clone(),
@@ -660,23 +660,23 @@ impl Macro for SwitchMacro {
             return Err(Error::Syntax("switch: case and expression must be in pairs".to_string()));
         }
 
-        let val = eval(args[0].clone(), environment.clone())?;
+        let val = eval(args[0].clone(), environment.clone(), false)?;
         let mut result = Value::Nil;
 
         for chunk in args[1..].chunks(2) {
-            let case = eval(chunk[0].clone(), environment.clone())?;
+            let case = eval(chunk[0].clone(), environment.clone(), false)?;
             let expr = &chunk[1];
 
             match case {
                 Value::Vector(case) => {
                     if case.value.iter().any(|v| *v == val) {
-                        result = eval(expr.clone(), environment.clone())?;
+                        result = eval(expr.clone(), environment.clone(), false)?;
                         break;
                     }
                 }
                 Value::Keyword(case) => {
                     if case.name == ":default" {
-                        result = eval(expr.clone(), environment.clone())?;
+                        result = eval(expr.clone(), environment.clone(), false)?;
                         break;
                     } else {
                         return Err(Error::Syntax("switch: case must be a vector or :default keyword".to_string()));
@@ -715,7 +715,7 @@ impl Macro for TimeMacro {
         }
 
         let start = std::time::Instant::now();
-        let result = eval(args[0].clone(), environment)?;
+        let result = eval(args[0].clone(), environment, false)?;
         let end = std::time::Instant::now();
         println!("Elapsed time: {:?}", end - start);
 
@@ -928,17 +928,17 @@ impl Macro for ThreadFirstMacro {
             return Err(arity_error_min(1, args.len()));
         }
 
-        let mut result = eval(args[0].clone(), environment.clone())?;
+        let mut result = eval(args[0].clone(), environment.clone(), false)?;
 
         for arg in args.into_iter().skip(1) {
             match arg {
                 Value::List(mut list) => {
                     list.value.insert(1, result.clone());
-                    result = eval(Value::List(list), environment.clone())?;
+                    result = eval(Value::List(list), environment.clone(), false)?;
                 }
                 Value::Symbol(sym) => {
                     let new_list = Value::as_list(vec![Value::Symbol(sym), result.clone()])?;
-                    result = eval(new_list, environment.clone())?;
+                    result = eval(new_list, environment.clone(), false)?;
                 }
                 _ => return Err(Error::Type("->: arguments must be lists, functions or macros".to_string())),
             }
@@ -973,17 +973,17 @@ impl Macro for ThreadLastMacro {
             return Err(arity_error_min(1, args.len()));
         }
 
-        let mut result = eval(args[0].clone(), environment.clone())?;
+        let mut result = eval(args[0].clone(), environment.clone(), false)?;
 
         for arg in args.into_iter().skip(1) {
             match arg {
                 Value::List(mut list) => {
                     list.value.push(result);
-                    result = eval(Value::List(list), environment.clone())?;
+                    result = eval(Value::List(list), environment.clone(), false)?;
                 }
                 Value::Symbol(sym) => {
                     let new_list = Value::as_list(vec![Value::Symbol(sym), result.clone()])?;
-                    result = eval(new_list, environment.clone())?;
+                    result = eval(new_list, environment.clone(), false)?;
                 }
                 _ => return Err(Error::Type("->: arguments must be lists, functions or macros".to_string())),
             }
@@ -1024,10 +1024,10 @@ impl Macro for CondMacro {
         });
 
         for chunk in args.chunks(2) {
-            let case = eval(chunk[0].clone(), environment.clone())?;
+            let case = eval(chunk[0].clone(), environment.clone(), false)?;
 
             if case.is_truthy() || case == keyword_else {
-                result = eval(chunk[1].clone(), environment)?;
+                result = eval(chunk[1].clone(), environment, false)?;
                 break;
             }
         }
@@ -1061,7 +1061,7 @@ impl Macro for AndMacro {
         }
         let mut result = Value::Bool(true);
         for arg in args {
-            result = eval(arg, environment.clone())?;
+            result = eval(arg, environment.clone(), false)?;
             if !result.is_truthy() {
                 break;
             }
@@ -1096,7 +1096,7 @@ impl Macro for OrMacro {
         }
         let mut result = Value::Bool(false);
         for arg in args {
-            result = eval(arg, environment.clone())?;
+            result = eval(arg, environment.clone(), false)?;
             if result.is_truthy() {
                 break;
             }
@@ -1156,7 +1156,7 @@ impl Macro for ForMacro {
 
         let mut iterator = match param_body {
             Value::Symbol(_) | Value::List(_) | Value::Vector(_) | Value::Set(_) | Value::Map(_) => {
-                eval(param_body, local_env.clone())?
+                eval(param_body, local_env.clone(), false)?
             }
             Value::Generator(g) => Value::Generator(g),
             _ => Err(Error::Type(
@@ -1179,7 +1179,7 @@ impl Macro for ForMacro {
             local_env.borrow_mut().set(&param_symbol, v.unwrap())?;
 
             for arg in args.iter().skip(1) {
-                let ret = eval(arg.clone(), local_env.clone())?;
+                let ret = eval(arg.clone(), local_env.clone(), false)?;
                 if let Value::ControlFlow(c) = ret {
                     match c.as_ref() {
                         ControlFlow::Break(v) => {
@@ -1271,7 +1271,7 @@ impl Macro for ReturnMacro {
 
         let mut result = Value::Nil;
         if args.len() == 1 {
-            result = eval(args[0].clone(), environment)?;
+            result = eval(args[0].clone(), environment, false)?;
         }
         Err(Error::Return(result))
     }
@@ -1280,34 +1280,6 @@ impl Macro for ReturnMacro {
 impl fmt::Display for ReturnMacro {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "<builtin macro: return>")
-    }
-}
-
-// macro
-pub static SYMBOL_MACRO: Lazy<Symbol> = Lazy::new(|| Symbol {
-    name: Cow::Borrowed("macro"),
-    meta: Meta {
-        doc: Cow::Borrowed("Create a macro."),
-        mutable: false,
-    },
-    hash: fxhash::hash("macro"),
-});
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct MacroMacro;
-
-impl Macro for MacroMacro {
-    fn call(&self, args: Vec<Value>, _environment: Rc<RefCell<Environment>>) -> Result<Value> {
-        if args.len() < 2 {
-            return Err(arity_error_min(2, args.len()));
-        }
-        Ok(Value::Nil)
-    }
-}
-
-impl fmt::Display for MacroMacro {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin macro: macro>")
     }
 }
 
@@ -1567,11 +1539,39 @@ impl fmt::Display for RemoveEMacro {
     }
 }
 
+// macro
+pub static SYMBOL_MACRO: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("macro"),
+    meta: Meta {
+        doc: Cow::Borrowed("Create a macro."),
+        mutable: false,
+    },
+    hash: fxhash::hash("macro"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MacroMacro;
+
+impl Macro for MacroMacro {
+    fn call(&self, args: Vec<Value>, _environment: Rc<RefCell<Environment>>) -> Result<Value> {
+        if args.len() < 2 {
+            return Err(arity_error_min(2, args.len()));
+        }
+        Ok(Value::Nil)
+    }
+}
+
+impl fmt::Display for MacroMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro: macro>")
+    }
+}
+
 // TODO:
 // MacroMacro,
 // /AUTO-GENSYM
+// Try-Catch-Finally
 // EnumMacro,
 // StructMacro,
 // ClassMacro,
 // NameSpaceMacro
-// ReturnMacro

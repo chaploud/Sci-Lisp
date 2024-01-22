@@ -79,7 +79,7 @@ impl Function for Lambda {
 
         let mut result = Ok(Value::Nil);
         for val in &self.body {
-            result = eval(val.clone(), local_env.clone());
+            result = eval(val.clone(), local_env.clone(), false);
             if let Err(Error::Return(v)) = result {
                 return Ok(v);
             }
