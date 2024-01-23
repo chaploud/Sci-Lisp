@@ -209,7 +209,7 @@ impl Macro for LetMacro {
                 _ => Err(Error::Type("let: first element of each pair must be a symbol".to_string())),
             };
 
-            let val = pair[1].clone();
+            let val = eval(pair[1].clone(), local_env.clone(), false)?;
 
             local_env.borrow_mut().insert(key?, val)?;
         }
@@ -1303,8 +1303,15 @@ impl Macro for InsertEMacro {
         };
 
         let value = match args[0].clone() {
-            Value::Symbol(sym) => environment.borrow().get(&sym)?,
-            _ => args[2].clone(),
+            Value::Symbol(sym) => {
+                let (key, val) = environment.borrow().get_key_value(&sym)?;
+                if key.meta.mutable {
+                    val
+                } else {
+                    return Err(Error::Const(format!("{} is immutable", sym.name)));
+                }
+            }
+            _ => args[0].clone(),
         };
 
         match value {
@@ -1442,8 +1449,15 @@ impl Macro for RemoveEMacro {
         };
 
         let value = match args[0].clone() {
-            Value::Symbol(sym) => environment.borrow().get(&sym)?,
-            _ => args[2].clone(),
+            Value::Symbol(sym) => {
+                let (key, val) = environment.borrow().get_key_value(&sym)?;
+                if key.meta.mutable {
+                    val
+                } else {
+                    return Err(Error::Const(format!("{} is immutable", sym.name)));
+                }
+            }
+            _ => args[0].clone(),
         };
 
         match value {
@@ -1563,8 +1577,15 @@ impl Macro for ReplaceEMacro {
         };
 
         let value = match args[0].clone() {
-            Value::Symbol(sym) => environment.borrow().get(&sym)?,
-            _ => args[3].clone(),
+            Value::Symbol(sym) => {
+                let (key, val) = environment.borrow().get_key_value(&sym)?;
+                if key.meta.mutable {
+                    val
+                } else {
+                    return Err(Error::Const(format!("{} is immutable", sym.name)));
+                }
+            }
+            _ => args[0].clone(),
         };
 
         match value {

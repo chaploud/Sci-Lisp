@@ -1096,3 +1096,25 @@ fn execute_repl_00068() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert().success().stdout(format!("{}\n", out));
     Ok(())
 }
+
+#[test]
+fn execute_repl_00069() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = AssertCmd::cargo_bin("scilisp")?;
+    cmd.write_stdin(
+        r##"
+        (defn fibonacci [n]
+        "Compute for the nth fibonacci number."
+        (if (or (zero? n) (= n 1))
+            1
+            (let [f1 (fibonacci (- n 1))
+                f2 (fibonacci (- n 2))]
+            (+ f1 f2))))
+
+        (print (fibonacci 10))
+        "##,
+    );
+    let outs = ["fibonacci", "89", "nil"];
+    let out = outs.join("\n");
+    cmd.assert().success().stdout(format!("{}\n", out));
+    Ok(())
+}

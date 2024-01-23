@@ -53,6 +53,8 @@ inf                 ; positive infinity
     (return (+ a b))         ; can use early return
     (- a b)))
 
+(my-sum 1 2)                 ; => 3
+
 ;; ===== Control Flow
 (if (< 2 3)                  ; if
   true                       ; true form
@@ -165,6 +167,7 @@ inf                 ; positive infinity
 (type [1, 2, 3])              ; show type
 (time (+ 1 2))                ; measure processing time
 (print {:a 2, :b 3})          ; print any
+(doc time)                    ; show docstring
 (printf "{0:03}kg" 56)        ; print format (WIP)
 
 ;; String

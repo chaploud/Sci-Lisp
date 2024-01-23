@@ -249,6 +249,16 @@ key/index error
 - [ ] マクロの利用では極力(do)を減らしたい
 - [ ] environmentとのやり取りにめちゃくちゃ時間かかっている
 - [ ] apt/yum
+PR, Issue, Discussion待ってます！テンプレートもまだ用意できてない段階
+日本語でのやり取り可
+Bugfix, Comment, Test, Documentation, Example, Refactoring, Error Handling ←need help!
+Numpy, Scipy, Matplotlibの機能を標準で盛り込む
+時系列分析, 信号処理のライブラリを同梱する
+Web/通信系のサポートを入れてもいいかもしれない
+余生を懸けて取り組む所存（REPL, エラーメッセージ, 拡張機能）
+「プログラミング言語Sci-Lisp」 公開したい
+AtCoderの利用可能言語に採用されたい
+Documentationを作る時間が要る
 
 ## 最適化について
 
