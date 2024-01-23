@@ -7,14 +7,15 @@
 - 可搬性 (Linux, Windows, Mac)
 - ドキュメント、サンプルの充実
 - リッチなREPL
-- キーワードは最小限
-- インタプリタ・コンパイラ・リンタの同梱
-- テストフレームワークの同梱
+- 開発者体験の向上
+  - インタプリタ・コンパイラ・リンタの同梱
+  - テストフレームワークの同梱
 
 ## 特徴
 
-- forループを許容する
+- for/whileループを許容する
 - 再代入を許容する
+- スライスアクセス `([2|-1] [1, 2, 3, 4, 5])`
 
 ## モチベーション
 
@@ -23,6 +24,14 @@
 - 信号処理と時系列分析のドメイン知識獲得
 - VSCodeで素晴らしい開発者体験を得ること
 - GitHub上でのOSS活動への参加
+
+## 課題
+
+- [ ] コア機能だけRustで記述し、不随する機能はLispで記述する
+- [ ] 関数型プログラミング向けの設計が今一つ
+- [ ] モジュールシステム(import)
+- [ ] 簡易なテストフレームワーク
+- [ ] ドキュメント
 
 ## メモ
 
@@ -275,7 +284,7 @@ cargo clippy          # 静的解析Lint
 ## profiler
 
 ```bash
-perf record --call-graph dwarf target/release/scilisp tests/benchmark.lisp
+perf record --call-graph dwarf target/release/scilisp tests/benchmark.slisp
 hospot perf.data
 ```
 

@@ -2,5 +2,5 @@
 
 ```bash
 ./README.md     # this markdown
-./example.lisp  # sci-lisp examples
+./example.slisp  # sci-lisp examples
 ```

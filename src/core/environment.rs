@@ -108,6 +108,17 @@ impl Environment {
         }
         Ok(())
     }
+
+    pub fn get_all_symbols(&self) -> Vec<Symbol> {
+        let mut result = Vec::<Symbol>::new();
+        for (key, _) in self.current.borrow().iter() {
+            result.push(key.clone());
+        }
+        if let Some(parent) = self.parent.clone() {
+            result.append(&mut parent.borrow().get_all_symbols());
+        }
+        result
+    }
 }
 
 fn insert_builtin_functions(env: &mut Environment) {

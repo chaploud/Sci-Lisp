@@ -81,12 +81,12 @@ Not distributed yet.
 
 ```bash
 scilisp  # launch REPL
-scilisp xxx.lisp  # run as script
+scilisp xxx.slisp  # run as script
 ```
 
 ## Sci-Lisp code examples
 
-See `examples/example.lisp`.
+See `examples/example.slisp`.
 
 ```clojure
 ; Comment

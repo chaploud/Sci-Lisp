@@ -1,7 +1,7 @@
 /* main.rs */
 
 // scilisp  # launch REPL
-// scilisp xxx.lisp  # run as script
+// scilisp xxx.slisp  # run as script
 
 use std::path::PathBuf;
 use std::process::exit;
