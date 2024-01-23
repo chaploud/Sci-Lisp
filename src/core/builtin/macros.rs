@@ -21,7 +21,6 @@ use crate::core::types::keyword::Keyword;
 use crate::core::types::lambda::Lambda;
 use crate::core::types::meta::Meta;
 use crate::core::types::r#macro::Macro;
-use crate::core::types::r#macro::SplicingMacro;
 use crate::core::types::sliceable::SliceableMut;
 use crate::core::types::symbol::Symbol;
 use crate::core::types::vector::Vector;
@@ -284,7 +283,7 @@ impl Macro for SyntaxQuoteMacro {
             .insert(&SYMBOL_UNQUOTE, Value::Macro(Rc::new(UnquoteMacro)))?;
         local_env
             .borrow_mut()
-            .insert(&SYMBOL_UNQUOTE_SPLICING, Value::SplicingMacro(Rc::new(UnquoteSplicingMacro)))?;
+            .insert(&SYMBOL_UNQUOTE_SPLICING, Value::Macro(Rc::new(UnquoteSplicingMacro)))?;
 
         eval(args[0].clone(), local_env, true)
     }
@@ -338,9 +337,8 @@ pub static SYMBOL_UNQUOTE_SPLICING: Lazy<Symbol> = Lazy::new(|| Symbol {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UnquoteSplicingMacro;
 
-// NOTE: impl 'SplicingMacro'
-impl SplicingMacro for UnquoteSplicingMacro {
-    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Vec<Value>> {
+impl Macro for UnquoteSplicingMacro {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
         if args.len() != 1 {
             return Err(arity_error(1, args.len()));
         }
@@ -393,7 +391,7 @@ impl SplicingMacro for UnquoteSplicingMacro {
             ))?,
         }
 
-        Ok(result)
+        Ok(Value::Splicing(result))
     }
 }
 

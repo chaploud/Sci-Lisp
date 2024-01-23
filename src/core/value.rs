@@ -19,7 +19,6 @@ use crate::core::types::keyword::Keyword;
 use crate::core::types::list::List;
 use crate::core::types::map::Map;
 use crate::core::types::r#macro::Macro;
-use crate::core::types::r#macro::SplicingMacro;
 use crate::core::types::set::Set;
 use crate::core::types::slice::Slice;
 use crate::core::types::sliceable::Sliceable;
@@ -44,10 +43,10 @@ pub enum Value {
     Set(Set),
     Function(Rc<dyn Function>),
     Macro(Rc<dyn Macro>),
-    SplicingMacro(Rc<dyn SplicingMacro>),
     Generator(Rc<RefCell<dyn Generator>>),
     Slice(Rc<Slice>),
     ControlFlow(Rc<ControlFlow<Value, Value>>),
+    Splicing(Vec<Value>),
 }
 
 impl PartialEq for Value {
@@ -105,7 +104,7 @@ impl fmt::Display for Value {
             Generator(g) => write!(f, "{}", g.borrow()),
             Slice(s) => write!(f, "{}", s),
             ControlFlow(cf) => write!(f, "{:?}", cf),
-            _ => panic!("Cannot display {}", self.type_name()), // OK
+            Splicing(_) => write!(f, "splicing"),
         }
     }
 }
@@ -131,7 +130,7 @@ impl fmt::Debug for Value {
             Generator(g) => write!(f, "{}", g.borrow()),
             Slice(s) => write!(f, "{}", s),
             ControlFlow(cf) => write!(f, "{:?}", cf),
-            _ => panic!("Cannot debug {}", self.type_name()), // OK
+            Splicing(_) => write!(f, "splicing"),
         }
     }
 }

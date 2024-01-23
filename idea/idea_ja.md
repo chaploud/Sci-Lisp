@@ -43,6 +43,17 @@
 - 高速処理の世界へ足を踏み入れるか
 - polars(https://github.com/pola-rs/polars)のPython APIをシームレスに組み込む
 
+## スコープを形成するマクロ
+
+def, const, enum, struct, class, macroがローカルスコープへの定義を行うため、スコープを形成するマクロを覚えておく必要がある
+
+- シンタックスクォート(`)
+- let
+- while
+- for
+
+=> これは気持ち悪い!でもPythonでもそんな感じやな
+
 ## シンボルの評価
 
 - シンボル

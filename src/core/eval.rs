@@ -14,6 +14,21 @@ use crate::core::value::Value;
 use super::builtin::macros::SYMBOL_UNQUOTE;
 use super::builtin::macros::SYMBOL_UNQUOTE_SPLICING;
 
+fn splicing_expand(values: Vec<Value>) -> Vec<Value> {
+    let mut result = Vec::<Value>::new();
+    for value in values {
+        match value {
+            Value::Splicing(splicing) => {
+                for v in splicing {
+                    result.push(v);
+                }
+            }
+            v => result.push(v),
+        }
+    }
+    result
+}
+
 fn eval_rest(rest: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Vec<Value>> {
     let result: Vec<Value> = rest
         .into_iter()
@@ -24,7 +39,8 @@ fn eval_rest(rest: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<
 }
 
 fn eval_list(list: List, environment: Rc<RefCell<Environment>>, syntax_quote: bool) -> Result<Value> {
-    let list_inner = list.value.clone();
+    let mut list_inner = list.value.clone();
+    list_inner = splicing_expand(list_inner);
 
     let first = match list_inner.first() {
         None => return Ok(Value::List(list.clone())),
@@ -37,24 +53,55 @@ fn eval_list(list: List, environment: Rc<RefCell<Environment>>, syntax_quote: bo
     };
 
     if syntax_quote && !unquote {
-        return Ok(Value::List(list.clone()));
+        let mut result: Vec<Value> = list_inner
+            .into_iter()
+            .map(|v| eval(v, environment.clone(), syntax_quote))
+            .collect::<Result<Vec<Value>>>()?;
+
+        result = splicing_expand(result);
+
+        return Value::as_list(result);
     }
 
-    let first: Value = match first {
+    let mut first: Value = match first {
         Value::Symbol(sym) => environment.borrow().get(sym)?,
         Value::List(list) => eval(Value::List(list.clone()), environment.clone(), syntax_quote)?,
         Value::Vector(v) => eval(Value::Vector(v.clone()), environment.clone(), syntax_quote)?,
         f => f.clone(),
     };
 
-    let rest: Vec<Value> = list_inner[1..].to_vec();
+    let mut rest: Vec<Value> = list_inner[1..].to_vec();
+    if let Value::Splicing(s) = first.clone() {
+        rest = s[1..].iter().cloned().chain(rest).collect();
+        first = s[0].clone();
+    }
 
     let result: Result<Value> = match first {
-        Value::Function(func) => func.call(eval_rest(rest, environment)?),
-        Value::I64(int) => int.call(eval_rest(rest, environment)?),
-        Value::String(s) => s.call(eval_rest(rest, environment)?),
-        Value::Keyword(k) => k.call(eval_rest(rest, environment)?),
-        Value::Vector(v) => v.call(eval_rest(rest, environment)?),
+        Value::Function(func) => {
+            rest = eval_rest(rest, environment)?;
+            rest = splicing_expand(rest);
+            func.call(rest)
+        }
+        Value::I64(int) => {
+            rest = eval_rest(rest, environment)?;
+            rest = splicing_expand(rest);
+            int.call(rest)
+        }
+        Value::String(s) => {
+            rest = eval_rest(rest, environment)?;
+            rest = splicing_expand(rest);
+            s.call(rest)
+        }
+        Value::Keyword(k) => {
+            rest = eval_rest(rest, environment)?;
+            rest = splicing_expand(rest);
+            k.call(rest)
+        }
+        Value::Vector(v) => {
+            rest = eval_rest(rest, environment)?;
+            rest = splicing_expand(rest);
+            v.call(rest)
+        }
         Value::Macro(mac) => mac.call(rest, environment),
         f => Err(Error::Syntax(format!("cannot call '{}'", f))),
     };
@@ -82,7 +129,8 @@ pub fn eval(value: Value, environment: Rc<RefCell<Environment>>, syntax_quote: b
         | Value::Function(_)
         | Value::Macro(_)
         | Value::ControlFlow(_)
-        | Value::Generator(_) => Ok(value),
+        | Value::Generator(_)
+        | Value::Splicing(_) => Ok(value),
         Value::Slice(s) => {
             let start = eval(s.start.clone(), environment.clone(), syntax_quote)?;
             let end = eval(s.end.clone(), environment.clone(), syntax_quote)?;
@@ -103,11 +151,13 @@ pub fn eval(value: Value, environment: Rc<RefCell<Environment>>, syntax_quote: b
         }
         Value::List(list) => eval_list(list, environment, syntax_quote),
         Value::Vector(vector) => {
-            let result: Vec<Value> = vector
+            let mut result: Vec<Value> = vector
                 .value
                 .into_iter()
                 .map(|v| eval(v, environment.clone(), syntax_quote))
                 .collect::<Result<Vec<Value>>>()?;
+
+            result = splicing_expand(result);
 
             Value::as_vector(result)
         }
@@ -116,22 +166,30 @@ pub fn eval(value: Value, environment: Rc<RefCell<Environment>>, syntax_quote: b
                 .value
                 .into_iter()
                 .map(|(k, v)| {
-                    { eval(k, environment.clone(), syntax_quote) }
-                        .and_then(|ek| eval(v, environment.clone(), syntax_quote).map(|ev| (ek, ev)))
+                    let ek = eval(k, environment.clone(), syntax_quote)?;
+                    let ev = eval(v, environment.clone(), syntax_quote)?;
+                    if let Value::Splicing(_) = ek {
+                        return Err(Error::Syntax("cannot splice in map key".to_string()));
+                    }
+                    if let Value::Splicing(_) = ev {
+                        return Err(Error::Syntax("cannot splice in map value".to_string()));
+                    }
+                    Ok((ek, ev))
                 })
                 .collect::<Result<Vec<(Value, Value)>>>()?;
 
             Value::as_map(result)
         }
         Value::Set(set) => {
-            let result: Vec<Value> = set
+            let mut result: Vec<Value> = set
                 .value
                 .into_iter()
                 .map(|v| eval(v, environment.clone(), syntax_quote))
                 .collect::<Result<Vec<Value>>>()?;
 
+            result = splicing_expand(result);
+
             Value::as_set(result)
         }
-        Value::SplicingMacro(_) => Err(Error::Syntax("splicing macro cannot be evaluated".to_string())),
     }
 }
