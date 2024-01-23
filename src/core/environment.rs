@@ -244,6 +244,7 @@ fn insert_builtin_macros(env: &mut Environment) {
     let _ = env.insert(&SYMBOL_MACRO, Value::Macro(Rc::new(MacroMacro)));
     let _ = env.insert(&SYMBOL_INSERTE, Value::Macro(Rc::new(InsertEMacro)));
     let _ = env.insert(&SYMBOL_REMOVEE, Value::Macro(Rc::new(RemoveEMacro)));
+    let _ = env.insert(&SYMBOL_REPLACEE, Value::Macro(Rc::new(ReplaceEMacro)));
 }
 
 fn insert_builtin_constants(env: &mut Environment) {

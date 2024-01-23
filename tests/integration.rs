@@ -989,6 +989,7 @@ fn execute_repl_00065() -> Result<(), Box<dyn std::error::Error>> {
         (get v 1)
         (insert! v 1 999)
         (remove! v 0)
+        (replace! v -1 123)
         v
         "##,
     );
@@ -1015,7 +1016,8 @@ fn execute_repl_00065() -> Result<(), Box<dyn std::error::Error>> {
         "2",
         "nil",
         "1",
-        "[999, 2, 3]",
+        "3",
+        "[999, 2, 123]",
     ];
     let out = outs.join("\n");
     cmd.assert().success().stdout(format!("{}\n", out));
@@ -1034,6 +1036,7 @@ fn execute_repl_00066() -> Result<(), Box<dyn std::error::Error>> {
         (get m :b)
         (insert! m :a 1)
         (remove! m :a)
+        (replace! m :b 123)
         m
         "##,
     );
@@ -1045,7 +1048,8 @@ fn execute_repl_00066() -> Result<(), Box<dyn std::error::Error>> {
         "2",
         "nil",
         ":a",
-        "{:b 2, :c 3}",
+        ":b",
+        "{:b 123, :c 3}",
     ];
     let out = outs.join("\n");
     cmd.assert().success().stdout(format!("{}\n", out));
@@ -1061,13 +1065,14 @@ fn execute_repl_00067() -> Result<(), Box<dyn std::error::Error>> {
         (get s1 2)
         (insert! s1 1)
         (remove! s1 1)
+        (replace! s1 3 123)
         (def s2 #{1 2})
         (union s1 s2)
         (intersect s1 s2)
         (difference s1 s2)
         "##,
     );
-    let outs = ["s1", "2", "nil", "1", "s2", "#{2, 3, 1}", "#{2}", "#{3}"];
+    let outs = ["s1", "2", "nil", "1", "3", "s2", "#{2, 3, 1}", "#{2}", "#{3}"];
     let out = outs.join("\n");
     cmd.assert().success().stdout(format!("{}\n", out));
     Ok(())

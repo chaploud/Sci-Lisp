@@ -9,6 +9,7 @@
 - リッチなREPL
 - キーワードは最小限
 - インタプリタ・コンパイラ・リンタの同梱
+- テストフレームワークの同梱
 
 ## 特徴
 
@@ -22,17 +23,6 @@
 - 信号処理と時系列分析のドメイン知識獲得
 - VSCodeで素晴らしい開発者体験を得ること
 - GitHub上でのOSS活動への参加
-
-## ロードマップ
-
-- lisp-rs (https://github.com/vishpat/lisp-rs) を理解する
-- 最小限の機能を持った状態を作る
-  - Windows, Linux, Macに配布できるようにする
-  - ドキュメントを作ってGitHub Pagesで公開
-  - VSCode拡張機能を公開
-  - apt, yum等も対応してあげたらいいかなあ
-- 標準ライブラリや科学計算ライブラリを充実させていく
-  - 引き続きドキュメントやVSCode拡張機能も改善していく
 
 ## メモ
 
@@ -106,32 +96,6 @@ syntax-quoteの内部のみ、unquoteとunquote-splicingが定義される
 ## defの仕様変えよう
 
 - スコープの中に定義するでOK
-
-## スライスの種類
-
-- 適用先はVector, List, Map
-- Setはadd
-- コレクションは相互変換可能
-- まずはatを実装しよう
-- [0]
-- [0:]
-- [:1]
-- [0:2]
-- [-1]
-- [-1:]
-- [:-1]
-- [sym1:sym2, sym3:] = i64のみ
-- [:key]
-- ["key"]
-- [0]
-- [sym] => 内部的に変換される
-- [hoge:key] 不正(ではない)
-- キーワードが衝突しそう
-- キーワードはすでに数字が先頭のものを許さない
-- コロンの間に空白を許すか => 許さない方向で
-- スライスは単品では存在しえない。必ず関数コールとなる
-- パーサーにこの形式を許可する必要がある
-- at/slice関数を用意するか
 
 ### ユースケース
 
@@ -264,11 +228,11 @@ key/index error
 - [ ] エラーメッセージの改善・スタックトレース
 - [ ] マクロの利用では極力(do)を減らしたい
 - [ ] environmentとのやり取りにめちゃくちゃ時間かかっている
+- [ ] apt/yum
 
 ## 最適化について
 
 - environmentとのやり取りを極力減らす
-- ast.push + eval などは最初の解析以降は不要だろう
 - 特にforループや局所変数の扱いでショートカットというか何か最適化を行うべき
 - cloneを減らす
 - block/scopeという考え方が要るような気がする
@@ -302,26 +266,6 @@ cargo clippy          # 静的解析Lint
 ```bash
 perf record --call-graph dwarf target/release/scilisp tests/benchmark.lisp
 hospot perf.data
-```
-
-
-## git hooks
-
-- pre-commit
-
-```
-cargo fmt
-cargo check
-cargo clippy
-```
-
-- pre-push
-
-```
-cargo fmt
-cargo check
-cargo clippy
-cargo test
 ```
 
 ## オープンソース展開

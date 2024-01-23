@@ -235,6 +235,7 @@ inf                 ; positive infinity
 (get v 1)                             ; get value by index
 (insert! v 1 999)                     ; insert
 (remove! v 0)                         ; remove
+(replace! v -1 123)                   ; replace
 
 ;; Map
 (keys {:a 1, :b 2, :c 3})             ; keys
@@ -245,12 +246,14 @@ inf                 ; positive infinity
 (get m :b)                            ; get value by key
 (insert! m :a 1)                      ; insert/replace
 (remove! m :a)                        ; remove
+(replace! m :b 123)                   ; replace
 
 ;; Set
 (def s1 #{2 3})
 (get s1 2)                            ; get key
 (insert! s 1)                         ; insert/replace
 (remove! s 1)                         ; remove
+(replace! s 3 123)                    ; replace
 (def s2 #{1 2})
 (union s1 s2)                         ; union
 (intersect s1 s2)                     ; intersect

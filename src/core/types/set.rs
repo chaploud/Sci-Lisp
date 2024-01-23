@@ -100,6 +100,10 @@ impl Set {
         self.value.insert(value);
     }
 
+    pub fn replace(&mut self, value: Value) -> Option<Value> {
+        self.value.replace(value)
+    }
+
     pub fn remove(&mut self, value: &Value) -> bool {
         self.value.remove(value)
     }

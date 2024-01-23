@@ -22,6 +22,7 @@ use crate::core::types::lambda::Lambda;
 use crate::core::types::meta::Meta;
 use crate::core::types::r#macro::Macro;
 use crate::core::types::r#macro::SplicingMacro;
+use crate::core::types::sliceable::SliceableMut;
 use crate::core::types::symbol::Symbol;
 use crate::core::types::vector::Vector;
 use crate::core::value::Value;
@@ -1414,7 +1415,7 @@ impl Macro for InsertEMacro {
 
 impl fmt::Display for InsertEMacro {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin macro insert>")
+        write!(f, "<builtin macro insert!>")
     }
 }
 
@@ -1535,7 +1536,123 @@ impl Macro for RemoveEMacro {
 
 impl fmt::Display for RemoveEMacro {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<builtin macro remove>")
+        write!(f, "<builtin macro remove!>")
+    }
+}
+
+// replace!
+pub static SYMBOL_REPLACEE: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("replace!"),
+    meta: Meta {
+        doc: Cow::Borrowed("Replace a value in a collection"),
+        mutable: false,
+    },
+    hash: fxhash::hash("replace!"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReplaceEMacro;
+
+impl Macro for ReplaceEMacro {
+    fn call(&self, args: Vec<Value>, environment: Rc<RefCell<Environment>>) -> Result<Value> {
+        if args.len() < 3 || args.len() > 4 {
+            return Err(arity_error_range(3, 4, args.len()));
+        }
+
+        let sym = match args[0].clone() {
+            Value::Symbol(sym) => sym,
+            _ => return Err(type_error("symbol", args[0].type_name().as_str())),
+        };
+
+        let value = match args[0].clone() {
+            Value::Symbol(sym) => environment.borrow().get(&sym)?,
+            _ => args[3].clone(),
+        };
+
+        match value {
+            Value::List(mut l) => {
+                let index = match args[1].clone() {
+                    Value::I64(i) => i,
+                    _ => return Err(type_error("i64", args[1].type_name().as_str())),
+                };
+
+                if let Some(target) = l.at_mut(index) {
+                    let ret = target.clone();
+                    *target = args[2].clone();
+                    environment.borrow_mut().set(&sym, Value::List(l))?; // TODO: slow down
+                    Ok(ret)
+                } else {
+                    Err(index_out_of_range_error(index))
+                }
+            }
+            Value::Vector(mut v) => {
+                let index = match args[1].clone() {
+                    Value::I64(i) => i,
+                    _ => return Err(type_error("i64", args[1].type_name().as_str())),
+                };
+
+                if let Some(target) = v.at_mut(index) {
+                    let ret = target.clone();
+                    *target = args[2].clone();
+                    environment.borrow_mut().set(&sym, Value::Vector(v))?; // TODO: slow down
+                    Ok(ret)
+                } else {
+                    Err(index_out_of_range_error(index))
+                }
+            }
+            Value::String(mut s) => {
+                let mut index = match args[1].clone() {
+                    Value::I64(i) => i,
+                    _ => return Err(type_error("i64", args[1].type_name().as_str())),
+                };
+                if index < 0 {
+                    if s.len() as i64 + index < 0 {
+                        return Err(index_out_of_range_error(index));
+                    }
+                    index += s.len() as i64;
+                }
+                if index as usize >= s.len() {
+                    return Err(index_out_of_range_error(index));
+                }
+                if let Value::String(rep_str) = args[2].clone() {
+                    let ret = s.remove(index as usize);
+                    s.insert_str(index as usize, rep_str.as_str());
+                    environment.borrow_mut().set(&sym, Value::String(s))?; // TODO: slow down
+                    Ok(Value::String(ret.to_string()))
+                } else {
+                    Err(type_error("string", args[2].type_name().as_str()))
+                }
+            }
+            Value::Map(mut m) => {
+                let key = match args[1].clone() {
+                    Value::String(_) | Value::Keyword(_) | Value::I64(_) => args[1].clone(),
+                    _ => return Err(type_error("string, keyword or i64", args[1].type_name().as_str())),
+                };
+                let ret = match m.get(&key) {
+                    Some(_) => key.clone(),
+                    None => return Err(key_not_found_error(key)),
+                };
+                m.insert(key, args[2].clone());
+                environment.borrow_mut().set(&sym, Value::Map(m))?; // TODO: slow down
+                Ok(ret)
+            }
+            Value::Set(mut s) => {
+                let value = args[1].clone();
+                let ret = match s.replace(value.clone()) {
+                    Some(value) => value,
+                    None => return Err(key_not_found_error(value)),
+                };
+                environment.borrow_mut().set(&sym, Value::Set(s))?; // TODO: slow down
+                Ok(ret.clone())
+            }
+            _ => Err(type_error("list, vector, map, set or string", args[0].type_name().as_str())),
+        }
+    }
+}
+
+impl fmt::Display for ReplaceEMacro {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin macro replace!>")
     }
 }
 
