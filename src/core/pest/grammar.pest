@@ -1,4 +1,4 @@
-COMMENT = _{ ";" ~ (!NEWLINE ~ ANY)* ~ NEWLINE }
+COMMENT = _{ ";" ~ (!NEWLINE ~ ANY)* ~ (NEWLINE | EOI)}
 ws = _{ " " | "\t" | "\r" | "\n" | "," }
 
 prefix_char = _{ "'" | "`" | "~" | "~@" | "@" | "\\" | ":" | "#" }
