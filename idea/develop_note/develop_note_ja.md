@@ -46,7 +46,15 @@ wasix
 # write some Rust Code
 $ cargo wasix build --release
 $ wasmer target/wasm32-wasmer-wasi/release/wasi-hello.wasm
+$ wasm2wat get/wasm32-wasmer-wasi/release/wasi-hello.wasm  # wat形式が得られる
 ```
+
+- 目的はwasmをつくることではなくて、wasixを中間言語として吐き出した上でそれを実行すること
+- wasixまで行かずともwasiでいいか => wasmtime
+- あらかじめ自身をwasmにコンパイルしておく
+- REPL起動
+- Sci-Lispをパース => 対応するwasmの中身を呼び出す
+- うーん??
 
 ## Clojure
 
