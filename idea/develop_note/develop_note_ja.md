@@ -11,6 +11,7 @@
 ### Rust to wasm
 
 - Rustをwasm(wat)に変換して読む
+- ブラウザで動かすのが目先の目的ではないから、wasmerでrunできるwasmを生成する手順を確立する
 
 ## Clojure
 

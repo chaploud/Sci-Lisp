@@ -3,3 +3,5 @@ scilisp
 scilisp-release
 .scilisp-history.txt
 perf*
+*.wasm
+target/
