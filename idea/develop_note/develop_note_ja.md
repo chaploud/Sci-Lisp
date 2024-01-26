@@ -54,7 +54,9 @@ $ wasm2wat get/wasm32-wasmer-wasi/release/wasi-hello.wasm  # wat形式が得ら�
 - あらかじめ自身をwasmにコンパイルしておく
 - REPL起動
 - Sci-Lispをパース => 対応するwasmの中身を呼び出す
-- うーん??
+- うーん??これだと現状とあまり変わりないような。。。
+- シンボルテーブルからの探索が早かったりするのだろうか
+- Rustによる最適化済みwasmは要る
 
 ## Clojure
 
