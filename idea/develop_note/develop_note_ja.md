@@ -83,13 +83,94 @@ $ wasm2wat get/wasm32-wasmer-wasi/release/wasi-hello.wasm  # wat形式が得ら�
 - RustでVMを作るの部分をwasm変換に置き換えて読む
   - https://rust-hosted-langs.github.io/book/introduction.html
 - 基本はすべてそろっている。以下のコードを動かせるようにまず組んでみようか
+- エラーの発生個所の保持(オンデマンドな評価)
+- 動的ディスパッチ
+- あとからいろいろ追加したくなった時、設計がねじまげられる可能性がある
+- JuliaおよびClojureをちゃんと学ぼう
+
+- JITコンパイル・型推論・コード最適化
+- 型システムを考える
 
 ```clojure
-(defn sum [a b]
-  (+ a b))
-
+(defn sum
+  "doc"
+  ([a #i64
+    b #i64] => i64
+    (+ a b)))
 (sum 1 2)
 ```
 
 - そもそもRustはwasmに変換するコンパイラを持っている
 - Rustの型の範疇に置き換えればいいのかな？
+
+## 型システム
+
+- Rustとトレイト名と被るのでちょいややこしや
+
+- any
+
+- number
+- collection
+- iterable
+- callable
+
+- nil
+- bool
+- i64
+- u64
+- f64
+- c64(complex)
+- symbol
+- keyword
+- strnig
+- regex
+- list
+- vector
+- map
+- set
+- function
+- macro
+- generator
+- slice
+- datetime
+
+- struct
+
+- union
+
+- typedef
+- typeの宣言にtypeが要るから
+
+### 略記
+
+- nil
+- bool
+- i64
+- u64
+- f64
+- c64
+- sym
+- key
+- str
+- regex
+- l[T]
+- v[T]
+- m[K, V]
+- s[T]
+- f[i64,i64, & any][i64]
+- macro
+- gen[T]
+
+
+- macroexpand
+- macroexpand-1
+
+## 並行処理
+
+- coroutine => Rustではまだnightly
+- thread
+- これらは意識していつか拡張可能にして、本当に主だった処理だけやるようにする
+
+## 非同期処理
+
+- future
