@@ -95,13 +95,20 @@ $ wasm2wat get/wasm32-wasmer-wasi/release/wasi-hello.wasm  # wat形式が得ら�
 (defn sum
   "doc"
   ([a #i64
-    b #i64] => i64
+    b #i64] #i64
     (+ a b)))
 (sum 1 2)
 ```
 
 - そもそもRustはwasmに変換するコンパイラを持っている
 - Rustの型の範疇に置き換えればいいのかな？
+- いやーclassは合った方がいいなぁ
+- 実装上はJuliaの多重ディスパッチの方がやりやすい(前置関数のため)
+- ポリモーフィズム
+
+## format
+
+- テンプレートリテラルを導入するかどうか(-> Lispにはあまりフィットしないかな)
 
 ## 型システム
 
@@ -113,11 +120,11 @@ $ wasm2wat get/wasm32-wasmer-wasi/release/wasi-hello.wasm  # wat形式が得ら�
 - collection
 - iterable
 - callable
+- evaluable
 
 - nil
 - bool
 - i64
-- u64
 - f64
 - c64(complex)
 - symbol
@@ -131,12 +138,13 @@ $ wasm2wat get/wasm32-wasmer-wasi/release/wasi-hello.wasm  # wat形式が得ら�
 - function
 - macro
 - generator
-- slice
+- slice(1|-1|1)
 - datetime
+- timedelta
 
 - struct
-
 - union
+- enum
 
 - typedef
 - typeの宣言にtypeが要るから
@@ -146,7 +154,6 @@ $ wasm2wat get/wasm32-wasmer-wasi/release/wasi-hello.wasm  # wat形式が得ら�
 - nil
 - bool
 - i64
-- u64
 - f64
 - c64
 - sym
@@ -157,10 +164,13 @@ $ wasm2wat get/wasm32-wasmer-wasi/release/wasi-hello.wasm  # wat形式が得ら�
 - v[T]
 - m[K, V]
 - s[T]
-- f[i64,i64, & any][i64]
+- f[i64,i64,&any][i64]
 - macro
 - gen[T]
+- slice
+- datetime
 
+- nil or otherを使う局面は多そうなので、?boolとかを許容するか
 
 - macroexpand
 - macroexpand-1
@@ -170,7 +180,28 @@ $ wasm2wat get/wasm32-wasmer-wasi/release/wasi-hello.wasm  # wat形式が得ら�
 - coroutine => Rustではまだnightly
 - thread
 - これらは意識していつか拡張可能にして、本当に主だった処理だけやるようにする
+- 継続をつかうことになるらしい
+- 並列計算も合わせてサポートしよう! (設計レベルで考慮が必要)
 
 ## 非同期処理
 
 - future
+
+## numpyバインディング
+
+- ここを自作するというのも手かもしれない
+
+## ビルド方策
+
+- core/rust
+  - Rustで言語コアを書く
+- core/scilisp
+  - sci-lispで言語コアを書く
+  - 基本的にはラップしている
+  - ドット記法のサポート
+
+- 優先度の高い関数から定義していく
+- マクロの展開
+- コンパイルタイムにはすべて最適化されて埋め込まれる
+
+- intern/invoke
