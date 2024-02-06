@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg width="135.46666mm" height="135.46666mm" viewBox="0 0 135.46666 135.46666" version="1.1" id="svg1"
+  xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+  <style>
+    @import url("https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack.css");
+
+    svg {
+      font-family: 'Hack', monospace;
+    }
+  </style>
+  <defs id="defs1">
+    <linearGradient id="linearGradient111">
+      <stop style="stop-color:#ffffff;stop-opacity:1;" offset="0" id="stop111" />
+    </linearGradient>
+    <linearGradient id="linearGradient110">
+      <stop style="stop-color:#6d67fb;stop-opacity:1;" offset="0" id="stop110" />
+    </linearGradient>
+    <linearGradient id="linearGradient24">
+      <stop style="stop-color:#0900ec;stop-opacity:0.40671641;" offset="0" id="stop26" />
+      <stop style="stop-color:#1f0a35;stop-opacity:1;" offset="1" id="stop25" />
+    </linearGradient>
+    <radialGradient xlink:href="#linearGradient111" id="radialGradient37-1" cx="90.01741" cy="85.048279" fx="90.01741"
+      fy="85.048279" r="44.651917" gradientTransform="matrix(1,0,0,0.73528271,-2.6458725,22.513711)"
+      gradientUnits="userSpaceOnUse" />
+    <radialGradient xlink:href="#linearGradient110" id="radialGradient37-1-4" cx="90.01741" cy="85.048279" fx="90.01741"
+      fy="85.048279" r="44.651917" gradientTransform="matrix(1,0,0,0.73528271,-2.6458735,22.513715)"
+      gradientUnits="userSpaceOnUse" />
+    <filter style="color-interpolation-filters:sRGB" id="filter110" x="-0.082944936" y="-0.11949119" width="1.1658899"
+      height="1.2389824">
+      <feGaussianBlur stdDeviation="1.6025906" id="feGaussianBlur110" />
+    </filter>
+    <radialGradient xlink:href="#linearGradient24" id="radialGradient26-3" cx="31.982552" cy="99.438805" fx="31.982552"
+      fy="99.438805" r="67.73333" gradientUnits="userSpaceOnUse"
+      gradientTransform="matrix(-0.53334102,2.2923877,-2.4225986,-0.56363547,288.78309,-14.387249)" />
+  </defs>
+  <g id="layer1" transform="translate(-22.284042,-17.314934)" style="display:inline">
+    <circle style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke-width:1.39954" id="path1" cx="90.017372"
+      cy="85.048264" r="67.73333" />
+    <circle style="display:inline;fill:url(#radialGradient26-3);fill-opacity:1;fill-rule:nonzero;stroke-width:1.39954"
+      id="path1-2" cx="90.017372" cy="85.048264" r="67.73333" />
+    <text xml:space="preserve"
+      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:70.5556px;font-family:Hack;-inkscape-font-specification:'Hack, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;display:inline;opacity:1;mix-blend-mode:normal;fill:url(#radialGradient37-1-4);fill-opacity:1;fill-rule:nonzero;stroke:#6d67fb;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill;filter:url(#filter110)"
+      x="31.591959" y="108.57828" id="text29-1-6">
+      <tspan id="tspan29-4-1"
+        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:70.5556px;font-family:Hack;-inkscape-font-specification:'Hack, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:-5.29167px;fill:url(#radialGradient37-1-4);fill-opacity:1;stroke:#6d67fb;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
+        x="31.591959" y="108.57828">[λ]</tspan>
+      <tspan
+        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:70.5556px;font-family:Hack;-inkscape-font-specification:'Hack, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:url(#radialGradient37-1-4);fill-opacity:1;stroke:#6d67fb;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
+        x="31.591959" y="196.77278" id="tspan30-2-7" />
+    </text>
+    <text xml:space="preserve"
+      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:70.5556px;font-family:Hack;-inkscape-font-specification:'Hack, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:-5.29167px;display:inline;mix-blend-mode:normal;fill:url(#radialGradient37-1);fill-opacity:1;fill-rule:nonzero;stroke:#7f69f8;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:0.705882;paint-order:markers stroke fill"
+      x="31.591957" y="108.57829" id="text29-1">
+      <tspan id="tspan29-4"
+        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:70.5556px;font-family:Hack;-inkscape-font-specification:'Hack, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:-5.29167px;fill:url(#radialGradient37-1);fill-opacity:1;stroke:#7f69f8;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:0.705882;paint-order:markers stroke fill"
+        x="31.591957" y="108.57829">[λ]</tspan>
+      <tspan
+        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:70.5556px;font-family:Hack;-inkscape-font-specification:'Hack, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:-5.29167px;fill:url(#radialGradient37-1);fill-opacity:1;stroke:#7f69f8;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:0.705882;paint-order:markers stroke fill"
+        x="31.591957" y="196.7728" id="tspan30-2" />
+    </text>
+  </g>
+</svg>
