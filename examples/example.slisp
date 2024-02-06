@@ -7,16 +7,45 @@ false               ; false
 true                ; true
 nil                 ; nil
 -999                ; i64
+0b101               ; i64 (binary)
+0o777               ; i64 (octal)
+0xff                ; i64 (hex)
 -3.14e15            ; f64
-nan                 ; Not a Number
-inf                 ; positive infinity
--inf                ; negative infinity
--0.0                ; negative zero
+nan                 ; f64: Not a Number
+inf                 ; f64: positive infinity
+-inf                ; f64: negative infinity
+-0.0                ; f64: negative zero
+-1.2+3.4j           ; c64 (complex number)
 :keyword            ; keyword symbol
 'symbol             ; quoted symbol
 
 ;; falsy value is only 'false' and 'nil'
-;; "", '(), [], {}, #{}, 0, nan => all truthy
+;; "", '(), [], {}, #{}, 0, nan => all truthy"
+
+;; ===== Keywords (cannot use as symbol name)
+;; false, true, nil,
+;; def, const, set!,
+;; defn, fn, return,
+;; if, when, cond, switch,
+;; while, for, break, continue
+;; try, catch, finally, throw,
+;; import, export
+;; typedef
+
+;; ===== Spceial Marks (cannot use in symbol name)
+;; : => keyword
+;; ' => quote
+;; ` => syntax-quote
+;; ~ => unquote
+;; ~@ => unquote-splicing
+;; @ => splicing
+;; . => member access
+;; | => slice
+;; / => namespace(module)
+;; & => rest(variable length argument), keyword argument
+
+;; #i64 => type annotation (prefix)
+;; local# => auto-gensym (suffix)
 
 ;; ===== Collection
 ; comma is treated as whitespace
@@ -24,6 +53,13 @@ inf                 ; positive infinity
 [1.0, 2.0, 3.0]              ; vector
 {:a "a", :b "b", :c "c"}     ; map (holds the insersion order)
 #{:a, :b, :c}                ; set (holds the insersion order)
+(array [1, 2, 3])            ; array of i64 (like numpy)
+;; NOTE: map key must be string, i64, keyword
+
+;; ===== Datetime
+(datetime 2021 1 1
+          {:tz "UTC+09"})    ; => datetime
+(duration {:hour 1})         ; => duration
 
 ;; ===== Function Call
 (type [1, 2, 3])             ; show type
@@ -32,28 +68,35 @@ inf                 ; positive infinity
 
 ;; ===== Variable Binding
 ;; NOTE: Different from Clojure
+;; => Define in local scope.
+;; => Of course, if you define in top level it has global scope.
+
 (def a "abcde")              ; variable (mutable, 'local' scope)
-(const C [1, 2, 3])          ; constant value (immutable)
+(const C [1, 2, 3])          ; constant value (immutable, 'local' scope)
 
 ([0|2] a)                    ; slice => "ab"
 (-1 C)                       ; back => 3
 
-(let [a 2]                   ; bind variable (local scope)
+;; NOTE: Only let and fn(clousure/lambda) can make scope in Sci-Lisp
+(let [a 2]                   ; bind variable (make scope)
   (set! a 3)                 ; assign(destructive)
   a)                         ; => 3
 
-;; ===== Function
-(defn my-sum [a b]           ; define function
- "sum two value"             ; docstring
-  (print a b)
-  (+ a b))
+(let                         ; make local scope only
+  (def x 2)                  ; define in local scope
+  x)                         ; => 2
+x                            ; => error
 
-(def my-sum                  ; bind function using def
-  (fn [a b]                  ; anonymous/lambda function
-    (return (+ a b))         ; can use early return
-    (- a b)))
+;; ===== Function
+(defn my-sum                 ; define function
+  "sum two value"            ; docstring
+  [a b]
+  (return (+ a b))           ; can use early return
+  (- a b))
 
 (my-sum 1 2)                 ; => 3
+
+((fn [x] (* x x)) 2)         ; => 4 (lambda/anonymus function)
 
 ;; ===== Control Flow
 (if (< 2 3)                  ; if
@@ -80,7 +123,8 @@ inf                 ; positive infinity
     (print "DEFAULT"))
 
 (for [i (range 5)]           ; for loop, range
-  (print i))
+  (print i))                 ; range returns 'generator'
+i                            ; => 4 you can access i after loop.
 
 (def a 0)
 (while (< a 10)              ; while loop
@@ -90,7 +134,6 @@ inf                 ; positive infinity
     (break (+ a 9994))       ; break with return value
     (continue))              ; continue
   (print "never print"))
-
 
 ;; ===== Built-in Functions/Macros
 
@@ -138,7 +181,7 @@ inf                 ; positive infinity
 (set? #{1, 2, 3})
 
 ;; Cast
-(str 3.14)           ; to string
+(str 3.14)             ; to string
 (str 'abc)
 (str :abc)
 (i64 "2")              ; to i64
@@ -150,18 +193,18 @@ inf                 ; positive infinity
 
 ;; Math
 (sqrt 2)
-(abs -2)             ; absolute value
-(cos (* 2.0 *pi*))   ; cosine
-(sin (/ *pi* 2))     ; sine
-(tan 2.0)            ; tangent
-(acos 0.5)           ; arccosine
-(asin 0.5)           ; arcsine
-(atan 0.5)           ; arctangent
-(log 2 10)           ; log_2(10)
-(ln *e*)             ; log_e(e), natural logarithm
-(log10 2.0)          ; log_10(2.0)
-(rand)               ; rondom value 0.0 to 1.0
-(randint 0 30)       ; random integer 0 to n
+(abs -2)               ; absolute value
+(cos (* 2.0 *pi*))     ; cosine
+(sin (/ *pi* 2))       ; sine
+(tan 2.0)              ; tangent
+(acos 0.5)             ; arccosine
+(asin 0.5)             ; arcsine
+(atan 0.5)             ; arctangent
+(log 2 10)             ; log_2(10)
+(ln *e*)               ; log_e(e), natural logarithm
+(log10 2.0)            ; log_10(2.0)
+(rand)                 ; rondom value 0.0 to 1.0
+(randint 0 30)         ; random integer 0 to n
 
 ;; Utility
 (type [1, 2, 3])              ; show type
@@ -274,50 +317,55 @@ inf                 ; positive infinity
 
 ;; ******************* WIP **********************
 ;; ===== enum
-(enum Grade                       ; define enum
-  "Grade Enum"                    ; docstring
-  [ECONOMY,
-   BUSINESS,
-   FIRST])
+(enum Color                           ; define enum
+  "Color enum"                        ; docstring
+  [Red Green Blue])
 
-(def your-grade Grade.FIRST)      ; allow this style
+(def c Color.Red)                     ; using enum
+
+(switch c
+  [Color.Red] (print "red")
+  [Color.Green] (print "green")
+  [Color.Blue] (print "blue"))
 
 ;; ===== struct
-(struct Enemy                     ; define struct
-  "Enemy Struct"                  ; docstring
-  [hp,
-   attack])
+(struct Enemy                       ; define struct
+  "Enemy Struct"                    ; docstring
+  [hp]
+  (defn heal [self x]               ; define method inside of struct
+    (set! self.hp (+ self.hp x))))
+
+(method [Enemy]                     ; define method outside of struct
+  (defn damage [self x]             ; TODO: Constructor
+    (set! self.hp (- self.hp x))))
 
 (def slime
-  (Enemy {:attack 2, :hp 20}))    ; using struct
-([:attack] slime)                 ; access member => 2
-(print slime.attack)              ; allow this style
+  (Enemy {:hp 20}))                 ; using struct
 
-;; ===== class
-(class Animal                     ; define class
-  "Animal Class"                  ; docstring
+(.hp slime)                         ; access member => 20
+(slime.damage 10)                   ; call method (allow this style)
+(print slime.hp)                    ; => 10 (allow this style)
 
-  ;; constructor
-  (defn Animal [hp, weight]
-    "constructor of Animal"
+(struct ChildEnemy => Enemy         ; inherit struct
+  "ChildEnemy Struct"
+  [mp]
+
+  (defn ChildEnemy [self hp mp]     ; you can define constructor(Same as struct name)
     (set! self.hp hp)
-    (set! self.weight weight))
+    (set! self.mp mp)))
 
-  ;; member
-  (def hp)
-  (def weight)
-  (defn walk [dist]
-    (set! self.hp (- self.hp dist)))
-    (format "walk {0}km, HP: {1}",
-      dist, self.hp))
+  (defn magic [self x]
+    (set! self.mp (- self.mp x)))
 
-(class Dog [Animal]               ; inherit from Animal class
-  (defn bow []
-    (print "bow!")))
+(def slime-child
+  (ChildEnemy {:hp 20, :mp 10}))    ; using struct
 
-(def dog1 (Dog [100, 200]))       ; instanciate class
-(dog1.walk 2)                     ; => "walk 2km, HP: 98"
-(dog1.bow)                        ; => nil
+(slime-child.magic 5)               ; call method
+(slime-child.damage 5)              ; call parent method
+
+(ancestor slime-child)              ; => [Enemy] show all ancestor
+(ancestor ChildEnemy)               ; => [Enemy]
+(ancestor #ChildEnemy)              ; => [#Enemy]
 
 ;; ===== macro
 (macro my-and                     ; define macro
@@ -325,20 +373,186 @@ inf                 ; positive infinity
    from left to right."           ; docstring
   ([] true)                       ; multi arity
   ([x] x)
-  ([x & next]                ; variable length argument (& rest)
-    `(let [and# ~x]          ; quote(`) and unquote(~)
+  ([x & next]                     ; variable length argument (& rest)
+    `(let [and# ~x]               ; quote(`) and unquote(~)
        (if and#                   ; auto-gensym(xxx#)
          (my-and ~@next)          ; unquote splicing(~@)
          and#))))
 
 (my-and "a" "b" "c")              ; => "c"
 
-;; try-catch-finally
-;; MultiArity(Autodoc)
+;; ===== Exception
+(try
+  (print "before error")
+  (throw (TypeError "error")
+  (print "after error")
+  (catch TypeError e
+    (print e))
+  (finally (print "every time executed"))))
+
+;; ===== Desturcturing
+;; vector/list
+(let [[a, b, c] [1, 2, 3]] (print a b c))             ;; 1 2 3
+(let [[a, _, c] [1, 2, 3]] (print a c))               ;; 1 3
+(let [[a, [b1, b2], c] [1, [2, 3], 4]] (print b1 b2)) ;; 2 3
+(let [[a & b] [1 2 3]] (print a b))                   ;; 1 [2 3]
+(let [[a & b] [1]] (print a b))                       ;; 1 nil
+(let [[a & b] []] (print a b))                        ;; nil nil
+
+;; map
+(let [{:a a, :b b} {:a 1 :b 2}] (print a b))          ;; 1 2
+(let [{"a" a, "b" b} {:a 1}] (print a b))             ;; 1 nil
+(let [{0 a, 1 b} {1 2}] (print a b))                  ;; nil 2
+(let [{:a x, :b y, :default {x 2}}
+      {:b 20}] (print x y))                           ;; 2 20
+
+;; defn
+(defn nation-datetime
+  "Create a datetime object"
+  [nation                              ;; positional argument
+   & rest                              ;; variable length argument
+   & {:year year, :mon mon, :day day,  ;; keyword arguments
+      :hour hour, :min min, :sec sec,
+      :nano nano, :tz tz,
+      :default {year 1970, mon 1,      ;; default value
+                day 1, hour 0,
+                min 0, sec 0,
+                nano 0, tz "UTC+00:00"}}]
+
+  ;; posional argument filled with nil when not enough arguments
+  (let [year (or (0 rest) year)
+        mon (or (1 rest) mon)
+        day (or (2 rest) day)
+        hour (or (3 rest) hour)
+        min (or (4 rest) min)
+        sec (or (5 rest) sec)
+        nano (or (6 rest) nano)
+        tz (or (7 rest) tz)]
+
+      (print nation)
+      (rust/datetime year mon day hour mi sec nano tz))
+)
+
+(nation-datetime "Japan" 2018 1 1 {:tz "UTC+09:00"})
+(nation-datetime "UK" {:year 2018 :mon 1 :day 1
+                       :hour 0 :min 0 :sec 0 :nano 0})
+
+;; ========== Type System (Annotation) ==========
+;; type abbreviation
+#any                     ; any type
+#nil,                    ; nil
+#bool,                   ; bool
+#i64,                    ; i64
+#f64,                    ; f64
+#c64,                    ; c64 (complex number)
+#str                     ; string
+#regex                   ; regex
+#key                     ; keyword
+#sym                     ; symbol
+#l[#any]                 ; list of any
+#v[#i64]                 ; vector of i64
+#m[#str]                 ; map that value is string
+#s[#f64]                 ; set of f64
+#a[#i64, [2, 3, 4]]      ; 3d-array of i64 (shape is [2, 3, 4])
+#fn[#i64, #i64] => #i64  ; function like (fn [x y] => (+ x y)), x: i64, y: i64, return: i64
+#macro                   ; macro(マクロの型をどうするか)
+#generator[#str]         ; generator
+#datetime                ; datetime
+#duration                ; duration
+#iterable[#i64]          ; iterable
+#collection              ; collection
+#option[#i64]            ; option of i64
+
+;; map_key: #str, #i64, #key
+;; array: #i64, #f64, #c64 + shape
+
+;; ===== User Defined Type
+(enum Color                         ; define enum
+  "Color enum"
+  [Red Green Blue])
+
+(def c #Color Color.Red)            ; using enum type: Color
+
+(struct Point                       ; define struct
+  "Point struct"
+  [x #i64
+   y #i64])
+
+(def p #Point (Point {:x 1, :y 2})) ; using struct type: Point
+
+(typedef #int #i64)                 ; typedef (type alias)
+(typedef #map-key
+  (union #i64 #str #key))           ; union of i64, string, keyword
+
+;; ===== Type hierarchy
+;; #any is super type of all types
+;; #i64, #f64, #c64 is sub type of #number
+;; #l, #v, #m, #s, #a is sub type of #collection
+;; #collection is sub type of #iterable
+;; #str is sub type of #iterable
+;; #generator is sub type of #iterable
+;; #slice is defined with #struct
+;; #map-key can take #str, #i64, #key
+
+;; ===== multiple dispatch
+;; You can define multiple function with same name with different type.
+(defn some [x #i64] => #i64
+  (print "i64")
+  x)
+
+(defn some [x #f64] => #f64
+  (print "f64")
+  x)
+
+(some 1)                              ; 1 => "i64"
+
+;; def, const, fn, struct, enum, macro, union, typedef
+
+;; ===== module system
+(import string)
+(string/shouty-snake "abcDef")        ; => "ABC_DEF"
+
+(import string :as str)               ; import with alias
+(str/shouty-snake "abcDef")           ; => "ABC_DEF"
+(def sss str/#template "{:.2}")       ; use type defiend in module
+
+(import string [shouty-snake          ; import with select
+                train-case])
+(train-case "abcDef")                 ; => "Abc-Def"
+
+(import "path/to/somename")           ; import 'somename.lisp'
+(somename/somefunc 1 2 3)             ; => ...
+
+(defn somefunc [x y z]
+  (print x y z))
+
+(export [somefunc])                   ; export function
+
+;; ===== Array API
+(def a (array [[1, 2, 3],             ; 2d-array of i64
+               [4, 5, 6]]))
+(a/shape a)                           ; => [3, 3]
+(a/reshape a [1, 6])                  ; => [[1, 2, 3, 4, 5, 6]]
+(a/zeros [2, 3])                      ; => [[0, 0, 0], [0, 0, 0]]
+(a/ones [2, 3])                       ; => [[1, 1, 1], [1, 1, 1]]
+(a/range 0, 1, 0.2)                   ; => [[0, 0.2, 0.4, 0.6, 0.8, 1.0]]
+(a/linspace 0, 1, 6)                  ; => [[0, 0.2, 0.4, 0.6, 0.8, 1.0]]
+(a/rand [2, 3])                       ; => [[0.15, 0.89, 0.35], [0.34, 0.15, 0.76]]
+(a/randint 0, 10, [2, 3])             ; => [[1, 3, 9], [8, 4, 5]]
+([0|2] a)                             ; => [[1, 2, 3], [4, 5, 6]]
+([0|-1|2] a)                          ; => [[1, 3, 5], [4, 6, 8]]
+([|, 1] a)                            ; => [[2, 5], [3, 6]]
+([|, 1|2] a)                          ; => [[[2], [5]], [[3], [6]]]
+
+;; ===== Scientific Constants
+
+;; 他のモジュールで定義された型の利用
+;; 強力な型推論
+
+;; test
+;; assert
 ;; Polars binding
-;; shape
-;; Destructuring
-;; Parallel
+;; Parallel(thread, coroutine, async)
 ;; SIMD
 ;; JIT
 ;; ******************************************
