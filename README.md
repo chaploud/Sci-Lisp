@@ -19,7 +19,7 @@ A Lisp for Scientific Computing written in Rust
 - [x] Run as script
 - [x] S-expression
 - [x] Clojure-like syntax (), [], {}, etc...
-- [x] Numpy-like array slice `([2:-1, -3:] array2d)`
+- [x] Numpy-like array slice `([2|-1, -3|] arrayNd)`
 - [ ] Multiparadigm (Functional, Object-Oriented and Procedural)
 - [ ] Supports exception handling
 - [ ] Functionality of IPython, numpy, matplotlib, pandas, scipy
@@ -27,6 +27,12 @@ A Lisp for Scientific Computing written in Rust
 - [ ] Well documented
 - [ ] Easy installation (Cross Platform)
 - [ ] Great developer experience with VSCode extension
+
+## Plan (WIP)
+
+- JIT (Just In time) compile dynamically typed language
+- Using Wasm(Web Assembly) for IR (Intermediate Representation) and directory execute from source code
+- VM/Runtime is [wasmtime](https://github.com/bytecodealliance/wasmtime)
 
 ## Philosophy
 
