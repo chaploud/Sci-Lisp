@@ -290,7 +290,7 @@ cargo clippy          # 静的解析Lint
 ## profiler
 
 ```bash
-perf record --call-graph dwarf target/release/scilisp tests/benchmark.slisp
+perf record --call-graph dwarf target/release/scilisp tests/benchmark.sl
 hospot perf.data
 ```
 

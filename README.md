@@ -80,13 +80,13 @@ Not distributed yet.
 ## Command line options
 
 ```bash
-scilisp  # launch REPL
-scilisp xxx.slisp  # run as script
+scilisp         # launch REPL
+scilisp xxx.sl  # run as script
 ```
 
 ## Sci-Lisp code examples
 
-See `examples/example.slisp`.
+See `examples/example.sl`.
 
 ```clojure
 ; Comment

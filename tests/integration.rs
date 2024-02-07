@@ -16,7 +16,7 @@ fn show_help() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn execute_success() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("scilisp")?;
-    cmd.arg("tests/execute.slisp");
+    cmd.arg("tests/execute.sl");
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("Hello from Sci-Lisp! [2024, 2024]"));
