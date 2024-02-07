@@ -33,6 +33,7 @@ A Lisp for Scientific Computing written in Rust
 - JIT (Just In time) compile dynamically typed language
 - Using Wasm(Web Assembly) for IR (Intermediate Representation) and directory execute from source code
 - VM/Runtime is [wasmtime](https://github.com/bytecodealliance/wasmtime)
+- Multiple dispatch of functions/methods.
 
 ## Philosophy
 
@@ -45,6 +46,7 @@ Let's use **Lisp easily** without thinking too hard!
 - Hy (https://github.com/hylang/hy)
 - Python (https://github.com/python/cpython)
 - Rust (https://github.com/rust-lang/rust)
+- Julia (https://github.com/JuliaLang/julia)
 
 ## Installation
 
