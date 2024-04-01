@@ -88,6 +88,37 @@ impl fmt::Display for PrintFn {
     }
 }
 
+// input
+pub static SYMBOL_INPUT: Lazy<Symbol> = Lazy::new(|| Symbol {
+    name: Cow::Borrowed("input"),
+    meta: Meta {
+        doc: Cow::Borrowed("Read a line from stdin."),
+        mutable: false,
+    },
+    hash: fxhash::hash("input"),
+});
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InputFn;
+
+impl Function for InputFn {
+    fn call(&self, args: Vec<Value>) -> Result<Value> {
+        if !args.is_empty() {
+            return Err(arity_error(0, args.len()));
+        }
+
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input).unwrap();
+        Ok(Value::String(input.trim().to_string()))
+    }
+}
+
+impl fmt::Display for InputFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<builtin function: input>")
+    }
+}
+
 // inc
 pub static SYMBOL_INC: Lazy<Symbol> = Lazy::new(|| Symbol {
     name: Cow::Borrowed("inc"),

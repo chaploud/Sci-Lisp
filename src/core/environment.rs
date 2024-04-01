@@ -124,6 +124,7 @@ impl Environment {
 fn insert_builtin_functions(env: &mut Environment) {
     let _ = env.insert(&SYMBOL_TYPE, Value::Function(Rc::new(TypeFn)));
     let _ = env.insert(&SYMBOL_PRINT, Value::Function(Rc::new(PrintFn)));
+    let _ = env.insert(&SYMBOL_INPUT, Value::Function(Rc::new(InputFn)));
     let _ = env.insert(&SYMBOL_INC, Value::Function(Rc::new(IncFn)));
     let _ = env.insert(&SYMBOL_DEC, Value::Function(Rc::new(DecFn)));
     let _ = env.insert(&SYMBOL_ADD, Value::Function(Rc::new(AddFn)));
