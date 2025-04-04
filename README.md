@@ -35,7 +35,7 @@
 - Using Wasm (Web Assembly) for IR (Intermediate Representation) and directory execute from source code
 - VM/Runtime is [wasmtime](https://github.com/bytecodealliance/wasmtime)
 - Compile to single binary
-- Polars integration ([Polar](https://github.com/pola-rs/polars))
+- Polars integration ([Polars](https://github.com/pola-rs/polars))
 
 ## Philosophy
 
