@@ -95,7 +95,9 @@ scilisp xxx.sl  # run as script
 
 ## Sci-Lisp code examples
 
-See `examples/example.sl`. **Note:** Functions marked as `[WIP]` (Work in Progress) are not yet implemented. Running them will result in an error.
+See `examples/example.sl`. 
+
+**Note:** Functions marked as `[WIP]` (Work in Progress) are not yet implemented. Running them will result in an error.
 
 ```clojure
 ; Comment
