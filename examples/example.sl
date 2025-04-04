@@ -56,7 +56,7 @@ inf                 ; f64: positive infinity
 (array [1, 2, 3])            ; array of i64 (like numpy)
 ;; NOTE: map key must be string, i64, keyword
 
-;; ===== Datetime
+;; ===== [WIP] Datetime
 (datetime 2021 1 1
           {:tz "UTC+09"})    ; => datetime
 (duration {:hour 1})         ; => duration
@@ -211,7 +211,7 @@ i                            ; => 4 you can access i after loop.
 (time (+ 1 2))                ; measure processing time
 (print {:a 2, :b 3})          ; print any
 (doc time)                    ; show docstring
-(printf "{0:03}kg" 56)        ; print format (WIP)
+(printf "{0:03}kg" 56)        ; [WIP] print format
 
 ;; String
 (len "abcde")                 ; length of string
@@ -235,7 +235,7 @@ i                            ; => 4 you can access i after loop.
 (shouty-kebab "abcDef")       ; SHOUTY-KEBAB-CASE (=> "ABC-DEF")
 (repeat "abc" 2)              ; repeat string (=> "abcabcabc")
 (reverse "abc")               ; reverse (=> "cba")
-(format "π: {:.2}" 3.1415)    ; format string (WIP)
+(format "π: {:.2}" 3.1415)    ; [WIP] format string
 
 ;; Regular Expression
 (find #"[0-9]+" "aa123a")                ; => "123"
@@ -312,11 +312,11 @@ i                            ; => 4 you can access i after loop.
 (reduce + 4 [1, 2, 4])                ; reduce => 11
 (-> 1 (+ 2) (/ 6))                    ; thread first => 0.5
 (->> 1 (+ 2) (/ 6))                   ; thread last => 2
-; ((partial * 10) 1)                  ; partial(WIP) => 10
-; ((comp str +) 7 8 9)                ; comp(WIP) => "24"
+; ((partial * 10) 1)                  ; [WIP] partial => 10
+; ((comp str +) 7 8 9)                ; [WIP] comp => "24"
 
-;; ******************* WIP **********************
-;; ===== enum
+;; ******************* [WIP] **********************
+;; ===== [WIP] enum
 (enum Color                           ; define enum
   "Color enum"                        ; docstring
   [Red Green Blue])
@@ -328,7 +328,7 @@ i                            ; => 4 you can access i after loop.
   [Color.Green] (print "green")
   [Color.Blue] (print "blue"))
 
-;; ===== struct
+;; ===== [WIP] struct
 (struct Enemy                       ; define struct
   "Enemy Struct"                    ; docstring
   [hp]
@@ -367,7 +367,7 @@ i                            ; => 4 you can access i after loop.
 (ancestor ChildEnemy)               ; => [Enemy]
 (ancestor #ChildEnemy)              ; => [#Enemy]
 
-;; ===== macro
+;; ===== [WIP] macro
 (macro my-and                     ; define macro
   "Evaluates exprs one at time,
    from left to right."           ; docstring
@@ -381,7 +381,7 @@ i                            ; => 4 you can access i after loop.
 
 (my-and "a" "b" "c")              ; => "c"
 
-;; ===== Exception
+;; ===== [WIP] Exception
 (try
   (print "before error")
   (throw (TypeError "error")
@@ -390,7 +390,7 @@ i                            ; => 4 you can access i after loop.
     (print e))
   (finally (print "every time executed"))))
 
-;; ===== Desturcturing
+;; ===== [WIP] Desturcturing
 ;; vector/list
 (let [[a, b, c] [1, 2, 3]] (print a b c))             ;; 1 2 3
 (let [[a, _, c] [1, 2, 3]] (print a c))               ;; 1 3
@@ -437,7 +437,7 @@ i                            ; => 4 you can access i after loop.
 (nation-datetime "UK" {:year 2018 :mon 1 :day 1
                        :hour 0 :min 0 :sec 0 :nano 0})
 
-;; ========== Type System (Annotation) ==========
+;; ========== [WIP] Type System (Annotation) ==========
 ;; type abbreviation
 #any                     ; any type
 #nil,                    ; nil
@@ -466,7 +466,7 @@ i                            ; => 4 you can access i after loop.
 ;; map_key: #str, #i64, #key
 ;; array: #i64, #f64, #c64 + shape
 
-;; ===== User Defined Type
+;; ===== [WIP] User Defined Type
 (enum Color                         ; define enum
   "Color enum"
   [Red Green Blue])
@@ -484,7 +484,7 @@ i                            ; => 4 you can access i after loop.
 (typedef #map-key
   (union #i64 #str #key))           ; union of i64, string, keyword
 
-;; ===== Type hierarchy
+;; ===== [WIP] Type hierarchy
 ;; #any is super type of all types
 ;; #i64, #f64, #c64 is sub type of #number
 ;; #l, #v, #m, #s, #a is sub type of #collection
@@ -494,7 +494,7 @@ i                            ; => 4 you can access i after loop.
 ;; #slice is defined with #struct
 ;; #map-key can take #str, #i64, #key
 
-;; ===== multiple dispatch
+;; ===== [WIP] multiple dispatch
 ;; You can define multiple function with same name with different type.
 (defn some [x #i64] => #i64
   (print "i64")
@@ -506,9 +506,7 @@ i                            ; => 4 you can access i after loop.
 
 (some 1)                              ; 1 => "i64"
 
-;; def, const, fn, struct, enum, macro, union, typedef
-
-;; ===== module system
+;; ===== [WIP] module system
 (import string)
 (string/shouty-snake "abcDef")        ; => "ABC_DEF"
 
@@ -528,7 +526,7 @@ i                            ; => 4 you can access i after loop.
 
 (export [somefunc])                   ; export function
 
-;; ===== Array API
+;; ===== [WIP] Array API
 (def a (array [[1, 2, 3],             ; 2d-array of i64
                [4, 5, 6]]))
 (a/shape a)                           ; => [3, 3]
@@ -544,15 +542,16 @@ i                            ; => 4 you can access i after loop.
 ([|, 1] a)                            ; => [[2, 5], [3, 6]]
 ([|, 1|2] a)                          ; => [[[2], [5]], [[3], [6]]]
 
-;; ===== Scientific Constants
+;; ===== [WIP] Scientific Constants
 
-;; 他のモジュールで定義された型の利用
-;; 強力な型推論
+;; [WIP] Utilizing types defined in other modules
+;; [WIP] Powerful type inference
 
-;; test
-;; assert
-;; Polars binding
-;; Parallel(thread, coroutine, async)
-;; SIMD
-;; JIT
+;; [WIP] test
+;; [WIP] assert
+;; [WIP] Polars binding
+;; [WIP] Parallel(thread, coroutine, async)
+;; [WIP] SIMD
+;; [WIP] JIT
+;; [WIP] Compile to Single Binary
 ;; ******************************************
