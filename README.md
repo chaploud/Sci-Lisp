@@ -29,13 +29,13 @@
 
 ## Plan/Futures (WIP)
 
-- Multiple dispatch of functions/methods.
+- Multiple dispatch of functions/methods
 - JIT (Just-in-Time) compile dynamically typed language
 - Powerful type inference
 - Using Wasm (Web Assembly) for IR (Intermediate Representation) and directory execute from source code
 - VM/Runtime is [wasmtime](https://github.com/bytecodealliance/wasmtime)
 - Compile to single binary
-- polars(<https://github.com/pola-rs/polars>) integration
+- Polars integration ([Polar](https://github.com/pola-rs/polars))
 
 ## Philosophy
 
