@@ -2316,7 +2316,7 @@ impl Function for ReplaceFn {
                     _ => Err(type_error("string", args[2].type_name().as_str())),
                 }
             }
-            _ => return Err(type_error("string/regex", args[0].type_name().as_str())),
+            _ => Err(type_error("string/regex", args[0].type_name().as_str())),
         }
     }
 }

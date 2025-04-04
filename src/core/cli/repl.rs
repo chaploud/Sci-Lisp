@@ -36,7 +36,7 @@ struct RLHelper<'a> {
     environment: &'a Rc<RefCell<Environment>>,
 }
 
-impl<'a> Completer for RLHelper<'a> {
+impl Completer for RLHelper<'_> {
     type Candidate = Pair;
 
     fn complete(
@@ -67,7 +67,7 @@ impl<'a> Completer for RLHelper<'a> {
     }
 }
 
-impl<'a> Highlighter for RLHelper<'a> {
+impl Highlighter for RLHelper<'_> {
     fn highlight<'l>(&self, line: &'l str, pos: usize) -> Cow<'l, str> {
         let highlighted = self.highlighter.highlight(line, pos);
 
