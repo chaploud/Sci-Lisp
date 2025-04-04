@@ -159,7 +159,7 @@ inf                 ; f64: positive infinity
 (array [1, 2, 3])            ; array of i64 (like numpy)
 ;; NOTE: map key must be string, i64, keyword
 
-;; ===== Datetime
+;; ===== [WIP] Datetime
 (datetime 2021 1 1
           {:tz "UTC+09"})    ; => datetime
 (duration {:hour 1})         ; => duration
