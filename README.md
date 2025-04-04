@@ -1,15 +1,15 @@
 <h1 align="center">Sci-Lisp</h1>
 
 <p align="center">
-<img src="assets/images/scilisp.png" width="140">
+  <img src="assets/images/scilisp.png" width="140" alt="Sci-Lisp logo"/>
 </p>
 
 <h4 align="center" style="margin-top: 24px">
-A Lisp for Scientific Computing written in Rust
+  A Lisp for Scientific Computing written in Rust
 </h4>
 
 <p align="center">
-<a href="https://github.com/chaploud/sci-lisp/actions/workflows/rust.yml"><img src="https://github.com/chaploud/sci-lisp/actions/workflows/rust.yml/badge.svg?branch=main" alt="rust status"/></a>
+  <a href="https://github.com/chaploud/sci-lisp/actions/workflows/rust.yml"><img src="https://github.com/chaploud/sci-lisp/actions/workflows/rust.yml/badge.svg?branch=main" alt="rust status"/></a>
 </p>
 
 ## Features (WIP)
@@ -30,8 +30,9 @@ A Lisp for Scientific Computing written in Rust
 ## Plan/Futures (WIP)
 
 - Multiple dispatch of functions/methods.
-- JIT (Just In time) compile dynamically typed language
-- Using Wasm(Web Assembly) for IR (Intermediate Representation) and directory execute from source code
+- JIT (Just-in-Time) compile dynamically typed language
+- Powerful type inference
+- Using Wasm (Web Assembly) for IR (Intermediate Representation) and directory execute from source code
 - VM/Runtime is [wasmtime](https://github.com/bytecodealliance/wasmtime)
 - Compile to single binary
 - polars(<https://github.com/pola-rs/polars>) integration
@@ -95,7 +96,7 @@ scilisp xxx.sl  # run as script
 
 ## Sci-Lisp code examples
 
-See `examples/example.sl`. 
+See `examples/example.sl`.
 
 **Note:** Functions marked as `[WIP]` (Work in Progress) are not yet implemented. Running them will result in an error.
 
